@@ -1,0 +1,67 @@
+#!/bin/sh
+. ts-test-unit
+
+test_fail () {
+true
+false
+true
+}
+
+test_exit_fail () {
+exit 8
+}
+
+test_assert_status_fail () {
+assert_status 0 1 $LINENO
+}
+
+test_assert_output_fail () {
+assert_output "hello w0rld" "hello world" $LINENO
+}
+
+test_assert_output_from_stdin_fail () {
+assert_output - "hello world" $LINENO <<doc
+hello w0rld
+doc
+}
+
+test_capture_on_off_status_fail () {
+capture_on
+false
+capture_off
+assert_status 0 $?
+}
+
+test_capture_on_off_output_fail () {
+capture_on
+exec 3>&-
+actual="$(
+echo 'hello world'
+echo 'hello world' >&2
+)"
+capture_off
+
+assert_output - "$actual" <<doc
+hello w0rld
+hello world
+doc
+}
+
+test_capture_on_off_exit_fail () {
+capture_on
+exit 0
+capture_off
+assert_status 8 $?
+}
+
+test_capture_status_fail () {
+capture echo 'hello world'
+assert_status 1 $status
+}
+
+test_capture_output_fail () {
+capture echo 'hello world'
+assert_output "hello w0rld" "$output"
+}
+
+run_test
