@@ -12,18 +12,19 @@ exit
 }
 
 test_assert_status_pass () {
-assert_status 0 0 $LINENO
+assert_status 0 0
 }
 
 test_assert_output_pass () {
-assert_output "hello world" "hello world" $LINENO
+assert_output "hello world" "hello world"
 }
 
 test_assert_output_from_stdin_pass () {
-assert_output - "hello world" $LINENO <<doc
+assert_output - "hello world" <<doc
 hello world
 doc
 }
+
 
 test_capture_on_off_status_pass () {
 capture_on

@@ -12,15 +12,15 @@ exit 8
 }
 
 test_assert_status_fail () {
-assert_status 0 1 $LINENO
+assert_status 0 1
 }
 
 test_assert_output_fail () {
-assert_output "hello w0rld" "hello world" $LINENO
+assert_output "hello w0rld" "hello world"
 }
 
 test_assert_output_from_stdin_fail () {
-assert_output - "hello world" $LINENO <<doc
+assert_output - "hello world" <<doc
 hello w0rld
 doc
 }

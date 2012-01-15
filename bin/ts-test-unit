@@ -1,0 +1,121 @@
+#
+#  Defines assertions and other functions needed
+#  to run the tests.
+#
+
+usr_dir="${TS_USR_DIR:-$(pwd)}"
+tmp_dir="${TS_TMP_DIR:-$usr_dir/tmp}"
+test_file=$0
+test_name=$1
+output=
+status=
+
+setup () {
+  true
+}
+
+teardown () {
+  true
+}
+
+flunk () {
+  message="$1"
+  printf "flunk" >&2
+  #printf "[$TS_TEST_FILE:${lineno:-$TS_TEST_LINENO}] $TS_TEST_NAME\n$message\n" 1>"$TS_TEST_LOG"
+  exit 1
+}
+
+# Flunks unless the numbers $1 (expected) and $2 (actual) are the same.
+assert_status () {
+  expected=$1; actual=$2
+
+  if [ $actual -ne $expected ]
+  then flunk "expected exit status $expected but was $actual"
+  fi
+}
+
+# Flunks unless the strings $1 (expected) and $2 (actual) are the same.  Reads
+# from stdin for '-'.
+assert_output () {
+  expected="$(cat)"; actual="$2"
+
+  if [ "$actual" != "$expected" ]
+  then
+    echo -e "$expected" > "$TS_TEST_DIR.expect"
+    echo -e "$actual"   > "$TS_TEST_DIR.actual"
+    delta="$(diff "$TS_TEST_DIR.expect" "$TS_TEST_DIR.actual")"
+    flunk "unequal content:\n$delta"
+  fi
+}
+
+# # Normally stderr is directed at a trace file so that it can be used to debug
+# # errors, and set -e is on so that any non-zero exit will terminate the
+# # script.  Note stdout is still set to the terminal for inline debugging.
+# #
+# # capture sets stdout/stderr to the terminal and turns off set -e. The
+# # terminal fd is saved to the fd (default 3) so that it can be restored by
+# # capture_off. The idea is that within a capture the script behaves exactly as
+# # normal.
+# #
+# # Note capture_off returns the same as the last command.
+# capture_on () {
+# 
+# }
+# 
+# capture_off () {
+# 
+# }
+# 
+# # Runs the command and sets output,status to the stdout of the command and
+# # status to the status of the command.  Does not exit if the command fails.
+# capture () {
+#   capture_on
+#   output="$($@)"
+#   status=$?
+#   capture_off
+# }
+
+# Runs a specific test.  In that case the test output is not filtered or
+# changed. the exit status is the exit status of the specific test.
+run_test () {
+  if [ "$test_name" = "" ]
+  then run_test_suite
+  else
+    set -e -x
+    setup
+    "$test_name"
+    trap "exit $?" exit
+    teardown
+  fi
+}
+
+run_test_suite () {
+  test_case="$(basename "${test_file%\.*}")"
+  test_case_dir="$tmp_dir/$test_case"
+  mkdir -p "$test_case_dir"
+
+  grep -onE "^ *test_\w+ +\(\)" "$test_file" |
+  tr -d " ()" |
+  tr ":" " " |
+  while read lineno test_name
+  do
+    test_dir="$test_case_dir/$test_name"
+    test_log="$test_dir.log"
+    rm -rf "$TS_TEST_DIR"
+    printf "[$test_file:$lineno] $test_name\n" > "$test_log"
+
+    # use stdout for progress, stderr for debug information
+    if echo "" | "$test_file" "$test_name" 2>> "$test_log"
+    then
+      printf ".\n"
+    else
+      printf "F\n"
+      printf "exit: $?\n" >> "$test_log"
+      cat "$test_log" >&2
+    fi
+
+    if [ "${KEEP_OUTPUTS:-false}" != "true" ]
+    then rm -rf "$test_dir" "$test_dir".*
+    fi
+  done
+}
