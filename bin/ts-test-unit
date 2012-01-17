@@ -7,6 +7,7 @@ usr_dir="${TS_USR_DIR:-$(pwd)}"
 tmp_dir="${TS_TMP_DIR:-$usr_dir/tmp}"
 test_file=$0
 test_name=$1
+test_dir=$2
 output=
 status=
 
@@ -47,10 +48,10 @@ assert_output () {
 
   if [ "$actual" != "$expected" ]
   then
-    printf "$expected" > "$TS_TEST_DIR.expect"
-    printf "$actual"   > "$TS_TEST_DIR.actual"
+    printf "$expected" > "$test_dir.expect"
+    printf "$actual"   > "$test_dir.actual"
     printf "unequal output:\n"
-    diff "$TS_TEST_DIR.expect" "$TS_TEST_DIR.actual"
+    diff "$test_dir.expect" "$test_dir.actual"
   fi
   PS4="${PS4%- }"
 }
@@ -106,12 +107,12 @@ run_test_suite () {
   while read lineno test_name
   do
     test_dir="$test_case_dir/$test_name"
-    rm -rf "$TS_TEST_DIR"
+    rm -rf "$test_dir"
 
     printf "[$test_file:$lineno] $test_name\n"
 
     # use stdout for progress, stderr for debug information
-    if echo "" | "$test_file" "$test_name" 
+    if echo "" | "$test_file" "$test_name" "$test_dir"
     then
       printf ".\n"
     else
