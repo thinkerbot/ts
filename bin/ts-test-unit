@@ -18,34 +18,41 @@ teardown () {
   true
 }
 
-flunk () {
-  message="$1"
-  printf "flunk" >&2
-  #printf "[$TS_TEST_FILE:${lineno:-$TS_TEST_LINENO}] $TS_TEST_NAME\n$message\n" 1>"$TS_TEST_LOG"
-  exit 1
-}
-
 # Flunks unless the numbers $1 (expected) and $2 (actual) are the same.
 assert_status () {
+  PS4="$PS4- "
   expected=$1; actual=$2
 
   if [ $actual -ne $expected ]
-  then flunk "expected exit status $expected but was $actual"
+  then 
+    printf "expected status $expected but was $actual\n"
+    exit 1
   fi
+  PS4="${PS4%- }"
 }
 
 # Flunks unless the strings $1 (expected) and $2 (actual) are the same.  Reads
 # from stdin for '-'.
 assert_output () {
-  expected="$(cat)"; actual="$2"
+  PS4="$PS4- "
+  expected="$1"; actual="$2"
+
+  if [ "$expected" = "-" ]
+  then expected="$(cat)"
+  fi
+
+  if [ "$actual" = "-" ]
+  then actual="$(cat)"
+  fi
 
   if [ "$actual" != "$expected" ]
   then
-    echo -e "$expected" > "$TS_TEST_DIR.expect"
-    echo -e "$actual"   > "$TS_TEST_DIR.actual"
-    delta="$(diff "$TS_TEST_DIR.expect" "$TS_TEST_DIR.actual")"
-    flunk "unequal content:\n$delta"
+    printf "$expected" > "$TS_TEST_DIR.expect"
+    printf "$actual"   > "$TS_TEST_DIR.actual"
+    printf "unequal output:\n"
+    diff "$TS_TEST_DIR.expect" "$TS_TEST_DIR.actual"
   fi
+  PS4="${PS4%- }"
 }
 
 # # Normally stderr is directed at a trace file so that it can be used to debug
@@ -81,10 +88,9 @@ run_test () {
   if [ "$test_name" = "" ]
   then run_test_suite
   else
-    set -e -x
+    set -ex
     setup
     "$test_name"
-    trap "exit $?" exit
     teardown
   fi
 }
@@ -100,18 +106,16 @@ run_test_suite () {
   while read lineno test_name
   do
     test_dir="$test_case_dir/$test_name"
-    test_log="$test_dir.log"
     rm -rf "$TS_TEST_DIR"
-    printf "[$test_file:$lineno] $test_name\n" > "$test_log"
+
+    printf "[$test_file:$lineno] $test_name\n"
 
     # use stdout for progress, stderr for debug information
-    if echo "" | "$test_file" "$test_name" 2>> "$test_log"
+    if echo "" | "$test_file" "$test_name" 
     then
       printf ".\n"
     else
-      printf "F\n"
-      printf "exit: $?\n" >> "$test_log"
-      cat "$test_log" >&2
+      printf "exit: $?\nF\n"
     fi
 
     if [ "${KEEP_OUTPUTS:-false}" != "true" ]

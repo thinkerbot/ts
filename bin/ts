@@ -1,0 +1,28 @@
+messages="tmp/msg"
+
+# run test and progress
+./test/fail_test 2>&1 | 
+sed -ne "
+  /^\[/ b show
+  H
+  $ !b
+  :show
+  x
+
+  /\.\$/a\\
+.
+  /F\$/a\\
+F
+
+  s/F\$//w $messages
+" |
+tr -d "\n"
+
+# backtrace
+cat "$messages" |
+sed -e "
+  /^${PS4:0:1}\{0,\}$PS4- /d
+  /^${PS4}PS4='${PS4}- '/d
+"
+
+rm "$messages"
