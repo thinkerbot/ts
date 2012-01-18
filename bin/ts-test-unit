@@ -5,6 +5,7 @@
 
 usr_dir="${TS_USR_DIR:-$(pwd)}"
 tmp_dir="${TS_TMP_DIR:-$usr_dir/tmp}"
+keep_outputs="${TS_KEEP_OUTPUTS:-false}"
 test_file=$0
 test_name=$1
 test_dir=$2
@@ -48,10 +49,12 @@ assert_output () {
 
   if [ "$actual" != "$expected" ]
   then
+    mkdir -p "$test_dir"
     printf "$expected" > "$test_dir.expect"
     printf "$actual"   > "$test_dir.actual"
     printf "unequal output:\n"
     diff "$test_dir.expect" "$test_dir.actual"
+    exit 1
   fi
   PS4="${PS4%- }"
 }
@@ -87,7 +90,8 @@ assert_output () {
 # changed. the exit status is the exit status of the specific test.
 run_test () {
   if [ "$test_name" = "" ]
-  then run_test_suite
+  then
+    run_test_suite
   else
     set -ex
     setup
@@ -96,10 +100,13 @@ run_test () {
   fi
 }
 
+# Runs all tests in the test file, identified as functions named like 'test_'.
 run_test_suite () {
+  # NOTE test file must be a full path to protect the test_case assignment
+  # from paths like "./path/to/test" which evaluates to "".
+  test_file="$(cd $(dirname "$test_file"); pwd)/$(basename "$test_file")"
   test_case="$(basename "${test_file%\.*}")"
   test_case_dir="$tmp_dir/$test_case"
-  mkdir -p "$test_case_dir"
 
   grep -onE "^ *test_\w+ +\(\)" "$test_file" |
   tr -d " ()" |
@@ -109,9 +116,14 @@ run_test_suite () {
     test_dir="$test_case_dir/$test_name"
     rm -rf "$test_dir"
 
+    # run the test by calling back into the test file
+    # * use stdout for progress, stderr for debug information
+    # * a zero exit status is considered a pass, otherwise fail
+    #
+    # NOTE an empty string is put onto stdin so that commands expecting stdin
+    # will not hang the test (presumably no input will cause the test to fail
+    # or the user can otherwise detect their mistake)
     printf "[$test_file:$lineno] $test_name\n"
-
-    # use stdout for progress, stderr for debug information
     if echo "" | "$test_file" "$test_name" "$test_dir"
     then
       printf ".\n"
@@ -119,8 +131,10 @@ run_test_suite () {
       printf "exit: $?\nF\n"
     fi
 
-    if [ "${KEEP_OUTPUTS:-false}" != "true" ]
+    if [ "$keep_outputs" != "true" ]
     then rm -rf "$test_dir" "$test_dir".*
     fi
   done
+
+  rmdir "$test_case_dir" "$tmp_dir" 2> /dev/null
 }
