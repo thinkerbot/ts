@@ -1,28 +1,103 @@
-messages="tmp/msg"
+#!/bin/sh
+############################################################################
+tmpdir=${TMPDIR:-tmp}
+xtrace=false
+keep_outputs=false
 
-# run test and progress
-./test/fail_test 2>&1 | 
-sed -ne "
-  /^\[/ b show
-  H
-  $ !b
-  :show
-  x
+usage="usage: %s [-h] [-k] [-t TMPDIR] [-x] [TEST_FILES...]\n"
+option="       %s   %s\n"
+while getopts "hkt:x" opt
+do
+  case $opt in
+  h  )  printf "$usage" "$0"
+        printf "$option" "-h" "prints this help"
+        printf "$option" "-k" "keep test outputs"
+        printf "$option" "-t" "test temp dir"
+        printf "$option" "-x" "xtrace this script"
+        exit 0 ;;
+  k  )  keep_outputs=true ;;
+  t  )  tmpdir=$OPTARG ;;
+  x  )  xtrace=true ;;
+  \? )  printf "$usage" "$0"
+        exit 2 ;;
+  esac
+done
+shift $(($OPTIND - 1))
 
-  /\.\$/a\\
+mkdir -p "$tmpdir"
+tmpdir="$(cd "$tmpdir"; pwd)"
+
+export TS_USR_DIR="$(pwd)"
+export TS_TMP_DIR="${tmpdir%/}"
+export TS_KEEP_OUTPUTS="$keep_outputs"
+
+progress_log="$TS_TMP_DIR/progress"
+rm -f "$progress_log"
+touch "$progress_log"
+
+count_char () {
+  grep -o "$1" | wc -l | tr -d " "
+}
+
+if [ "$xtrace" = "true" ]
+then set -x
+fi
+############################################################################
+
+#
+#  Run the test cases
+#
+
+printf "Started\n"
+
+start_time=$SECONDS
+for test_file in "$@"
+do
+  errlog="$TS_TMP_DIR/$(basename "$test_file").err"
+  rm -f "$errlog"
+
+  if [ -x "$test_file" ] && [ -f "$test_file" ]
+  then
+
+    "$test_file" 2>&1 |
+    sed -ne "
+      /^\[/ b show
+      H
+      $ !b
+      :show
+      x
+
+      /\.\$/a\\
 .
-  /F\$/a\\
+      /F\$/a\\
 F
 
-  s/F\$//w $messages
-" |
-tr -d "\n"
+      s/F\$//w $errlog
+    " |
+    tr -d "\n" |
+    tee -a "$progress_log"
 
-# backtrace
-cat "$messages" |
+  elif ! [ -f "$test_file" ]
+  then
+    printf "-"
+    printf "[$test_file] not a file\n\n" > "$errlog"
+  else
+    printf "-"
+    printf "[$test_file] not executable\n\n" > "$errlog"
+  fi
+done
+end_time=$SECONDS
+
+printf "\nFinished in $(($end_time - $start_time))s\n\n"
+cat "$TS_TMP_DIR"/*.err |
 sed -e "
   /^${PS4:0:1}\{0,\}$PS4- /d
   /^${PS4}PS4='${PS4}- '/d
 "
+printf "$(count_char '\.' < "$progress_log") pass, $(count_char 'F' < "$progress_log") fail\n"
 
-rm "$messages"
+if [ "$keep_outputs" != "true" ]
+then
+  rm "$progress_log" "$TS_TMP_DIR"/*.err
+  rmdir "$TS_TMP_DIR" 2>/dev/null
+fi
