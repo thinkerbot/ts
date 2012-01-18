@@ -103,8 +103,8 @@ run_test () {
 run_test_suite () {
   # NOTE test file must be a full path to protect the test_case assignment
   # from paths like "./path/to/test" which evaluates to "".
-  test_file="$(cd $(dirname "$test_file"); pwd)/$(basename "$test_file")"
-  test_case="$(basename "${test_file%\.*}")"
+  full_test_file="$(cd $(dirname "$test_file"); pwd)/$(basename "$test_file")"
+  test_case="$(basename "${full_test_file%\.*}")"
   test_case_dir="$tmp_dir/$test_case"
 
   grep -onE "^ *test_\w+ +\(\)" "$test_file" |
