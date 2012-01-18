@@ -93,7 +93,6 @@ run_test () {
   then
     run_test_suite
   else
-    set -ex
     setup
     "$test_name"
     teardown
