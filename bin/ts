@@ -14,8 +14,8 @@ do
         printf "$opt" "-k" "keep test outputs"
         printf "$opt" "-t" "test temp dir"
         exit 0 ;;
-  k  )  TS_CLEANUP=true ;;
-  t  )  TMPDIR=$OPTARG ;;
+  k  )  TS_CLEANUP=false ;;
+  t  )  TS_TMP_DIR=$OPTARG ;;
   \? )  printf "$use" "$0"
         exit 2 ;;
   esac
@@ -23,8 +23,8 @@ done
 shift $(($OPTIND - 1))
 
 TS_USR_DIR="$(pwd)"
-TS_TMP_DIR="${TMPDIR:-tmp}"
-TS_CLEANUP="${TS_CLEANUP:-false}"
+TS_TMP_DIR="${TS_TMP_DIR:-tmp}"
+TS_CLEANUP="${TS_CLEANUP:-true}"
 
 ############################################################################
 # Count the number of $1 chars on stdin
@@ -79,8 +79,8 @@ mkdir -p "$TS_TMP_DIR"
 TS_TMP_DIR="$(cd "$TS_TMP_DIR" || exit 1; pwd)"
 
 # Prepare log files
-log="$TS_TMP_DIR/log"
-err="$TS_TMP_DIR/err"
+log="$TS_TMP_DIR/tslog"
+err="$TS_TMP_DIR/tserr"
 rm -f "$log" "$err"
 touch "$log" "$err"
 
@@ -106,12 +106,10 @@ end=$SECONDS
 
 # Report results
 printf "\nFinished in %ss\n\n" "$(($end - $start))"
-cat "$err"
+cat "$err" >&2
 printf "%s pass, %s fail\n" "$(count '\.' < "$log")" "$(count 'F' < "$log")"
 
 # Cleanup
-if [ "$TS_CLEANUP" != "true" ]
-then
-  rm -f "$log" "$err" "$TS_TMP_DIR"/*.out
-  rmdir "$TS_TMP_DIR" 2>/dev/null
+if [ "true" = "$TS_CLEANUP" ]
+then rm -r "$TS_TMP_DIR"
 fi
