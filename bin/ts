@@ -1,103 +1,117 @@
 #!/bin/sh
 ############################################################################
-tmpdir=${TMPDIR:-tmp}
-xtrace=false
-keep_outputs=false
+export TS_USR_DIR
+export TS_TMP_DIR
+export TS_CLEANUP
 
-usage="usage: %s [-h] [-k] [-t TMPDIR] [-x] [TEST_FILES...]\n"
-option="       %s   %s\n"
+use="usage: %s [-h] [-k] [-t TMPDIR] [TEST_FILES...]\n"
+opt="       %s   %s\n"
 while getopts "hkt:x" opt
 do
   case $opt in
-  h  )  printf "$usage" "$0"
-        printf "$option" "-h" "prints this help"
-        printf "$option" "-k" "keep test outputs"
-        printf "$option" "-t" "test temp dir"
-        printf "$option" "-x" "xtrace this script"
+  h  )  printf "$use" "$0"
+        printf "$opt" "-h" "prints this help"
+        printf "$opt" "-k" "keep test outputs"
+        printf "$opt" "-t" "test temp dir"
         exit 0 ;;
-  k  )  keep_outputs=true ;;
-  t  )  tmpdir=$OPTARG ;;
-  x  )  xtrace=true ;;
-  \? )  printf "$usage" "$0"
+  k  )  TS_CLEANUP=true ;;
+  t  )  TMPDIR=$OPTARG ;;
+  \? )  printf "$use" "$0"
         exit 2 ;;
   esac
 done
 shift $(($OPTIND - 1))
 
-mkdir -p "$tmpdir"
-tmpdir="$(cd "$tmpdir"; pwd)"
+TS_USR_DIR="$(pwd)"
+TS_TMP_DIR="${TMPDIR:-tmp}"
+TS_CLEANUP="${TS_CLEANUP:-false}"
 
-export TS_USR_DIR="$(pwd)"
-export TS_TMP_DIR="${tmpdir%/}"
-export TS_KEEP_OUTPUTS="$keep_outputs"
-
-progress_log="$TS_TMP_DIR/progress"
-rm -f "$progress_log"
-touch "$progress_log"
-
-count_char () {
-  grep -o "$1" | wc -l | tr -d " "
+############################################################################
+# Count the number of $1 chars on stdin
+count () {
+grep -o "$1" | wc -l | tr -d " "
 }
 
-if [ "$xtrace" = "true" ]
-then set -x
-fi
-############################################################################
-
+# Check the input stream for output in the format:
 #
-#  Run the test cases
+#   [test/case:10] test_name
+#   + true
+#   P
 #
+# Partition failing output to $1, discard passing output.  Print to stdout '.'
+# for passing tests and 'F' otherwise.
+monitor () {
+sed -ne "
+/^\[/ b show
+H
+$ !b
+:show
+x
 
-printf "Started\n"
-
-start_time=$SECONDS
-for test_file in "$@"
-do
-  errlog="$TS_TMP_DIR/$(basename "$test_file").err"
-  rm -f "$errlog"
-
-  if [ -x "$test_file" ] && [ -f "$test_file" ]
-  then
-
-    "$test_file" 2>&1 |
-    sed -ne "
-      /^\[/ b show
-      H
-      $ !b
-      :show
-      x
-
-      /\.\$/a\\
+/P\$/a\\
 .
-      /F\$/a\\
+/F\$/a\\
 F
 
-      s/F\$//w $errlog
-    " |
-    tr -d "\n" |
-    tee -a "$progress_log"
+s/F\$//w $1
+" | tr -d "\n"
+}
 
-  elif ! [ -f "$test_file" ]
-  then
-    printf "-"
-    printf "[$test_file] not a file\n\n" > "$errlog"
-  else
-    printf "-"
-    printf "[$test_file] not executable\n\n" > "$errlog"
-  fi
-done
-end_time=$SECONDS
+# Print '-' to stdout and a message to stderr.
+skip () {
+printf "-"
+printf "[%s] %s\n\n" "$1" "$2" >&2
+continue
+}
 
-printf "\nFinished in $(($end_time - $start_time))s\n\n"
-cat "$TS_TMP_DIR"/*.err |
+# Abbreviate stdin by deleting xtrace lines using PS4="$PS4-"
+untrace () {
 sed -e "
-  /^${PS4:0:1}\{0,\}$PS4- /d
-  /^${PS4}PS4='${PS4}- '/d
+/^${PS4:0:1}\{0,\}$PS4- /d
+/^${PS4}PS4='${PS4}- '/d
 "
-printf "$(count_char '\.' < "$progress_log") pass, $(count_char 'F' < "$progress_log") fail\n"
+}
+############################################################################
+printf "Started\n"
 
-if [ "$keep_outputs" != "true" ]
+# Make and expand TS_TMP_DIR
+mkdir -p "$TS_TMP_DIR"
+TS_TMP_DIR="$(cd "$TS_TMP_DIR" || exit 1; pwd)"
+
+# Prepare log files
+log="$TS_TMP_DIR/log"
+err="$TS_TMP_DIR/err"
+rm -f "$log" "$err"
+touch "$log" "$err"
+
+# Run the test files
+start=$SECONDS
+for test_file in "$@"
+do
+  out="$TS_TMP_DIR/$(basename "$test_file").out"
+  rm -f "$out"
+
+  if ! [ -f "$test_file" ]
+  then skip "$test_file" "not a file" 2>> "$err"
+  fi
+
+  if ! [ -x "$test_file" ]
+  then skip "$test_file" "not executable" 2>> "$err"
+  fi
+
+  "$test_file" 2>&1 | monitor "$out" | tee -a "$log"
+  cat "$out" | untrace >> "$err"
+done
+end=$SECONDS
+
+# Report results
+printf "\nFinished in %ss\n\n" "$(($end - $start))"
+cat "$err"
+printf "%s pass, %s fail\n" "$(count '\.' < "$log")" "$(count 'F' < "$log")"
+
+# Cleanup
+if [ "$TS_CLEANUP" != "true" ]
 then
-  rm "$progress_log" "$TS_TMP_DIR"/*.err
+  rm -f "$log" "$err" "$TS_TMP_DIR"/*.out
   rmdir "$TS_TMP_DIR" 2>/dev/null
 fi

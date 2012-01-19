@@ -125,7 +125,7 @@ run_test_suite () {
     printf "[$test_file:$lineno] $test_name\n"
     if echo "" | "$test_file" "$test_name" "$test_dir"
     then
-      printf ".\n"
+      printf "P\n"
     else
       printf "exit: $?\nF\n"
     fi
