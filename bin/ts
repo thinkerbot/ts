@@ -4,17 +4,17 @@ export TS_USR_DIR
 export TS_TMP_DIR
 export TS_CLEANUP
 
-use="usage: %s [-h] [-k] [-t TMPDIR] [TEST_FILES...]\n"
+use="usage: %s [-c] [-h] [-t TMPDIR] [TEST_FILES...]\n"
 opt="       %s   %s\n"
-while getopts "hkt:x" opt
+while getopts "cht:x" opt
 do
   case $opt in
+  c  )  TS_CLEANUP=true ;;
   h  )  printf "$use" "$0"
+        printf "$opt" "-c" "cleanup tmp dir on complete"
         printf "$opt" "-h" "prints this help"
-        printf "$opt" "-k" "keep test outputs"
-        printf "$opt" "-t" "test temp dir"
+        printf "$opt" "-t" "test tmp dir"
         exit 0 ;;
-  k  )  TS_CLEANUP=false ;;
   t  )  TS_TMP_DIR=$OPTARG ;;
   \? )  printf "$use" "$0"
         exit 2 ;;
@@ -24,7 +24,7 @@ shift $(($OPTIND - 1))
 
 TS_USR_DIR="$(pwd)"
 TS_TMP_DIR="${TS_TMP_DIR:-tmp}"
-TS_CLEANUP="${TS_CLEANUP:-true}"
+TS_CLEANUP="${TS_CLEANUP:-false}"
 
 ############################################################################
 # Count the number of $1 chars on stdin
