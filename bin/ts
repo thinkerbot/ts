@@ -6,9 +6,9 @@ export TS_CLEANUP
 
 use="usage: %s [-c] [-h] [-t TMPDIR] [TEST_FILES...]\n"
 opt="       %s   %s\n"
-while getopts "cht:x" opt
+while getopts "cht:x" option
 do
-  case $opt in
+  case $option in
   c  )  TS_CLEANUP=true ;;
   h  )  printf "$use" "$0"
         printf "$opt" "-c" "cleanup tmp dir on complete"
