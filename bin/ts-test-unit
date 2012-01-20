@@ -87,17 +87,11 @@ run_test () {
   teardown
 }
 
-# Prints to stdout the lineno and name of tests in file $1, identified as
-# functions named like 'test_'.
-test_suite () {
-  grep -onE "^ *test_\w+ +\(\)" "$1" |
-  tr -d " ()" |
-  tr ":" " "
-}
-
-# Runs all tests in the test suite.
+# Runs all tests in the test file.
 run_test_suite () {
-  test_suite "$test_file" |
+  grep -onE "^ *test_\w+ +\(\)" "$test_file"  |
+  tr -d " ()" |
+  tr ":" " " |
   while read lineno test_name
   do
     # run the test by calling back into the test file
