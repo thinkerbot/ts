@@ -29,7 +29,7 @@ TS_CLEANUP="${TS_CLEANUP:-false}"
 ############################################################################
 # Count the number of $1 chars on stdin
 count () {
-grep -o "$1" | wc -l | tr -d " "
+  grep -o "$1" | wc -l | tr -d " "
 }
 
 # Check the input stream for output in the format:
@@ -41,35 +41,35 @@ grep -o "$1" | wc -l | tr -d " "
 # Partition failing output to $1, discard passing output.  Print to stdout '.'
 # for passing tests and 'F' otherwise.
 monitor () {
-sed -ne "
-/^\[/ b show
-H
-$ !b
-:show
-x
+  sed -ne "
+  /^\[/ b show
+  H
+  $ !b
+  :show
+  x
 
-/P\$/a\\
+  /P\$/a\\
 .
-/F\$/a\\
+  /F\$/a\\
 F
 
-s/F\$//w $1
-" | tr -d "\n"
+  s/F\$//w $1
+  " | tr -d "\n"
 }
 
 # Print '-' to stdout and a message to stderr.
 skip () {
-printf "-"
-printf "[%s] %s\n\n" "$1" "$2" >&2
-continue
+  printf "-"
+  printf "[%s] %s\n\n" "$1" "$2" >&2
+  continue
 }
 
 # Abbreviate stdin by deleting xtrace lines using PS4="$PS4-"
 untrace () {
-sed -e "
-/^${PS4:0:1}\{0,\}$PS4- /d
-/^${PS4}PS4='${PS4}- '/d
-"
+  sed -e "
+  /^${PS4:0:1}\{0,\}$PS4- /d
+  /^${PS4}PS4='${PS4}- '/d
+  "
 }
 ############################################################################
 printf "Started\n"
