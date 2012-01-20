@@ -24,7 +24,7 @@ assert_status () {
   PS4="$PS4- "
   expected=$1; actual=$2
 
-  if [ $actual -ne $expected ]
+  if ! [ $actual -eq $expected ]
   then 
     printf "expected status $expected but was $actual\n"
     exit 1
@@ -38,15 +38,16 @@ assert_output () {
   PS4="$PS4- "
   expected="$1"; actual="$2"
 
-  if [ "$expected" = "-" ]
+  # use x to protect against '-' on ancient systems
+  if [ x"$expected" = x"-" ]
   then expected="$(cat)"
   fi
 
-  if [ "$actual" = "-" ]
+  if [ x"$actual" = x"-" ]
   then actual="$(cat)"
   fi
 
-  if [ "$actual" != "$expected" ]
+  if [ x"$actual" != x"$expected" ]
   then
     mkdir -p "$(dirname "$test_dir")"
     printf "%s" "$expected" > "$test_dir.expect"

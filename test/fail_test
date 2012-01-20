@@ -19,6 +19,10 @@ test_assert_status_fail () {
 assert_status 0 1
 }
 
+test_assert_status_fail_with_str_input () {
+assert_status "a" "a"
+}
+
 test_assert_output_fail () {
 assert_output "hello w0rld" "hello world"
 }
