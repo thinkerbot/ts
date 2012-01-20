@@ -6,6 +6,10 @@ usr_dir="${TS_USR_DIR:-$(pwd)}"
 tmp_dir="${TS_TMP_DIR:-$usr_dir/tmp}"
 test_file="$0"
 test_name="$1"
+test_case="$(basename "$test_file")"
+test_case="${test_case%\.*}"
+test_dir="$tmp_dir/$test_case/$test_name"
+test_dir="${test_dir%/}"
 
 ############################################################################
 
@@ -70,10 +74,6 @@ run_test () {
   exec <&-
 
   # prepare the test dir
-  test_case="$(basename "$test_file")"
-  test_case="${test_case%\.*}"
-  test_dir="$tmp_dir/$test_case/$test_name"
-
   if [ -e "$test_dir" ] && ! rm -r "$test_dir"
   then
     printf "could not remove existing test dir: %s\n" "$test_dir" >&2
