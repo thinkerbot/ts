@@ -2,9 +2,8 @@
 # This file is meant to be sourced into the actual test file.
 ############################################################################
 
-TS_USR_DIR="$(pwd)"
-TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
-TS_CLEANUP="${TS_CLEANUP:-false}"
+usr_dir="${TS_USR_DIR:-$(pwd)}"
+tmp_dir="${TS_TMP_DIR:-$usr_dir/tmp}"
 test_file="$0"
 test_name="$1"
 output=
@@ -49,9 +48,9 @@ assert_output () {
 
   if [ "$actual" != "$expected" ]
   then
-    mkdir -p "$test_dir"
-    printf "$expected" > "$test_dir.expect"
-    printf "$actual"   > "$test_dir.actual"
+    mkdir -p "$(dirname "$test_dir")"
+    printf "%s" "$expected" > "$test_dir.expect"
+    printf "%s" "$actual"   > "$test_dir.actual"
     printf "unequal output:\n"
     diff "$test_dir.expect" "$test_dir.actual"
     exit 1
@@ -101,7 +100,7 @@ run_test () {
   # prepare the test dir
   test_case="$(basename "$test_file")"
   test_case="${test_case%\.*}"
-  test_dir="$TS_TMP_DIR/$test_case/$test_name"
+  test_dir="$tmp_dir/$test_case/$test_name"
 
   if [ -e "$test_dir" ] && ! rm -r "$test_dir"
   then
