@@ -23,7 +23,7 @@ done
 shift $(($OPTIND - 1))
 
 TS_USR_DIR="$(pwd)"
-TS_TMP_DIR="${TS_TMP_DIR:-tmp}"
+TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 TS_CLEANUP="${TS_CLEANUP:-false}"
 
 ############################################################################

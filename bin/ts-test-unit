@@ -1,16 +1,16 @@
-#
-#  Defines assertions and other functions needed
-#  to run the tests.
-#
+############################################################################
+# This file is meant to be sourced into the actual test file.
+############################################################################
 
-usr_dir="${TS_USR_DIR:-$(pwd)}"
-tmp_dir="${TS_TMP_DIR:-$usr_dir/tmp}"
-keep_outputs="${TS_KEEP_OUTPUTS:-false}"
-test_file=$0
-test_name=$1
-test_dir=$2
+TS_USR_DIR="$(pwd)"
+TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
+TS_CLEANUP="${TS_CLEANUP:-false}"
+test_file="$0"
+test_name="$1"
 output=
 status=
+
+############################################################################
 
 setup () {
   true
@@ -89,51 +89,52 @@ assert_output () {
 # Runs a specific test.  In that case the test output is not filtered or
 # changed. the exit status is the exit status of the specific test.
 run_test () {
-  if [ "$test_name" = "" ]
+  if [ "" = "$test_name" ]
   then
     run_test_suite
-  else
-    setup
-    "$test_name"
-    teardown
+    exit $?
   fi
+
+  # close stdin so that commands expecting stdin will not hang
+  exec <&-
+
+  # prepare the test dir
+  test_case="$(basename "$test_file")"
+  test_case="${test_case%\.*}"
+  test_dir="$TS_TMP_DIR/$test_case/$test_name"
+
+  if [ -e "$test_dir" ] && ! rm -r "$test_dir"
+  then
+    printf "could not remove existing test dir: %s\n" "$test_dir" >&2
+    exit 1
+  fi
+
+  setup
+  "$test_name"
+  teardown
 }
 
-# Runs all tests in the test file, identified as functions named like 'test_'.
-run_test_suite () {
-  # NOTE test file must be a full path to protect the test_case assignment
-  # from paths like "./path/to/test" which evaluates to "".
-  full_test_file="$(cd $(dirname "$test_file"); pwd)/$(basename "$test_file")"
-  test_case="$(basename "${full_test_file%\.*}")"
-  test_case_dir="$tmp_dir/$test_case"
-
-  grep -onE "^ *test_\w+ +\(\)" "$test_file" |
+# Prints to stdout the lineno and name of tests in file $1, identified as
+# functions named like 'test_'.
+test_suite () {
+  grep -onE "^ *test_\w+ +\(\)" "$1" |
   tr -d " ()" |
-  tr ":" " " |
+  tr ":" " "
+}
+
+# Runs all tests in the test suite.
+run_test_suite () {
+  test_suite "$test_file" |
   while read lineno test_name
   do
-    test_dir="$test_case_dir/$test_name"
-    rm -rf "$test_dir"
-
     # run the test by calling back into the test file
     # * use stdout for progress, stderr for debug information
     # * a zero exit status is considered a pass, otherwise fail
-    #
-    # NOTE an empty string is put onto stdin so that commands expecting stdin
-    # will not hang the test (presumably no input will cause the test to fail
-    # or the user can otherwise detect their mistake)
     printf "[$test_file:$lineno] $test_name\n"
-    if echo "" | "$test_file" "$test_name" "$test_dir"
-    then
-      printf "P\n"
-    else
-      printf "exit: $?\nF\n"
-    fi
 
-    if [ "$keep_outputs" != "true" ]
-    then rm -rf "$test_dir" "$test_dir".*
+    if "$test_file" "$test_name"
+    then printf "P\n"
+    else printf "exit: %s\nF\n" "$?"
     fi
   done
-
-  rmdir "$test_case_dir" "$tmp_dir" 2> /dev/null
 }
