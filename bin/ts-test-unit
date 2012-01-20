@@ -59,33 +59,6 @@ assert_output () {
   PS4="${PS4%- }"
 }
 
-# # Normally stderr is directed at a trace file so that it can be used to debug
-# # errors, and set -e is on so that any non-zero exit will terminate the
-# # script.  Note stdout is still set to the terminal for inline debugging.
-# #
-# # capture sets stdout/stderr to the terminal and turns off set -e. The
-# # terminal fd is saved to the fd (default 3) so that it can be restored by
-# # capture_off. The idea is that within a capture the script behaves exactly as
-# # normal.
-# #
-# # Note capture_off returns the same as the last command.
-# capture_on () {
-# 
-# }
-# 
-# capture_off () {
-# 
-# }
-# 
-# # Runs the command and sets output,status to the stdout of the command and
-# # status to the status of the command.  Does not exit if the command fails.
-# capture () {
-#   capture_on
-#   output="$($@)"
-#   status=$?
-#   capture_off
-# }
-
 # Runs a specific test.  In that case the test output is not filtered or
 # changed. the exit status is the exit status of the specific test.
 run_test () {
