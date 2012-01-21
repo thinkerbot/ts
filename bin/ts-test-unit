@@ -34,8 +34,8 @@ assert_status () {
   PS4="${PS4%- }"
 }
 
-# Flunks unless the strings $1 (expected) and $2 (actual) are the same.  Reads
-# from stdin for '-'.
+# Flunks unless the variables $1 (expected) and $2 (actual) are the same. 
+# Reads from stdin for '-'.
 assert_output () {
   PS4="$PS4- "
   expected="$1"; actual="$2"

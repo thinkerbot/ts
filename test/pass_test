@@ -23,6 +23,10 @@ test_assert_status_pass_with_str_input () {
 assert_status "0" "0"
 }
 
+#
+# assert_output tests
+#
+
 test_assert_output_pass () {
 assert_output "hello world" "hello world"
 }
@@ -31,6 +35,17 @@ test_assert_output_from_stdin_pass () {
 assert_output - "hello world" <<doc
 hello world
 doc
+}
+
+test_assert_output_actual_from_stdin_pass () {
+assert_output "hello world" - <<doc
+hello world
+doc
+}
+
+test_assert_output_with_numbers_pass () {
+assert_output 0 0
+assert_output "0" "0"
 }
 
 #

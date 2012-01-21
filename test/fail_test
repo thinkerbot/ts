@@ -23,14 +23,28 @@ test_assert_status_fail_with_str_input () {
 assert_status "a" "a"
 }
 
+#
+# assert_output tests
+#
+
 test_assert_output_fail () {
-assert_output "hello w0rld" "hello world"
+assert_output "hello world" "hell0 world"
 }
 
-test_assert_output_from_stdin_fail () {
-assert_output - "hello world" <<doc
-hello w0rld
+test_assert_output_expected_from_stdin_fail () {
+assert_output - "hell0 world" <<doc
+hello world
 doc
+}
+
+test_assert_output_actual_from_stdin_fail () {
+assert_output "hello world" - <<doc
+hell0 world
+doc
+}
+
+test_assert_output_with_pattern_fail () {
+assert_output "hello.+rld" "hello world"
 }
 
 #
