@@ -2,13 +2,7 @@
 . ts-test-unit
 
 setup () {
-  set -ex
-}
-
-test_fail () {
-true
-false
-true
+  set -x
 }
 
 test_exit_fail () {

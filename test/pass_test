@@ -2,13 +2,7 @@
 . ts-test-unit
 
 setup () {
-  set -ex
-}
-
-test_pass () {
-true
-true
-true
+  set -x
 }
 
 test_exit_pass () {
