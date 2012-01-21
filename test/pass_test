@@ -15,6 +15,10 @@ test_exit_pass () {
 exit
 }
 
+#
+# assert_status tests
+#
+
 test_assert_status_pass () {
 assert_status 0 0
 }

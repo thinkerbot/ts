@@ -15,6 +15,10 @@ test_exit_fail () {
 exit 8
 }
 
+#
+# assert_status tests
+#
+
 test_assert_status_fail () {
 assert_status 0 1
 }
