@@ -61,6 +61,29 @@ assert_output () {
   PS4="${PS4%- }"
 }
 
+# Flunks unless the extended regular expression $1 (expected pattern) and $2
+# (actual) match.  Reads from stdin for '-'.
+assert_match () {
+  PS4="$PS4- "
+  patttern="$1"; actual="$2"
+
+  # use x to protect against '-' on ancient systems
+  if [ x"$patttern" = x"-" ]
+  then patttern="$(cat)"
+  fi
+
+  if [ x"$actual" = x"-" ]
+  then actual="$(cat)"
+  fi
+
+  if ! [[ "$actual" =~ $patttern ]]
+  then
+    printf "does not match pattern: %s\n%s\n" "$patttern" "$actual"
+    exit 1
+  fi
+  PS4="${PS4%- }"
+}
+
 # Runs a specific test.  In that case the test output is not filtered or
 # changed. the exit status is the exit status of the specific test.
 run_test () {

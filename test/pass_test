@@ -33,4 +33,24 @@ hello world
 doc
 }
 
+#
+# assert_match tests
+#
+
+test_assert_match_pass () {
+assert_match "hello.+rld" "hello world"
+}
+
+test_assert_match_pattern_from_stdin_pass () {
+assert_match - "hello world" <<doc
+hello.+rld
+doc
+}
+
+test_assert_match_output_from_stdin_pass () {
+assert_match "hello.+rld" - <<doc
+hello world
+doc
+}
+
 run_test
