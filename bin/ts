@@ -71,6 +71,10 @@ grep -onEH "^ *test_\w+ +\(\)" "$@" |
 tr -d " ()" |
 tr ":" " "  | {
 
+# if ! $debug
+# then exec 2> /dev/null
+# fi
+
 npass=0
 nfail=0
 start=$SECONDS
@@ -81,7 +85,7 @@ do
   # * a zero exit status is considered a pass, otherwise fail
   if
     printf "[$test_file:$lineno:$test_name]\n"
-    "$test_file" "$test_name" 2>&1
+    "$test_file" "$test_name"
   then
     printf ".\n"
     ((npass++))
@@ -93,7 +97,7 @@ done
 end=$SECONDS
 printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$res"
 
-} | monitor "$err"
+} 2>&1 | monitor "$err"
 
 printf "\n"
 cat "$err" >&2
