@@ -31,11 +31,6 @@ TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 TS_CLEANUP="${TS_CLEANUP:-false}"
 
 ############################################################################
-# Count the number of $1 chars on stdin
-count () {
-  grep -o "$1" | wc -l | tr -d " "
-}
-
 # Check the input stream for output in the format:
 #
 #   [test/case:10] test_name
@@ -45,8 +40,6 @@ count () {
 # Partition failing output to $1, discard passing output.  Print to stdout '.'
 # for passing tests and 'F' otherwise.
 monitor () {
-  # sed # if -v
-  
 sed -lne "
 /^\[/ b show
 H
@@ -62,15 +55,8 @@ F
 s/F\$//w $1
 " | tr -ud "\n"
 }
-# Abbreviate stdin by deleting xtrace lines using PS4="$PS4-"
-untrace () {
-  sed -e "
-  /^${PS4:0:1}\{0,\}$PS4- /d
-  /^${PS4}PS4='${PS4}- '/d
-  "
-}
-
 ############################################################################
+
 # Make and expand TS_TMP_DIR
 mkdir -p "$TS_TMP_DIR"
 TS_TMP_DIR="$(cd "$TS_TMP_DIR" || exit 1; pwd)"
@@ -110,12 +96,10 @@ printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$res
 } | monitor "$err"
 
 printf "\n"
-cat "$err" "$res" #| untrace
-
+cat "$err" >&2
+cat "$res"
 
 # Cleanup
-# rm -f "$input" "$output" "$errors"
-
 if [ "true" = "$TS_CLEANUP" ]
 then rm -r "$TS_TMP_DIR"
 fi
