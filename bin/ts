@@ -68,48 +68,56 @@ TS_TMP_DIR="$(cd "$TS_TMP_DIR" || exit 1; pwd)"
 
 
 # Run the test files
-printf "Started\n"
-
 npass=0
 nfail=0
 start=$SECONDS
 
-tests="$TS_TMP_DIR/tests"
 grep -onEH "^ *test_\w+ +\(\)" "$@" | 
 tr -d " ()" | 
-tr ":" " " > "$tests"
+tr ":" " "  | {
+
+log="$TS_TMP_DIR/log"
+log=/dev/null    # if -v
+
+exec 3>&1
+exec 4> "$log"
+printf "\n" >&4
 
 while read test_file lineno test_name
 do
+  out="$TS_TMP_DIR/$test_name.out"
+  rm -f "$out"
+  # exec 1> "$out"    # unless -v
+  exec 2>/dev/null
+  # exec 2>&1         # if -d 
+
   # run the test by calling back into the test file
   # * use stdout for progress, stderr for debug information
   # * a zero exit status is considered a pass, otherwise fail
-  printf "\n[$test_file:$lineno:$test_name]\n"
-
-  if ! [ -x "$test_file" ]
-  then
-    printf "not executable"
-    printf "-"
-    continue
-  fi
+  printf "[$test_file:$lineno:$test_name]\n"
 
   if "$test_file" "$test_name" "$lineno"
   then
-    printf "."
+    printf "." >&3
     ((npass++))
   else
-    printf "F"
+    printf "F" >&3
+
+
+    cat "$out"  >&4
+    printf "\n" >&4
+
     ((nfail++))
   fi
 
   printf "\n"
-done < "$tests"
-
+done
+exec 1>&3 3>&- 4>&-
 end=$SECONDS
 
-# Report results
-printf "\nFinished in %ss\n" "$(($end - $start))"
-printf "%s pass, %s fail\n" "$npass" "$nfail"
+cat "$log"
+printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))"
+}
 
 # Cleanup
 # rm -f "$input" "$output" "$errors"
