@@ -31,6 +31,11 @@ TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 TS_CLEANUP="${TS_CLEANUP:-false}"
 
 ############################################################################
+# Count the number of $1 chars on stdin
+count () {
+  grep -o "$1" | wc -l | tr -d " "
+}
+
 # Check the input stream for output in the format:
 #
 #   [test/case:10] test_name
@@ -40,7 +45,7 @@ TS_CLEANUP="${TS_CLEANUP:-false}"
 # Partition failing output to $1, discard passing output.  Print to stdout '.'
 # for passing tests and 'F' otherwise.
 monitor () {
-  # sed
+  # sed # if -v
   
 sed -lne "
 /^\[/ b show
@@ -69,42 +74,44 @@ untrace () {
 # Make and expand TS_TMP_DIR
 mkdir -p "$TS_TMP_DIR"
 TS_TMP_DIR="$(cd "$TS_TMP_DIR" || exit 1; pwd)"
-log="$TS_TMP_DIR/log"
-rm -f "$log"
-touch "$log"
-# Prepare log files
 
+# Prepare log files
+res="$TS_TMP_DIR/res"
+err="$TS_TMP_DIR/err"
+rm -f "$out" "$err"
 
 # Run the test files
+grep -onEH "^ *test_\w+ +\(\)" "$@" |
+tr -d " ()" |
+tr ":" " "  | {
+
 npass=0
 nfail=0
 start=$SECONDS
-
-grep -onEH "^ *test_\w+ +\(\)" "$@" | 
-tr -d " ()" | 
-tr ":" " "  |
 while read test_file lineno test_name
 do
-  exec 2>/dev/null
-  # exec 2>&1         # if -d 
-  if 
+  # run the test by calling back into the test file
+  # * use stdout for progress, stderr for debug information
+  # * a zero exit status is considered a pass, otherwise fail
+  if
     printf "[$test_file:$lineno:$test_name]\n"
-    # run the test by calling back into the test file
-    # * use stdout for progress, stderr for debug information
-    # * a zero exit status is considered a pass, otherwise fail
-    "$test_file" "$test_name" "$lineno"
+    "$test_file" "$test_name" 2>&1
   then
     printf ".\n"
+    ((npass++))
   else
     printf "F\n"
+    ((nfail++))
   fi
-done | monitor "$log"
-
+done
 end=$SECONDS
+printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$res"
+
+} | monitor "$err"
 
 printf "\n"
-cat "$log" #| untrace
-printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))"
+cat "$err" "$res" #| untrace
+
 
 # Cleanup
 # rm -f "$input" "$output" "$errors"

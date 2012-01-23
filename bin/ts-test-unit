@@ -87,42 +87,17 @@ assert_match () {
 # Runs a specific test.  In that case the test output is not filtered or
 # changed. the exit status is the exit status of the specific test.
 run_test () {
-  if [ "" = "$test_name" ]
-  then
-    run_test_suite
-    exit $?
-  fi
-
   # close stdin so that commands expecting stdin will not hang
   exec <&-
 
   # prepare the test dir
   if [ -e "$test_dir" ] && ! rm -r "$test_dir"
   then
-    printf "could not remove existing test dir: %s\n" "$test_dir" >&2
+    printf "could not remove existing test dir: %s\n" "$test_dir"
     exit 1
   fi
 
   setup
   "$test_name"
   teardown
-}
-
-# Runs all tests in the test file.
-run_test_suite () {
-  grep -onE "^ *test_\w+ +\(\)" "$test_file"  |
-  tr -d " ()" |
-  tr ":" " " |
-  while read lineno test_name
-  do
-    # run the test by calling back into the test file
-    # * use stdout for progress, stderr for debug information
-    # * a zero exit status is considered a pass, otherwise fail
-    printf "[$test_file:$lineno] $test_name\n"
-
-    if "$test_file" "$test_name"
-    then printf "P\n"
-    else printf "exit: %s\nF\n" "$?"
-    fi
-  done
 }
