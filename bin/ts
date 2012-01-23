@@ -40,17 +40,23 @@ TS_CLEANUP="${TS_CLEANUP:-false}"
 # Partition failing output to $1, discard passing output.  Print to stdout '.'
 # for passing tests and 'F' otherwise.
 monitor () {
-  sed -ne "
-  /^\[/ b show
-  H
-  $ !b
-  :show
-  x
+  # sed
+  
+sed -lne "
+/^\[/ b show
+H
+$ !b
+:show
+x
 
-  s/F\$//p
-  " | tr -d "\n"
+/\.\$/a\\
+.
+/F\$/a\\
+F
+
+s/F\$//w $1
+" | tr -ud "\n"
 }
-
 # Abbreviate stdin by deleting xtrace lines using PS4="$PS4-"
 untrace () {
   sed -e "
@@ -63,7 +69,9 @@ untrace () {
 # Make and expand TS_TMP_DIR
 mkdir -p "$TS_TMP_DIR"
 TS_TMP_DIR="$(cd "$TS_TMP_DIR" || exit 1; pwd)"
-
+log="$TS_TMP_DIR/log"
+rm -f "$log"
+touch "$log"
 # Prepare log files
 
 
@@ -74,50 +82,29 @@ start=$SECONDS
 
 grep -onEH "^ *test_\w+ +\(\)" "$@" | 
 tr -d " ()" | 
-tr ":" " "  | {
-
-log="$TS_TMP_DIR/log"
-log=/dev/null    # if -v
-
-exec 3>&1
-exec 4> "$log"
-printf "\n" >&4
-
+tr ":" " "  |
 while read test_file lineno test_name
 do
-  out="$TS_TMP_DIR/$test_name.out"
-  rm -f "$out"
-  # exec 1> "$out"    # unless -v
   exec 2>/dev/null
   # exec 2>&1         # if -d 
-
-  # run the test by calling back into the test file
-  # * use stdout for progress, stderr for debug information
-  # * a zero exit status is considered a pass, otherwise fail
-  printf "[$test_file:$lineno:$test_name]\n"
-
-  if "$test_file" "$test_name" "$lineno"
+  if 
+    printf "[$test_file:$lineno:$test_name]\n"
+    # run the test by calling back into the test file
+    # * use stdout for progress, stderr for debug information
+    # * a zero exit status is considered a pass, otherwise fail
+    "$test_file" "$test_name" "$lineno"
   then
-    printf "." >&3
-    ((npass++))
+    printf ".\n"
   else
-    printf "F" >&3
-
-
-    cat "$out"  >&4
-    printf "\n" >&4
-
-    ((nfail++))
+    printf "F\n"
   fi
+done | monitor "$log"
 
-  printf "\n"
-done
-exec 1>&3 3>&- 4>&-
 end=$SECONDS
 
-cat "$log"
+printf "\n"
+cat "$log" #| untrace
 printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))"
-}
 
 # Cleanup
 # rm -f "$input" "$output" "$errors"
