@@ -22,6 +22,10 @@ do
 done
 shift $(($OPTIND - 1))
 
+if [ 0 -eq $# ]
+then exit
+fi
+
 TS_USR_DIR="$(pwd)"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 TS_CLEANUP="${TS_CLEANUP:-false}"
@@ -54,55 +58,57 @@ untrace () {
   /^${PS4}PS4='${PS4}- '/d
   "
 }
-############################################################################
-printf "Started\n"
 
+############################################################################
 # Make and expand TS_TMP_DIR
 mkdir -p "$TS_TMP_DIR"
 TS_TMP_DIR="$(cd "$TS_TMP_DIR" || exit 1; pwd)"
 
 # Prepare log files
-input="$TS_TMP_DIR/input"
-output="$TS_TMP_DIR/output"
-rm -f "$input" "$output"
-mkfifo "$input"
-touch "$output"
+
 
 # Run the test files
+printf "Started\n"
+
 npass=0
 nfail=0
 start=$SECONDS
-grep -onEH "^ *test_\w+ +\(\)" "$@" | tr -d " ()" | tr ":" " " > "$input" &
+
+tests="$TS_TMP_DIR/tests"
+grep -onEH "^ *test_\w+ +\(\)" "$@" | 
+tr -d " ()" | 
+tr ":" " " > "$tests"
 
 while read test_file lineno test_name
 do
   # run the test by calling back into the test file
   # * use stdout for progress, stderr for debug information
   # * a zero exit status is considered a pass, otherwise fail
-  printf "[$test_file:$lineno:$test_name]\n" #>&2
+  printf "\n[$test_file:$lineno:$test_name]\n"
 
-  # if ! [ -x "$test_file" ]
-  # then 
-  #   printf "-"
-  #   printf "not executable" >&2
-  #   continue
-  # fi
+  if ! [ -x "$test_file" ]
+  then
+    printf "not executable"
+    printf "-"
+    continue
+  fi
 
-  # if "$test_file" "$test_name" "$lineno"
-  # then
-  #   printf "."
-  #   ((npass++))
-  # else
-  #   printf "F"
-  #   ((nfail++))
-  # fi
-done < "$input" #2>> "$output"
-exit
+  if "$test_file" "$test_name" "$lineno"
+  then
+    printf "."
+    ((npass++))
+  else
+    printf "F"
+    ((nfail++))
+  fi
+
+  printf "\n"
+done < "$tests"
+
 end=$SECONDS
 
 # Report results
-printf "\nFinished in %ss\n\n" "$(($end - $start))"
-# cat "$output" | monitor | untrace
+printf "\nFinished in %ss\n" "$(($end - $start))"
 printf "%s pass, %s fail\n" "$npass" "$nfail"
 
 # Cleanup

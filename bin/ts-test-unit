@@ -28,7 +28,7 @@ assert_status () {
 
   if ! [ $actual -eq $expected ]
   then 
-    printf "expected status $expected but was $actual\n" >&2
+    printf "expected status $expected but was $actual\n"
     exit 1
   fi
   PS4="${PS4%- }"
@@ -55,7 +55,7 @@ assert_output () {
     printf "%s" "$expected" > "$test_dir.expect"
     printf "%s" "$actual"   > "$test_dir.actual"
     printf "unequal output:\n"
-    diff "$test_dir.expect" "$test_dir.actual" >&2
+    diff "$test_dir.expect" "$test_dir.actual"
     exit 1
   fi
   PS4="${PS4%- }"
@@ -78,7 +78,7 @@ assert_match () {
 
   if ! [[ "$actual" =~ $patttern ]]
   then
-    printf "does not match pattern: %s\n%s\n" "$patttern" "$actual" >&2
+    printf "does not match pattern: %s\n%s\n" "$patttern" "$actual"
     exit 1
   fi
   PS4="${PS4%- }"
@@ -89,8 +89,8 @@ assert_match () {
 run_test () {
   if [ "" = "$test_name" ]
   then
-    printf "no test name specified" >&2
-    exit 1
+    run_test_suite
+    exit $?
   fi
 
   # close stdin so that commands expecting stdin will not hang
@@ -106,4 +106,23 @@ run_test () {
   setup
   "$test_name"
   teardown
+}
+
+# Runs all tests in the test file.
+run_test_suite () {
+  grep -onE "^ *test_\w+ +\(\)" "$test_file"  |
+  tr -d " ()" |
+  tr ":" " " |
+  while read lineno test_name
+  do
+    # run the test by calling back into the test file
+    # * use stdout for progress, stderr for debug information
+    # * a zero exit status is considered a pass, otherwise fail
+    printf "[$test_file:$lineno] $test_name\n"
+
+    if "$test_file" "$test_name"
+    then printf "P\n"
+    else printf "exit: %s\nF\n" "$?"
+    fi
+  done
 }
