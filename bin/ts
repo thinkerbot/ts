@@ -6,9 +6,9 @@ export TS_CLEANUP
 export TS_DEBUG
 export TS_VERBOSE
 
-use="usage: %s [-c] [-d] [-h] [-t TMPDIR] [-v] [TEST_FILES...]\n"
+use="usage: %s [-c] [-d] [-h] [-p] [-t TMPDIR] [-v] [TEST_FILES...]\n"
 opt="       %s   %s\n"
-while getopts "cdht:v" option
+while getopts "cdhpt:v" option
 do
   case $option in
   c  )  TS_CLEANUP=true ;;
@@ -17,8 +17,10 @@ do
         printf "$opt" "-c" "cleanup (rm -r) tmp dir on complete"
         printf "$opt" "-d" "debug mode - capture stderr for each test"
         printf "$opt" "-h" "prints this help"
+        printf "$opt" "-p" "preview the tests to be run"
         printf "$opt" "-t" "test tmp dir"
         exit 0 ;;
+  p  )  preview=true ;;
   t  )  TS_TMP_DIR=$OPTARG ;;
   v  )  TS_VERBOSE=true ;;
   \? )  printf "$use" "$0"
@@ -27,17 +29,23 @@ do
 done
 shift $(($OPTIND - 1))
 
-if [ 0 -eq $# ]
-then exit
-fi
-
 TS_USR_DIR="$(pwd)"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 TS_CLEANUP="${TS_CLEANUP:-false}"
 TS_DEBUG="${TS_DEBUG:-false}"
 TS_VERBOSE="${TS_VERBOSE:-false}"
+preview="${preview:-false}"
 
 ############################################################################
+list () {
+if [ $# -gt 0 ]
+then
+  grep -onEH "^ *test_\w+ +\(\)" "$@" |
+  tr -d " ()" |
+  tr ":" " "
+fi
+}
+
 # Check the input stream for output in the format:
 #
 #   [test/case:10] test_name
@@ -66,7 +74,20 @@ s/F\$//w $1
 format () {
   sed
 }
+
+cleanup () {
+  if [ "true" = "$TS_CLEANUP" ] && [ -e "$TS_TMP_DIR" ]
+  then rm -r "$TS_TMP_DIR"
+  fi
+  exit
+}
 ############################################################################
+
+if [ "true" = "$preview" ]
+then
+  list "$@"
+  cleanup
+fi
 
 # Make and expand TS_TMP_DIR
 mkdir -p "$TS_TMP_DIR"
@@ -79,9 +100,7 @@ rm -f "$output" "$errors"
 touch "$output" "$errors"
 
 # Run the test files
-grep -onEH "^ *test_\w+ +\(\)" "$@" |
-tr -d " ()" |
-tr ":" " "  | {
+list "$@" | {
 
 if ! [ "true" = "$TS_DEBUG" ]
 then exec 2> /dev/null
@@ -118,8 +137,4 @@ fi
 printf "\n"
 cat "$errors" | format >&2
 cat "$output"
-
-# Cleanup
-if [ "true" = "$TS_CLEANUP" ]
-then rm -r "$TS_TMP_DIR"
-fi
+cleanup
