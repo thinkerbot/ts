@@ -3,19 +3,22 @@
 export TS_USR_DIR
 export TS_TMP_DIR
 export TS_CLEANUP
+export TS_FORMAT
 export TS_DEBUG
 export TS_VERBOSE
 
-use="usage: %s [-c] [-d] [-h] [-p] [-t TMPDIR] [-v] [TEST_FILES...]\n"
+use="usage: %s [-c] [-d] [-f] [-h] [-p] [-t TMPDIR] [-v] [TEST_FILES...]\n"
 opt="       %s   %s\n"
-while getopts "cdhpt:v" option
+while getopts "cdfhpt:v" option
 do
   case $option in
   c  )  TS_CLEANUP=true ;;
   d  )  TS_DEBUG=true ;;
+  f  )  TS_FORMAT=true ;;
   h  )  printf "$use" "$0"
         printf "$opt" "-c" "cleanup (rm -r) tmp dir on complete"
         printf "$opt" "-d" "debug mode - capture stderr for each test"
+        printf "$opt" "-f" "format output with color and indentation"
         printf "$opt" "-h" "prints this help"
         printf "$opt" "-p" "preview the tests to be run"
         printf "$opt" "-t" "test tmp dir"
@@ -32,6 +35,7 @@ shift $(($OPTIND - 1))
 TS_USR_DIR="$(pwd)"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 TS_CLEANUP="${TS_CLEANUP:-false}"
+TS_FORMAT="${TS_FORMAT:-false}"
 TS_DEBUG="${TS_DEBUG:-false}"
 TS_VERBOSE="${TS_VERBOSE:-false}"
 preview="${preview:-false}"
@@ -105,6 +109,8 @@ printf "\n"
 }
 
 format () {
+if [ "true" = "$TS_FORMAT" ]
+then
 PASS=`echo '\033[32m'`
 FAIL=`echo '\033[1;31m'`
 NORM=`echo '\033[0m'`
@@ -126,6 +132,8 @@ x
 s/  \(.\)\$//
 p
 "
+else sed
+fi
 }
 
 cleanup () {
