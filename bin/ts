@@ -2,16 +2,19 @@
 ############################################################################
 export TS_USR_DIR
 export TS_TMP_DIR
+export TS_DEBUG
 export TS_CLEANUP
 
-use="usage: %s [-c] [-h] [-t TMPDIR] [TEST_FILES...]\n"
+use="usage: %s [-c] [-d] [-h] [-t TMPDIR] [TEST_FILES...]\n"
 opt="       %s   %s\n"
-while getopts "cht:x" option
+while getopts "cdht:x" option
 do
   case $option in
   c  )  TS_CLEANUP=true ;;
+  d  )  TS_DEBUG=true ;;
   h  )  printf "$use" "$0"
-        printf "$opt" "-c" "cleanup tmp dir on complete"
+        printf "$opt" "-c" "cleanup (rm -r) tmp dir on complete"
+        printf "$opt" "-d" "debug mode - capture stderr for each test"
         printf "$opt" "-h" "prints this help"
         printf "$opt" "-t" "test tmp dir"
         exit 0 ;;
@@ -29,6 +32,7 @@ fi
 TS_USR_DIR="$(pwd)"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 TS_CLEANUP="${TS_CLEANUP:-false}"
+TS_DEBUG="${TS_DEBUG:-false}"
 
 ############################################################################
 # Check the input stream for output in the format:
@@ -71,9 +75,9 @@ grep -onEH "^ *test_\w+ +\(\)" "$@" |
 tr -d " ()" |
 tr ":" " "  | {
 
-# if ! $debug
-# then exec 2> /dev/null
-# fi
+if ! [ "true" = "$TS_DEBUG" ]
+then exec 2> /dev/null
+fi
 
 npass=0
 nfail=0
