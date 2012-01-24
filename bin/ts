@@ -2,30 +2,27 @@
 ############################################################################
 export TS_USR_DIR
 export TS_TMP_DIR
-export TS_CLEANUP
-export TS_FORMAT
-export TS_DEBUG
-export TS_VERBOSE
 
 use="usage: %s [-c] [-d] [-f] [-h] [-p] [-t TMPDIR] [-v] [TEST_FILES...]\n"
 opt="       %s   %s\n"
 while getopts "cdfhpt:v" option
 do
   case $option in
-  c  )  TS_CLEANUP=true ;;
-  d  )  TS_DEBUG=true ;;
-  f  )  TS_FORMAT=true ;;
+  c  )  cleanup=true ;;
+  d  )  debug=true ;;
+  f  )  format=true ;;
   h  )  printf "$use" "$0"
         printf "$opt" "-c" "cleanup (rm -r) tmp dir on complete"
         printf "$opt" "-d" "debug mode - capture stderr for each test"
         printf "$opt" "-f" "format output with color and indentation"
         printf "$opt" "-h" "prints this help"
         printf "$opt" "-p" "preview the tests to be run"
-        printf "$opt" "-t" "test tmp dir"
+        printf "$opt" "-t" "set the test tmp dir (default tmp)"
+        printf "$opt" "-v" "verbose output"
         exit 0 ;;
   p  )  preview=true ;;
   t  )  TS_TMP_DIR=$OPTARG ;;
-  v  )  TS_VERBOSE=true ;;
+  v  )  verbose=true ;;
   \? )  printf "$use" "$0"
         exit 2 ;;
   esac
@@ -34,11 +31,11 @@ shift $(($OPTIND - 1))
 
 TS_USR_DIR="$(pwd)"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
-TS_CLEANUP="${TS_CLEANUP:-false}"
-TS_FORMAT="${TS_FORMAT:-false}"
-TS_DEBUG="${TS_DEBUG:-false}"
-TS_VERBOSE="${TS_VERBOSE:-false}"
+cleanup="${cleanup:-false}"
+debug="${debug:-false}"
+format="${format:-false}"
 preview="${preview:-false}"
+verbose="${verbose:-false}"
 
 ############################################################################
 list () {
@@ -51,7 +48,7 @@ fi
 }
 
 run () {
-if [ "true" = "$TS_DEBUG" ]
+if [ "true" = "$debug" ]
 then exec 2>&1 
 else exec 2> /dev/null
 fi
@@ -109,7 +106,7 @@ printf "\n"
 }
 
 format () {
-if [ "true" = "$TS_FORMAT" ]
+if [ "true" = "$format" ]
 then
 PASS=`echo '\033[32m'`
 FAIL=`echo '\033[1;31m'`
@@ -135,35 +132,28 @@ p
 else sed
 fi
 }
-
-cleanup () {
-  if [ "true" = "$TS_CLEANUP" ] && [ -e "$TS_TMP_DIR" ]
-  then rm -r "$TS_TMP_DIR"
-  fi
-  exit
-}
 ############################################################################
 
 if [ "true" = "$preview" ]
 then
   list "$@"
-  cleanup
+else
+  mkdir -p "$TS_TMP_DIR"
+  output="$TS_TMP_DIR/output"
+  errors="$TS_TMP_DIR/errors"
+  rm -f "$output" "$errors"
+  touch "$output" "$errors"
+
+  list "$@" | run "$output" |
+  if [ "true" = "$verbose" ]
+  then format
+  else monitor "$errors"
+  fi
+
+  cat "$errors" | format >&2
+  cat "$output"
 fi
 
-# Prepare log files
-mkdir -p "$TS_TMP_DIR"
-output="$TS_TMP_DIR/output"
-errors="$TS_TMP_DIR/errors"
-rm -f "$output" "$errors"
-touch "$output" "$errors"
-
-# Run the test files
-list "$@" | run "$output" |
-if [ "true" = "$TS_VERBOSE" ]
-then format
-else monitor "$errors"
+if [ "true" = "$cleanup" ] && [ -e "$TS_TMP_DIR" ]
+then rm -r "$TS_TMP_DIR"
 fi
-
-cat "$errors" | format >&2
-cat "$output"
-cleanup
