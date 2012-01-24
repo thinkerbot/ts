@@ -73,7 +73,7 @@ assert_match () {
 
   if ! [[ "$actual" =~ $patttern ]]
   then
-    printf "does not match pattern: %s\n%s\n" "$patttern" "$actual"
+    printf "output does not match pattern: %s\n%s\n" "$patttern" "$actual"
     exit 1
   fi
 }
