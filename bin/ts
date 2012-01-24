@@ -73,10 +73,10 @@ mkdir -p "$TS_TMP_DIR"
 TS_TMP_DIR="$(cd "$TS_TMP_DIR" || exit 1; pwd)"
 
 # Prepare log files
-res="$TS_TMP_DIR/res"
-err="$TS_TMP_DIR/err"
-rm -f "$res" "$err"
-touch "$res" "$err"
+output="$TS_TMP_DIR/output"
+errors="$TS_TMP_DIR/errors"
+rm -f "$output" "$errors"
+touch "$output" "$errors"
 
 # Run the test files
 grep -onEH "^ *test_\w+ +\(\)" "$@" |
@@ -107,17 +107,17 @@ do
   fi
 done
 end=$SECONDS
-printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$res"
+printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$output"
 
 } 2>&1 |
 if [ "true" = "$TS_VERBOSE" ]
 then format
-else monitor "$err"
+else monitor "$errors"
 fi
 
 printf "\n"
-cat "$err" | format >&2
-cat "$res"
+cat "$errors" | format >&2
+cat "$output"
 
 # Cleanup
 if [ "true" = "$TS_CLEANUP" ]
