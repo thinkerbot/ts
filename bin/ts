@@ -144,7 +144,7 @@ else
 
   list "$@" | run "$output" |
   if [ "true" = "$verbose" ]
-  then format
+  then format >&2
   else monitor "$errors"
   fi
 
