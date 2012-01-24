@@ -61,7 +61,7 @@ do
   # * use stdout for progress, stderr for debug information
   # * a zero exit status is considered a pass, otherwise fail
   if
-    printf "[$test_file:$lineno:$test_name]\n"
+    printf "[$test_file:$lineno] $test_name\n"
     "$test_file" "$test_name"
   then
     printf ".\n"
@@ -88,23 +88,44 @@ monitor () {
 sed -lne "
 /^\[/ b show
 H
-$ !b
+\$ !b
 :show
 x
 
 /\.\$/a\\
 .
-/F\$/a\\
+/F\$/ {
+  w $1
+  a\\
 F
-
-s/F\$//w $1
+}
 " | tr -ud "\n"
 
 printf "\n"
 }
 
 format () {
-  sed
+PASS=`echo '\033[32m'`
+FAIL=`echo '\033[1;31m'`
+NORM=`echo '\033[0m'`
+
+sed -ne "
+/^\[/ b show
+s/^/  /
+H
+\$ !b
+:show
+x
+/\.\$/ {
+  s/^\[[^ ]*/$PASS&$NORM/
+}
+/F\$/ {
+  s/^\[[^ ]*/$FAIL&$NORM/
+}
+
+s/  \(.\)\$//
+p
+"
 }
 
 cleanup () {
