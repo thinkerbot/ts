@@ -101,8 +101,6 @@ x
 F
 }
 " | tr -ud "\n"
-
-printf "\n"
 }
 
 format () {
