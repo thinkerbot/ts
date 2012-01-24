@@ -81,6 +81,12 @@ assert_match () {
 # Runs a specific test.  In that case the test output is not filtered or
 # changed. the exit status is the exit status of the specific test.
 run_test () {
+  if [ "" = "$test_name" ]
+  then
+    printf "no test name specified\n" >&2
+    exit 1
+  fi
+
   # close stdin so that commands expecting stdin will not hang
   exec <&-
 
