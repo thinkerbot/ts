@@ -2,12 +2,13 @@
 ############################################################################
 export TS_USR_DIR
 export TS_TMP_DIR
-export TS_DEBUG
 export TS_CLEANUP
+export TS_DEBUG
+export TS_VERBOSE
 
-use="usage: %s [-c] [-d] [-h] [-t TMPDIR] [TEST_FILES...]\n"
+use="usage: %s [-c] [-d] [-h] [-t TMPDIR] [-v] [TEST_FILES...]\n"
 opt="       %s   %s\n"
-while getopts "cdht:x" option
+while getopts "cdht:v" option
 do
   case $option in
   c  )  TS_CLEANUP=true ;;
@@ -19,6 +20,7 @@ do
         printf "$opt" "-t" "test tmp dir"
         exit 0 ;;
   t  )  TS_TMP_DIR=$OPTARG ;;
+  v  )  TS_VERBOSE=true ;;
   \? )  printf "$use" "$0"
         exit 2 ;;
   esac
@@ -33,6 +35,7 @@ TS_USR_DIR="$(pwd)"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 TS_CLEANUP="${TS_CLEANUP:-false}"
 TS_DEBUG="${TS_DEBUG:-false}"
+TS_VERBOSE="${TS_VERBOSE:-false}"
 
 ############################################################################
 # Check the input stream for output in the format:
@@ -59,6 +62,10 @@ F
 s/F\$//w $1
 " | tr -ud "\n"
 }
+
+format () {
+  sed
+}
 ############################################################################
 
 # Make and expand TS_TMP_DIR
@@ -68,7 +75,8 @@ TS_TMP_DIR="$(cd "$TS_TMP_DIR" || exit 1; pwd)"
 # Prepare log files
 res="$TS_TMP_DIR/res"
 err="$TS_TMP_DIR/err"
-rm -f "$out" "$err"
+rm -f "$res" "$err"
+touch "$res" "$err"
 
 # Run the test files
 grep -onEH "^ *test_\w+ +\(\)" "$@" |
@@ -101,10 +109,14 @@ done
 end=$SECONDS
 printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$res"
 
-} 2>&1 | monitor "$err"
+} 2>&1 |
+if [ "true" = "$TS_VERBOSE" ]
+then format
+else monitor "$err"
+fi
 
 printf "\n"
-cat "$err" >&2
+cat "$err" | format >&2
 cat "$res"
 
 # Cleanup
