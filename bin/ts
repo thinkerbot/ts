@@ -46,62 +46,7 @@ then
 fi
 }
 
-# Check the input stream for output in the format:
-#
-#   [test/case:10] test_name
-#   + true
-#   P
-#
-# Partition failing output to $1, discard passing output.  Print to stdout '.'
-# for passing tests and 'F' otherwise.
-monitor () {
-sed -lne "
-/^\[/ b show
-H
-$ !b
-:show
-x
-
-/\.\$/a\\
-.
-/F\$/a\\
-F
-
-s/F\$//w $1
-" | tr -ud "\n"
-}
-
-format () {
-  sed
-}
-
-cleanup () {
-  if [ "true" = "$TS_CLEANUP" ] && [ -e "$TS_TMP_DIR" ]
-  then rm -r "$TS_TMP_DIR"
-  fi
-  exit
-}
-############################################################################
-
-if [ "true" = "$preview" ]
-then
-  list "$@"
-  cleanup
-fi
-
-# Make and expand TS_TMP_DIR
-mkdir -p "$TS_TMP_DIR"
-TS_TMP_DIR="$(cd "$TS_TMP_DIR" || exit 1; pwd)"
-
-# Prepare log files
-output="$TS_TMP_DIR/output"
-errors="$TS_TMP_DIR/errors"
-rm -f "$output" "$errors"
-touch "$output" "$errors"
-
-# Run the test files
-list "$@" | {
-
+run () {
 if [ "true" = "$TS_DEBUG" ]
 then exec 2>&1 
 else exec 2> /dev/null
@@ -127,15 +72,69 @@ do
   fi
 done
 end=$SECONDS
-printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$output"
 
-} |
+printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$1"
+}
+
+# Check the input stream for output in the format:
+#
+#   [test/case:10] test_name
+#   + true
+#   P
+#
+# Partition failing output to $1, discard passing output.  Print to stdout '.'
+# for passing tests and 'F' otherwise.
+monitor () {
+sed -lne "
+/^\[/ b show
+H
+$ !b
+:show
+x
+
+/\.\$/a\\
+.
+/F\$/a\\
+F
+
+s/F\$//w $1
+" | tr -ud "\n"
+
+printf "\n"
+}
+
+format () {
+  sed
+}
+
+cleanup () {
+  if [ "true" = "$TS_CLEANUP" ] && [ -e "$TS_TMP_DIR" ]
+  then rm -r "$TS_TMP_DIR"
+  fi
+  exit
+}
+############################################################################
+
+if [ "true" = "$preview" ]
+then
+  list "$@"
+  cleanup
+fi
+
+# Prepare log files
+mkdir -p "$TS_TMP_DIR"
+output="$TS_TMP_DIR/output"
+errors="$TS_TMP_DIR/errors"
+rm -f "$output" "$errors"
+touch "$output" "$errors"
+
+# Run the test files
+list "$@" | run "$output" |
 if [ "true" = "$TS_VERBOSE" ]
 then format
 else monitor "$errors"
 fi
 
-printf "\n"
 cat "$errors" | format >&2
 cat "$output"
 cleanup
