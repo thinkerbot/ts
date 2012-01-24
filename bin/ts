@@ -74,7 +74,7 @@ do
 done
 end=$SECONDS
 
-printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$1"
+printf "%s pass %s fail %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$1"
 }
 
 # Check the input stream for output in the format:
@@ -132,16 +132,16 @@ fi
 }
 ############################################################################
 
+mkdir -p "$TS_TMP_DIR"
+output="$TS_TMP_DIR/output"
+errors="$TS_TMP_DIR/errors"
+rm -f "$output" "$errors"
+touch "$output" "$errors"
+
 if [ "true" = "$preview" ]
 then
   list "$@"
 else
-  mkdir -p "$TS_TMP_DIR"
-  output="$TS_TMP_DIR/output"
-  errors="$TS_TMP_DIR/errors"
-  rm -f "$output" "$errors"
-  touch "$output" "$errors"
-
   list "$@" | run "$output" |
   if [ "true" = "$verbose" ]
   then format >&2
@@ -154,4 +154,8 @@ fi
 
 if [ "true" = "$cleanup" ] && [ -e "$TS_TMP_DIR" ]
 then rm -r "$TS_TMP_DIR"
+fi
+
+if [ "0" != "$(cut -d " " -f 3 "$output")" ]
+then exit 1
 fi
