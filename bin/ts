@@ -102,8 +102,9 @@ touch "$output" "$errors"
 # Run the test files
 list "$@" | {
 
-if ! [ "true" = "$TS_DEBUG" ]
-then exec 2> /dev/null
+if [ "true" = "$TS_DEBUG" ]
+then exec 2>&1 
+else exec 2> /dev/null
 fi
 
 npass=0
@@ -128,7 +129,7 @@ done
 end=$SECONDS
 printf "%s pass, %s fail, %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$output"
 
-} 2>&1 |
+} |
 if [ "true" = "$TS_VERBOSE" ]
 then format
 else monitor "$errors"
