@@ -25,10 +25,6 @@ test_assert_status_pass () {
 assert_status 0 0
 }
 
-test_assert_status_pass_with_str_input () {
-assert_status "0" "0"
-}
-
 #
 # assert_output tests
 #
