@@ -39,7 +39,7 @@ assert_status () {
 
   if ! [ $actual -eq $expected ]
   then 
-    printf "expected status $expected but was $actual\n"
+    printf "expected status %s but was %s\n" "$expected" "$actual"
     exit 1
   fi
 }
