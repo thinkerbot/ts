@@ -100,9 +100,11 @@ x
   a\\
 F
 }
-" | tr -ud "\n"
-
-printf "\n"
+" |
+sed -le "
+$ a\\
+:
+" | tr -ud "\n" | tr -u ":" "\n"
 }
 
 format () {
