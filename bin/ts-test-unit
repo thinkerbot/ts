@@ -21,6 +21,18 @@ teardown () {
   true
 }
 
+# Runs a command and asserts it's exit status is 0.
+assert () {
+  "$@"
+  status=$?
+
+  if ! [ 0 -eq $status ]
+  then
+    printf "exit status %s:\n%s\n" "$status" "$@"
+    exit 1
+  fi
+}
+
 # Flunks unless the numbers $1 (expected) and $2 (actual) are the same.
 assert_status () {
   expected=$1; actual=$2

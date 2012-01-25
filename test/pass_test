@@ -10,6 +10,14 @@ exit
 }
 
 #
+# assert test
+#
+
+test_assert_pass () {
+  assert true
+}
+
+#
 # assert_status tests
 #
 
