@@ -141,6 +141,7 @@ output="$TS_TMP_DIR/output"
 errors="$TS_TMP_DIR/errors"
 rm -f "$output" "$errors"
 touch "$output" "$errors"
+status=0
 
 if [ "true" = "$preview" ]
 then
@@ -154,12 +155,15 @@ else
 
   cat "$errors" | format >&2
   cat "$output"
+
+  [ "0" = "$(cut -d " " -f 3 "$output")" ]
+  status=$?
 fi
 
 if [ "true" = "$cleanup" ] && [ -e "$TS_TMP_DIR" ]
 then rm -r "$TS_TMP_DIR"
 fi
 
-if [ "0" != "$(cut -d " " -f 3 "$output")" ]
+if [ 0 -ne $status ]
 then exit 1
 fi
