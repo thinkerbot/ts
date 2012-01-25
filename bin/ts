@@ -164,6 +164,4 @@ if [ "true" = "$cleanup" ] && [ -e "$TS_TMP_DIR" ]
 then rm -r "$TS_TMP_DIR"
 fi
 
-if [ 0 -ne $exitstatus ]
-then exit 1
-fi
+exit $exitstatus
