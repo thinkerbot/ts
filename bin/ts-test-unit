@@ -24,11 +24,11 @@ teardown () {
 # Runs a command and asserts it's exit status is 0.
 assert () {
   "$@"
-  status=$?
+  exitstatus=$?
 
-  if ! [ 0 -eq $status ]
+  if ! [ 0 -eq $exitstatus ]
   then
-    printf "exit status %s:\n%s\n" "$status" "$@"
+    printf "exit status %s:\n%s\n" "$exitstatus" "$@"
     exit 1
   fi
 }
