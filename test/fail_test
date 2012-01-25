@@ -2,7 +2,7 @@
 . ts-test-unit
 
 setup () {
-  set -x
+set -x
 }
 
 test_exit_fail () {
@@ -14,7 +14,7 @@ exit 8
 #
 
 test_assert_fail () {
-  assert false
+assert false
 }
 
 #
@@ -68,6 +68,5 @@ assert_match "hello.+rld" - <<doc
 hell0 world
 doc
 }
-
 
 run_test

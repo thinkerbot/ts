@@ -2,7 +2,7 @@
 . ts-test-unit
 
 setup () {
-  set -x
+set -x
 }
 
 test_exit_pass () {
@@ -14,7 +14,7 @@ exit
 #
 
 test_assert_pass () {
-  assert true
+assert true
 }
 
 #
