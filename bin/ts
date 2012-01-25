@@ -103,8 +103,8 @@ F
 " |
 sed -le "
 $ a\\
-nn
-" | tr -ud "\n" | tr -u "n" "\n"
+:
+" | tr -ud "\n" | tr -u ":" "\n"
 }
 
 format () {
