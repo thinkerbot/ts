@@ -103,8 +103,8 @@ F
 " |
 sed -le "
 $ a\\
-:
-" | tr -ud "\n" | tr -u ":" "\n"
+n
+" | tr -ud "\n" | tr -u "n" "\n"
 }
 
 format () {
@@ -121,7 +121,6 @@ H
 \$ !b
 :show
 x
-/^$/ d
 
 /\.\$/ {
   s/^\[[^ ]*/$PASS&$NORM/
