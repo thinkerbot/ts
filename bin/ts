@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ############################################################################
 export TS_USR_DIR
 export TS_TMP_DIR
@@ -37,6 +37,10 @@ format="${format:-false}"
 preview="${preview:-false}"
 verbose="${verbose:-false}"
 
+PASS=`echo -e '\033[32m'`
+FAIL=`echo -e '\033[1;31m'`
+NORM=`echo -e '\033[0m'`
+
 ############################################################################
 list () {
 if [ $# -gt 0 ]
@@ -63,9 +67,10 @@ do
   # * a zero exit status is considered a pass, otherwise fail
   if
     printf "[$test_file:$lineno] $test_name\n"
-    "$test_file" "$test_name"
+    "$test_file" "$test_name" | sed -e "s/^/  /"
+    [ 0 -eq $PIPESTATUS ]
   then
-    printf ".\n"
+    printf "P\n"
     ((npass++))
   else
     printf "F\n"
@@ -85,79 +90,93 @@ printf "%s pass %s fail %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$1"
 #
 # Partition failing output to $1, discard passing output.  Print to stdout '.'
 # for passing tests and 'F' otherwise.
-monitor () {
+format () {
+# Parse by head line
+# /^\[/ !{
+# H
+# \$ !d
+# }
+# x
+
 sed -lne "
-/^\[/ b show
+/^\[/ !{
 H
-\$ !b
-:show
+\$ !d
+}
 x
 
-/\.\$/a\\
+/P\$/ {
+s/^\[\([^]]*\)/[$PASS\1$NORM/
+a\\
 .
+}
+
 /F\$/ {
-  w $1
-  a\\
+s/^\[\([^]]*\)/[$FAIL\1$NORM/
+a\\
 F
 }
-" |
-sed -le "
-$ a\\
-n
+
+s/[PF]\$//
+/^\$/ !w $1
+\$ a\\
+nn
 " | tr -ud "\n" | tr -u "n" "\n"
 }
 
-format () {
-if [ "true" = "$format" ]
-then
-PASS=`echo '\033[32m'`
-FAIL=`echo '\033[1;31m'`
-NORM=`echo '\033[0m'`
+no_format () {
+sed -l
+}
 
-sed -ne "
-/^\[/ b show
-s/^/  /
+filter () {
+sed -lne "
+/^\[/ !{
 H
-\$ !b
-:show
+\$ !d
+}
 x
 
-/\.\$/ {
-  s/^\[[^ ]*/$PASS&$NORM/
-}
-/F\$/ {
-  s/^\[[^ ]*/$FAIL&$NORM/
-}
+/^\$/ d
+/P\$/ d
+/^\[[^[]*\[32m/ d
 
-s/  \(.\)\$//
 p
 "
-else sed
-fi
 }
+
+no_filter () {
+sed -l
+}
+
 ############################################################################
 
 mkdir -p "$TS_TMP_DIR"
-output="$TS_TMP_DIR/output"
-errors="$TS_TMP_DIR/errors"
-rm -f "$output" "$errors"
-touch "$output" "$errors"
+stdout="$TS_TMP_DIR/stdout"
+stderr="$TS_TMP_DIR/stderr"
+rm -f "$stdout" "$stderr"
+touch "$stdout" "$stderr"
 exitstatus=0
 
 if [ "true" = "$preview" ]
 then
   list "$@"
 else
-  list "$@" | run "$output" |
+  list "$@" | run "$stderr" |
+  if [ "true" = "$format" ]
+  then
+    format "$stdout" >&2
+    cat "$stdout"
+  else
+    no_format
+  fi |
   if [ "true" = "$verbose" ]
-  then format >&2
-  else monitor "$errors"
+  then no_filter
+  else filter
   fi
 
-  cat "$errors" | format >&2
-  cat "$output"
+  cat "$stderr" >&2
 
-  [ "0" = "$(cut -d " " -f 3 "$output")" ]
+  [ "0" = "$(cut -d " " -f 3 "$stderr")" ]
   exitstatus=$?
 fi
 
