@@ -85,127 +85,95 @@ end=$SECONDS
 printf "%s pass %s fail %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$1"
 }
 
+noop () {
+sed -l
+}
+
 monitor () {
 sed -lne "
 /^\[/ !{
 H
-\$ !d
+$ !d
 }
 x
+1 d
 
-/^\$/ d
-/P\$/ {
-a\\
+w $1
+/P\$/a\\
 .
-}
-
-/F\$/ {
-a\\
+/F\$/a\\
 F
-}
-
-/^\$/ !w $1
 \$ a\\
 n
 " | tr -ud "\n" | tr -u "n" "\n"
 }
 
-no_monitor () {
-sed -l
-}
-
 format () {
-# Parse by head line
-# /^\[/ !{
-# H
-# \$ !d
-# }
-# x
-
 sed -lne "
 /^\[/ !{
 H
-\$ !d
+$ !d
 }
 x
+1 p
 
-/^\$/ d
-/P\$/ {
-s/^\[\([^]]*\)/[$PASS\1$NORM/
-}
-
-/F\$/ {
-s/^\[\([^]]*\)/[$FAIL\1$NORM/
-}
-
-s/[PF]\$//
-p
+/P\$/ s/^\[\([^]]*\)/[$PASS\1$NORM/
+/F\$/ s/^\[\([^]]*\)/[$FAIL\1$NORM/
+s/[PF]\$//p
 "
-}
-
-no_format () {
-sed -l
 }
 
 filter () {
 sed -lne "
 /^\[/ !{
 H
-\$ !d
+$ !d
 }
 x
-
-/^\$/ d
+1 d
 /P\$/ d
 /^\[[^[]*\[32m/ d
-
-p
+s/^[^[]*//p
 "
-}
-
-no_filter () {
-sed -l
 }
 
 ############################################################################
 
 mkdir -p "$TS_TMP_DIR"
-stdout="$TS_TMP_DIR/stdout"
-stderr="$TS_TMP_DIR/stderr"
-rm -f "$stdout" "$stderr"
-touch "$stdout" "$stderr"
+summary="$TS_TMP_DIR/summary"
+rm -f "$summary"
+touch "$summary"
 exitstatus=0
 
 if [ "true" = "$preview" ]
 then
   list "$@"
 else
-  list "$@" | run "$stderr" |
+  list "$@" | 
+  run "$summary" |
   if [ "true" = "$monitor" ]
   then
-    monitor "$stdout" >&2
-    cat "$stdout"
-  else
-    no_monitor
+    out="$TS_TMP_DIR/out"
+    monitor "$out" >&2
+    cat "$out"
+  else noop
   fi |
   if [ "true" = "$format" ]
-  then
-    format
-  else
-    no_format
+  then format
+  else noop
   fi |
   if [ "true" = "$verbose" ]
-  then no_filter
+  then noop
   else filter
   fi
 
-  cat "$stderr" >&2
+  cat "$summary" >&2
 
-  [ "0" = "$(cut -d " " -f 3 "$stderr")" ]
+  [ "0" = "$(cut -d " " -f 3 "$summary")" ]
   exitstatus=$?
 fi
 
-if [ "true" = "$cleanup" ] && [ -e "$TS_TMP_DIR" ]
+if [ "true" = "$cleanup" ]
 then rm -r "$TS_TMP_DIR"
 fi
 
