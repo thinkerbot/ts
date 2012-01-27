@@ -3,9 +3,9 @@
 export TS_USR_DIR
 export TS_TMP_DIR
 
-use="usage: %s [-c] [-d] [-f] [-h] [-p] [-t TMPDIR] [-v] [TEST_FILES...]\n"
+use="usage: %s [-c] [-d] [-f] [-h] [-m] [-p] [-t TMPDIR] [-v] [TEST_FILES...]\n"
 opt="       %s   %s\n"
-while getopts "cdfhpt:v" option
+while getopts "cdfhpmt:v" option
 do
   case $option in
   c  )  cleanup=true ;;
@@ -17,10 +17,12 @@ do
         printf "$opt" "-f" "format output with color and indentation"
         printf "$opt" "-h" "prints this help"
         printf "$opt" "-p" "preview the tests to be run"
+        printf "$opt" "-m" "monitor progress"
         printf "$opt" "-t" "set the test tmp dir (default tmp)"
         printf "$opt" "-v" "verbose output"
         exit 0 ;;
   p  )  preview=true ;;
+  m  )  monitor=true ;;
   t  )  TS_TMP_DIR=$OPTARG ;;
   v  )  verbose=true ;;
   \? )  printf "$use" "$0"
@@ -34,6 +36,7 @@ TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 cleanup="${cleanup:-false}"
 debug="${debug:-false}"
 format="${format:-false}"
+monitor="${monitor:-false}"
 preview="${preview:-false}"
 verbose="${verbose:-false}"
 
@@ -82,14 +85,35 @@ end=$SECONDS
 printf "%s pass %s fail %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$1"
 }
 
-# Check the input stream for output in the format:
-#
-#   [test/case:10] test_name
-#   + true
-#   P
-#
-# Partition failing output to $1, discard passing output.  Print to stdout '.'
-# for passing tests and 'F' otherwise.
+monitor () {
+sed -lne "
+/^\[/ !{
+H
+\$ !d
+}
+x
+
+/^\$/ d
+/P\$/ {
+a\\
+.
+}
+
+/F\$/ {
+a\\
+F
+}
+
+/^\$/ !w $1
+\$ a\\
+n
+" | tr -ud "\n" | tr -u "n" "\n"
+}
+
+no_monitor () {
+sed -l
+}
+
 format () {
 # Parse by head line
 # /^\[/ !{
@@ -105,23 +129,18 @@ H
 }
 x
 
+/^\$/ d
 /P\$/ {
 s/^\[\([^]]*\)/[$PASS\1$NORM/
-a\\
-.
 }
 
 /F\$/ {
 s/^\[\([^]]*\)/[$FAIL\1$NORM/
-a\\
-F
 }
 
 s/[PF]\$//
-/^\$/ !w $1
-\$ a\\
-nn
-" | tr -ud "\n" | tr -u "n" "\n"
+p
+"
 }
 
 no_format () {
@@ -162,10 +181,16 @@ then
   list "$@"
 else
   list "$@" | run "$stderr" |
+  if [ "true" = "$monitor" ]
+  then
+    monitor "$stdout" >&2
+    cat "$stdout"
+  else
+    no_monitor
+  fi |
   if [ "true" = "$format" ]
   then
-    format "$stdout" >&2
-    cat "$stdout"
+    format
   else
     no_format
   fi |
