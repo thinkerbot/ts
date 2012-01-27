@@ -136,40 +136,41 @@ x
 s/^[^[]*//p
 "
 }
-
 ############################################################################
 
 mkdir -p "$TS_TMP_DIR"
-summary="$TS_TMP_DIR/summary"
-rm -f "$summary"
-touch "$summary"
+err="$TS_TMP_DIR/err"
+out="$TS_TMP_DIR/out"
+rm -f "$err" "$out"
+touch "$err" "$out"
 exitstatus=0
 
 if [ "true" = "$preview" ]
 then
   list "$@"
 else
-  list "$@" | 
-  run "$summary" |
+  list "$@" | run "$err" |
+
   if [ "true" = "$monitor" ]
   then
-    out="$TS_TMP_DIR/out"
     monitor "$out" >&2
     cat "$out"
   else noop
   fi |
+
   if [ "true" = "$format" ]
   then format
   else noop
   fi |
+
   if [ "true" = "$verbose" ]
   then noop
   else filter
   fi
 
-  cat "$summary" >&2
+  cat "$err" >&2
 
-  [ "0" = "$(cut -d " " -f 3 "$summary")" ]
+  [ "0" = "$(cut -d " " -f 3 "$err")" ]
   exitstatus=$?
 fi
 
