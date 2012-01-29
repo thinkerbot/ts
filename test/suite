@@ -1,0 +1,40 @@
+#!/bin/sh
+############################################################################
+. ts-test-unit
+
+setup () {
+set -x
+
+# ensure ts called in the tests will not collide with the suite itself
+export TS_TMP_DIR="$test_dir"
+}
+
+test_ts_h_prints_help () {
+out=`ts -h`
+assert_match "usage:" "$out"
+}
+
+test_ts_does_not_print_passing_tests () {
+out="$(ts test/suite.d/pass_one 2>/dev/null)"
+assert_output "" "$out"
+}
+
+test_ts_prints_failing_tests () {
+out="$(ts test/suite.d/fail_one 2>/dev/null)"
+assert_output - "$out" <<out
+[test/suite.d/fail_one:8] test_fail
+F
+out
+}
+
+test_ts_prints_all_test_for_verbose () {
+out="$(ts -v test/suite.d/*_one 2>/dev/null)"
+assert_output - "$out" <<out
+[test/suite.d/fail_one:8] test_fail
+F
+[test/suite.d/pass_one:8] test_pass
+P
+out
+}
+
+run_test

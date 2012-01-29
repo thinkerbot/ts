@@ -1,0 +1,12 @@
+#!/bin/sh
+. ts-test-unit
+
+setup () {
+set -x
+}
+
+test_fail () {
+exit 8
+}
+
+run_test
