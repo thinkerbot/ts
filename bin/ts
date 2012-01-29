@@ -43,7 +43,7 @@ verbose="${verbose:-false}"
 PASS=`echo -e '\033[32m'`
 FAIL=`echo -e '\033[1;31m'`
 NORM=`echo -e '\033[0m'`
-NOEX=`echo -e '\033[1;330m'`
+NOEX=`echo -e '\033[1;37m'`
 
 ############################################################################
 list () {
@@ -76,7 +76,7 @@ do
   fi
 
   printf "%% %s [%s:%s] %s\n" "$status" "$test_file" "$lineno" "$test_name"
-done |
+done | tee "$1" |
 sed -lne '
 /^%/ {
 1 !G
@@ -165,7 +165,7 @@ then
   list "$@"
 else
   start=$SECONDS
-  list "$@" | run | tee "$raw" |
+  list "$@" | run $raw |
 
   if [ "true" = "$monitor" ]
   then
