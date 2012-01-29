@@ -55,34 +55,41 @@ fi
 }
 
 run () {
-npass=0
-nfail=0
-start=$SECONDS
 while read test_file lineno test_name
 do
   # run the test by calling back into the test file
   # * use stdout for progress, stderr for debug information
   # * a zero exit status is considered a pass, otherwise fail
-  if
-    printf "[$test_file:$lineno] $test_name\n"
-
-    if [ "true" = "$debug" ]
-    then "$test_file" "$test_name" 2>&1 | sed -e "s/^/  /"
-    else "$test_file" "$test_name" 2>/dev/null | sed -e "s/^/  /"
-    fi
-
-    [ 0 -eq $PIPESTATUS ]
-  then
-    printf "P\n"
-    ((npass++))
-  else
-    printf "F\n"
-    ((nfail++))
+  if [ "true" = "$debug" ]
+  then "$test_file" "$test_name" 2>&1
+  else "$test_file" "$test_name" 2>/dev/null
   fi
-done
-end=$SECONDS
 
-printf "%s pass %s fail %s s\n" "$npass" "$nfail" "$(($end - $start))" > "$1"
+  if [ 0 -eq $? ]
+  then status=P
+  else status=F
+  fi
+
+  printf "%% %s [%s:%s] %s\n" "$status" "$test_file" "$lineno" "$test_name"
+done |
+sed -lne '
+/^%/ {
+1 !G
+/^% P/a\
+P
+/^% F/a\
+F
+s/^% [PF] //
+s/\n//
+p
+c\
+
+x
+d
+}
+s/^/  /
+H
+'
 }
 
 noop () {
@@ -139,22 +146,21 @@ s/^[^[]*//p
 ############################################################################
 
 mkdir -p "$TS_TMP_DIR"
-err="$TS_TMP_DIR/err"
-out="$TS_TMP_DIR/out"
-rm -f "$err" "$out"
-touch "$err" "$out"
+raw="$TS_TMP_DIR/raw"
+tmp="$TS_TMP_DIR/tmp"
 exitstatus=0
 
 if [ "true" = "$preview" ]
 then
   list "$@"
 else
-  list "$@" | run "$err" |
+  start=$SECONDS
+  list "$@" | run | tee "$raw" |
 
   if [ "true" = "$monitor" ]
   then
-    monitor "$out" >&2
-    cat "$out"
+    monitor "$tmp" >&2
+    cat "$tmp"
   else noop
   fi |
 
@@ -167,10 +173,13 @@ else
   then noop
   else filter
   fi
+  end=$SECONDS
 
-  cat "$err" >&2
+  npass="$(grep -c '^P$' "$raw")"
+  nfail="$(grep -c '^F$' "$raw")"
+  printf "%s pass %s fail %s s\n" "$npass" "$nfail" "$(($end - $start))"
 
-  [ "0" = "$(cut -d " " -f 3 "$err")" ]
+  [ "0" = "$nfail" ]
   exitstatus=$?
 fi
 
