@@ -43,6 +43,7 @@ verbose="${verbose:-false}"
 PASS=`echo -e '\033[32m'`
 FAIL=`echo -e '\033[1;31m'`
 NORM=`echo -e '\033[0m'`
+NOEX=`echo -e '\033[1;330m'`
 
 ############################################################################
 list () {
@@ -57,17 +58,21 @@ fi
 run () {
 while read test_file lineno test_name
 do
-  # run the test by calling back into the test file
-  # * use stdout for progress, stderr for debug information
-  # * a zero exit status is considered a pass, otherwise fail
-  if [ "true" = "$debug" ]
-  then "$test_file" "$test_name" 2>&1
-  else "$test_file" "$test_name" 2>/dev/null
-  fi
+  if [ -x "$test_file" ]
+  then
+    # run the test by calling back into the test file
+    # * use stdout for progress, stderr for debug information
+    # * a zero exit status is considered a pass, otherwise fail
+    if [ "true" = "$debug" ]
+    then "$test_file" "$test_name" 2>&1
+    else "$test_file" "$test_name" 2>/dev/null
+    fi
 
-  if [ 0 -eq $? ]
-  then status=P
-  else status=F
+    if [ 0 -eq $? ]
+    then status=P
+    else status=F
+    fi
+  else status=X
   fi
 
   printf "%% %s [%s:%s] %s\n" "$status" "$test_file" "$lineno" "$test_name"
@@ -79,7 +84,9 @@ sed -lne '
 P
 /^% F/a\
 F
-s/^% [PF] //
+/^% X/a\
+X
+s/^% [PFX] //
 s/\n//
 p
 c\
@@ -110,6 +117,8 @@ w $1
 .
 /F\$/a\\
 F
+/X\$/a\\
+-
 \$ a\\
 n
 " | tr -ud "\n" | tr -u "n" "\n"
@@ -126,7 +135,8 @@ x
 
 /P\$/ s/^\[\([^]]*\)/[$PASS\1$NORM/
 /F\$/ s/^\[\([^]]*\)/[$FAIL\1$NORM/
-s/[PF]\$//p
+/X\$/ s/^\[\([^]]*\)/[$NOEX\1$NORM/
+s/[PFX]\$//p
 "
 }
 
@@ -175,11 +185,12 @@ else
   fi
   end=$SECONDS
 
-  npass="$(grep -c '^P$' "$raw")"
-  nfail="$(grep -c '^F$' "$raw")"
-  printf "%s pass %s fail %s s\n" "$npass" "$nfail" "$(($end - $start))"
+  npass="$(grep -c '^% P' "$raw")"
+  nfail="$(grep -c '^% F' "$raw")"
+  nnoex="$(grep -c '^% X' "$raw")"
+  printf "%s pass %s fail %s s\n" "$npass" "$(($nfail + $nnoex))" "$(($end - $start))"
 
-  [ "0" = "$nfail" ]
+  [ "0" = "$(($nfail + $nnoex))" ]
   exitstatus=$?
 fi
 
