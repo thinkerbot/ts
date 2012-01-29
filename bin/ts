@@ -188,7 +188,7 @@ else
   npass="$(grep -c '^% P' "$raw")"
   nfail="$(grep -c '^% F' "$raw")"
   nnoex="$(grep -c '^% X' "$raw")"
-  printf "%s pass %s fail %s s\n" "$npass" "$(($nfail + $nnoex))" "$(($end - $start))"
+  printf "%s pass %s fail %s s\n" "$npass" "$(($nfail + $nnoex))" "$(($end - $start))" >&2
 
   [ "0" = "$(($nfail + $nnoex))" ]
   exitstatus=$?
