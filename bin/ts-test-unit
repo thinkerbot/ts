@@ -61,10 +61,10 @@ assert_output () {
   if [ x"$actual" != x"$expected" ]
   then
     mkdir -p "$(dirname "$test_dir")"
-    printf "%s" "$expected" > "$test_dir.expect"
-    printf "%s" "$actual"   > "$test_dir.actual"
+    printf "%s" "$expected" > "$test_dir.e.txt"
+    printf "%s" "$actual"   > "$test_dir.a.txt"
     printf "unequal output:\n"
-    diff "$test_dir.expect" "$test_dir.actual"
+    diff "$test_dir.e.txt" "$test_dir.a.txt"
     exit 1
   fi
 }
