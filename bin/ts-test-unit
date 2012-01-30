@@ -5,11 +5,8 @@
 usr_dir="${TS_USR_DIR:-$(pwd)}"
 tmp_dir="${TS_TMP_DIR:-$usr_dir/tmp}"
 test_file="$0"
-test_name="$1"
 test_case="${test_file##*/}"
 test_case="${test_case%\.*}"
-test_dir="$tmp_dir/$test_case/$test_name"
-test_dir="${test_dir%/}"
 
 ############################################################################
 
@@ -93,16 +90,6 @@ assert_match () {
 # Runs a specific test.  In that case the test output is not filtered or
 # changed. the exit status is the exit status of the specific test.
 run_test () {
-  if [ "" = "$test_name" ]
-  then
-    printf "no test name specified\n" >&2
-    exit 1
-  fi
-
-  # close stdin so that commands expecting stdin will not hang
-  exec <&-
-
-  # prepare the test dir
   if [ -e "$test_dir" ] && ! rm -r "$test_dir"
   then
     printf "could not remove existing test dir: %s\n" "$test_dir"
@@ -112,4 +99,25 @@ run_test () {
   setup
   "$test_name"
   teardown
+}
+
+run_tests () {
+  grep -onE "^ *test_\w+ +\(\)" "$test_file" |
+  tr -d " ()" |
+  tr ":" " " |
+  while read lineno test_name
+  do
+    test_dir="$tmp_dir/$test_case/$test_name"
+
+    # run the test by calling back into the test file
+    # * use stdout for progress, stderr for debug information
+    # * a zero exit status is considered a pass, otherwise fail
+
+    if (run_test "$test_name" <&- 2>/dev/null)
+    then status=P
+    else status=F
+    fi
+
+    printf "%% %s [%s:%s] %s\n" "$status" "$test_file" "$lineno" "$test_name"
+  done
 }

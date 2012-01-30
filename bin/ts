@@ -46,58 +46,7 @@ NORM=`echo -e '\033[0m'`
 NOEX=`echo -e '\033[1;37m'`
 
 ############################################################################
-list () {
-if [ $# -gt 0 ]
-then
-  grep -onEH "^ *test_\w+ +\(\)" "$@" |
-  tr -d " ()" |
-  tr ":" " "
-fi
-}
 
-run () {
-while read test_file lineno test_name
-do
-  if [ -x "$test_file" ]
-  then
-    # run the test by calling back into the test file
-    # * use stdout for progress, stderr for debug information
-    # * a zero exit status is considered a pass, otherwise fail
-    if [ "true" = "$debug" ]
-    then "$test_file" "$test_name" 2>&1
-    else "$test_file" "$test_name" 2>/dev/null
-    fi
-
-    if [ 0 -eq $? ]
-    then status=P
-    else status=F
-    fi
-  else status=X
-  fi
-
-  printf "%% %s [%s:%s] %s\n" "$status" "$test_file" "$lineno" "$test_name"
-done | tee "$1" |
-sed -lne '
-/^%/ {
-1 !G
-/^% P/a\
-P
-/^% F/a\
-F
-/^% X/a\
-X
-s/^% [PFX] //
-s/\n//
-p
-c\
-
-x
-d
-}
-s/^/  /
-H
-'
-}
 
 noop () {
 sed -l
@@ -165,7 +114,29 @@ then
   list "$@"
 else
   start=$SECONDS
-  list "$@" | run $raw |
+  for test_file
+  do "$test_file"
+  done | tee "$raw" |
+sed -lne '
+/^%/ {
+1 !G
+/^% P/a\
+P
+/^% F/a\
+F
+/^% X/a\
+X
+s/^% [PFX] //
+s/\n//
+p
+c\
+
+x
+d
+}
+s/^/  /
+H
+' |
 
   if [ "true" = "$monitor" ]
   then
