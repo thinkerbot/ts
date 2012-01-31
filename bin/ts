@@ -1,172 +1,25 @@
 #!/bin/bash
-############################################################################
+arg="[TEST_FILES...]"
+. ts-test-unit
+
 export TS_USR_DIR
 export TS_TMP_DIR
 
-use="usage: %s [-c] [-d] [-f] [-h] [-m] [-p] [-t TMPDIR] [-v] [TEST_FILES...]\n"
-opt="       %s   %s\n"
-while getopts "cdfhpmt:v" option
-do
-  case $option in
-  c  )  cleanup=true ;;
-  d  )  debug=true ;;
-  f  )  format=true ;;
-  h  )  printf "$use" "$0"
-        printf "$opt" "-c" "cleanup (rm -r) tmp dir on complete"
-        printf "$opt" "-d" "debug mode - capture stderr for each test"
-        printf "$opt" "-f" "format output with color and indentation"
-        printf "$opt" "-h" "prints this help"
-        printf "$opt" "-p" "preview the tests to be run"
-        printf "$opt" "-m" "monitor progress"
-        printf "$opt" "-t" "set the test tmp dir (default tmp)"
-        printf "$opt" "-v" "verbose output"
-        exit 0 ;;
-  p  )  preview=true ;;
-  m  )  monitor=true ;;
-  t  )  TS_TMP_DIR=$OPTARG ;;
-  v  )  verbose=true ;;
-  \? )  printf "$use" "$0"
-        exit 2 ;;
-  esac
-done
-shift $(($OPTIND - 1))
-
-TS_USR_DIR="$(pwd)"
-TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
-cleanup="${cleanup:-false}"
-debug="${debug:-false}"
-format="${format:-false}"
-monitor="${monitor:-false}"
-preview="${preview:-false}"
-verbose="${verbose:-false}"
-
-PASS=`echo -e '\033[32m'`
-FAIL=`echo -e '\033[1;31m'`
-NORM=`echo -e '\033[0m'`
-NOEX=`echo -e '\033[1;37m'`
-
-############################################################################
-
-
-noop () {
-sed -l
-}
-
-monitor () {
-sed -lne "
-/^\[/ !{
-H
-$ !d
-}
-x
-1 d
-
-w $1
-/P\$/a\\
-.
-/F\$/a\\
-F
-/X\$/a\\
--
-\$ a\\
-n
-" | tr -ud "\n" | tr -u "n" "\n"
-}
-
-format () {
-sed -lne "
-/^\[/ !{
-H
-$ !d
-}
-x
-1 p
-
-/P\$/ s/^\[\([^]]*\)/[$PASS\1$NORM/
-/F\$/ s/^\[\([^]]*\)/[$FAIL\1$NORM/
-/X\$/ s/^\[\([^]]*\)/[$NOEX\1$NORM/
-s/[PFX]\$//p
-"
-}
-
-filter () {
-sed -lne "
-/^\[/ !{
-H
-$ !d
-}
-x
-1 d
-/P\$/ d
-/^\[[^[]*\[32m/ d
-s/^[^[]*//p
-"
-}
-############################################################################
-
 mkdir -p "$TS_TMP_DIR"
-raw="$TS_TMP_DIR/raw"
-tmp="$TS_TMP_DIR/tmp"
-exitstatus=0
+raw_file="$TS_TMP_DIR/raw"
+mon_file="$TS_TMP_DIR/mon"
 
-if [ "true" = "$preview" ]
-then
-  list "$@"
-else
-  start=$SECONDS
-  for test_file
-  do "$test_file"
-  done | tee "$raw" |
-sed -lne '
-/^%/ {
-1 !G
-/^% P/a\
-P
-/^% F/a\
-F
-/^% X/a\
-X
-s/^% [PFX] //
-s/\n//
-p
-c\
-
-x
-d
-}
-s/^/  /
-H
-' |
-
-  if [ "true" = "$monitor" ]
-  then
-    monitor "$tmp" >&2
-    cat "$tmp"
-  else noop
-  fi |
-
-  if [ "true" = "$format" ]
-  then format
-  else noop
-  fi |
-
-  if [ "true" = "$verbose" ]
-  then noop
-  else filter
+start_time=$SECONDS
+for test_file in "$@"
+do
+  if [ -x "$test_file" ]
+  then "$test_file"
+  else printf "%% X [%s] not executable\n" "$test_file"
   fi
-  end=$SECONDS
+done | ts_process "$raw_file" "$mon_file"
+end_time=$SECONDS
 
-  npass="$(grep -c '^% P' "$raw")"
-  nfail="$(grep -c '^% F' "$raw")"
-  nnoex="$(grep -c '^% X' "$raw")"
-  printf "%s pass %s fail %s s\n" "$npass" "$(($nfail + $nnoex))" "$(($end - $start))" >&2
-
-  [ "0" = "$(($nfail + $nnoex))" ]
-  exitstatus=$?
-fi
-
-if [ "true" = "$cleanup" ]
-then rm -r "$TS_TMP_DIR"
-fi
-
-exit $exitstatus
+ts_summarize "$raw_file" "$start_time" "$end_time"
+status=$?
+ts_cleanup
+exit $status
