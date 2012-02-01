@@ -1,35 +1,43 @@
 ############################################################################
-# This file is meant to be sourced into the actual test file.
-############################################################################
-usage="usage: %s [-c] [-d] [-f] [-h] [-m] [-p] [-t TMPDIR] [-v] %s%s\n"
-args="${args:-[TEST_PATTERN]}"
-doc=
+version="1.0"
+author="Simon Chiang"
+
+usage="usage: %s [-c] [-d] [-f] [-h] [-l] [-r] [-t TS_TMP_DIR] [-v] %s%s\n"
+args="${args:-[TEST_NAMES...]}"
+progname="${0##*/}"
 opt="       %s   %s\n"
 
-while getopts "cdfhpmt:v" option
+while getopts "cdfhlmrt:v" option
 do
   case $option in
-  c|d|f|p|m ) TS_OPT="$TS_OPT$option" ;;
-  h  )  printf "$usage" "$0" "$args" "$doc"
-        printf "$opt" "-c" "cleanup (rm -r) tmp dir on complete"
-        printf "$opt" "-d" "debug mode - capture stderr for each test"
-        printf "$opt" "-f" "format output with color and indentation"
-        printf "$opt" "-h" "prints this help"
-        printf "$opt" "-p" "preview the tests to be run"
-        printf "$opt" "-m" "monitor progress"
-        printf "$opt" "-t" "set the test tmp dir (default tmp)"
-        printf "$opt" "-v" "verbose output"
-        exit 0 ;;
-  t  )  TS_TMP_DIR=$OPTARG ;;
-  \? )  printf "$usage" "$0" "$args"
-        exit 2 ;;
+    c  )  cleanup=true ;;
+    d  )  debug=true ;;
+    f  )  format=true ;;
+    h  )  printf "$usage" "$progname" "$args" "$doc"
+          printf "$opt" "-c" "cleanup tmp dir on complete"
+          printf "$opt" "-d" "debug mode"
+          printf "$opt" "-f" "format output"
+          printf "$opt" "-h" "prints this help"
+          printf "$opt" "-l" "list the tests to be run"
+          printf "$opt" "-m" "monitor output"
+          printf "$opt" "-r" "raw output (overrides -fmv)"
+          printf "$opt" "-t" "set the test tmp dir (default tmp)"
+          printf "$opt" "-v" "verbose output (show passing tests)"
+          printf "\n"
+          exit 0 ;;
+    l  )  list=true ;;
+    m  )  monitor=true ;;
+    r  )  raw=true ;;
+    t  )  TS_TMP_DIR=$OPTARG ;;
+    v  )  verbose=true ;;
+    \? )  printf "$usage" "$0" "$args"
+          exit 2 ;;
   esac
 done
 shift $(($OPTIND - 1))
 
 TS_USR_DIR="${TS_USR_DIR:-$(pwd)}"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
-TS_OPT="${TS_OPT:-}"
 
 TS_PASS="${TS_PASS:-[32m}"
 TS_FAIL="${TS_FAIL:-[1;31m}"
@@ -115,73 +123,15 @@ assert_match () {
 }
 
 ############################################################################
-ts_noop () {
-sed -l
-}
 
-ts_test_suite () {
-  grep -onE "^ *test_\w+ +\(\)" "$1" |
+ts_list () {
+  grep -onE "^ *test_\w+ +\(\)" "$@" |
   tr -d " ()" |
   tr ":" " "
 }
 
-ts_monitor () {
-sed -lne "
-/^\[/ !{
-H
-$ !d
-}
-x
-1 d
-
-w $1
-/P\$/a\\
-.
-/F\$/a\\
-F
-/X\$/a\\
--
-\$ a\\
-n
-" | tr -ud "\n" | tr -u "n" "\n"
-}
-
-ts_format () {
-sed -lne "
-/^\[/ !{
-H
-$ !d
-}
-x
-1 p
-
-/P\$/ s/^\[\([^]]*\)/[$TS_PASS\1$TS_NORM/
-/F\$/ s/^\[\([^]]*\)/[$TS_FAIL\1$TS_NORM/
-/X\$/ s/^\[\([^]]*\)/[$TS_NOEX\1$TS_NORM/
-s/[PFX]\$//p
-"
-}
-
-ts_filter () {
-sed -lne "
-/^\[/ !{
-H
-$ !d
-}
-x
-1 d
-/P\$/ d
-/^\[[^[]*\[32m/ d
-s/^[^[]*//p
-"
-}
-
-
-ts_process () {
-raw_file="$1"; mon_file="$2"
-
-tee "$raw_file" |
-sed -lne '
+ts_structure () {
+  sed -lne '
 /^%/ {
 1 !G
 /^% P/a\
@@ -200,44 +150,109 @@ d
 }
 s/^/  /
 H
-' |
+'
+}
+
+ts_monitor () {
+mon_file="$1"
+
 if [ "true" = "$monitor" ]
-then
-  ts_monitor "$mon_file" >&2
-  cat "$mon_file"
-else ts_noop
-fi |
+then sed -lne "
+/^\[/ !{
+H
+$ !d
+}
+x
+1 d
+
+w $mon_file
+/P\$/a\\
+.
+/F\$/a\\
+F
+/X\$/a\\
+-
+\$ a\\
+n
+" | 
+  tr -ud "\n" | 
+    tr -u "n" "\n" >&2
+cat "$mon_file"
+else cat
+fi
+}
+
+ts_format () {
 if [ "true" = "$format" ]
-then ts_format
-else ts_noop
-fi |
+then sed -lne "
+/^\[/ !{
+H
+$ !d
+}
+x
+1 p
+
+/P\$/ s/^\[\([^]]*\)/[$TS_PASS\1$TS_NORM/
+/F\$/ s/^\[\([^]]*\)/[$TS_FAIL\1$TS_NORM/
+/X\$/ s/^\[\([^]]*\)/[$TS_NOEX\1$TS_NORM/
+s/[PFX]\$//p
+"
+else cat
+fi
+}
+
+ts_filter () {
 if [ "true" = "$verbose" ]
-then ts_noop
-else ts_filter
+then cat
+else sed -lne "
+/^\[/ !{
+H
+$ !d
+}
+x
+1 d
+/P\$/ d
+/^\[[^[]*\[32m/ d
+s/^[^[]*//p
+"
+fi
+}
+
+ts_process () {
+raw_file="$1"; mon_file="$2";
+
+if [ "true" = "$raw" ]
+then cat
+else   
+tee "$raw_file" |
+  ts_structure |
+    ts_monitor "$mon_file" |
+      ts_format |
+        ts_filter
 fi
 }
 
 # Runs a specific test.  In that case the test output is not filtered or
 # changed. the exit status is the exit status of the specific test.
 ts_run_test () {
-  test_name="$1"; test_dir="$2";
+if [ -e "$test_dir" ] && ! rm -r "$test_dir"
+then
+  printf "could not remove existing test dir: %s\n" "$test_dir"
+  exit 1
+fi
 
-  if [ -e "$test_dir" ] && ! rm -r "$test_dir"
-  then
-    printf "could not remove existing test dir: %s\n" "$test_dir"
-    exit 1
-  fi
+exec <&-
 
-  exec <&-
-
-  setup
-  "$test_name"
-  teardown
+setup
+"$test_name"
+teardown
 }
 
-ts_summarize () {
-  raw_file="$1"; start_time=$2; end_time=$3
+ts_report () {
+raw_file="$1"
 
+if [ "true" != "$raw" ]
+then
   npass="$(grep -c '^% P' "$raw_file")"
   npass=${npass:-0}
 
@@ -249,48 +264,50 @@ ts_summarize () {
 
   printf "%s pass %s fail %s s\n" "$npass" "$(($nfail + $nnoex))" "$(($end_time - $start_time))" >&2
 
-  [ "0" = "$(($nfail + $nnoex))" ]
-}
-
-ts_cleanup () {
-  if [ "true" = "$TS_CLEANUP" ]
+  if [ "true" = "$cleanup" ]
   then rm -r "$TS_TMP_DIR"
   fi
+
+  [ "0" = "$(($nfail + $nnoex))" ]
+fi
 }
 
 run_ts () {
-  test_file="$0"
-  test_case="${test_file##*/}"
-  test_case="${test_case%\.*}"
+test_file="$0"
+test_case="${test_file##*/}"
+test_case="${test_case%\.*}"
 
-  mkdir -p "$TS_TMP_DIR"
-  raw_file="$TS_TMP_DIR/$test_case.raw"
-  mon_file="$TS_TMP_DIR/$test_case.mon"
+if [ "true" = "$list" ]
+then
+  ts_list "$test_file"
+  exit
+fi
 
-  start_time=$SECONDS
-  ts_test_suite "$test_file" |
-  while read lineno test_name
-  do
-    test_dir="$TS_TMP_DIR/$test_case/$test_name"
+mkdir -p "$TS_TMP_DIR"
+raw_file="$TS_TMP_DIR/$test_case.raw"
+mon_file="$TS_TMP_DIR/$test_case.mon"
 
-    # run the test by calling back into the test file
-    # * use stdout for progress, stderr for debug information
-    # * a zero exit status is considered a pass, otherwise fail
-    if
-      if [ "true" = "$debug" ]
-      then (ts_run_test "$test_name" "$test_dir" 2>&1)
-      else (ts_run_test "$test_name" "$test_dir" 2>/dev/null)
-      fi
-    then status=P
-    else status=F
+start_time=$SECONDS
+ts_list "$test_file" |
+while read lineno test_name
+do
+  test_dir="$TS_TMP_DIR/$test_case/$test_name"
+
+  # run the test by calling back into the test file
+  # * use stdout for progress, stderr for debug information
+  # * a zero exit status is considered a pass, otherwise fail
+  if
+    if [ "true" = "$debug" ]
+    then (ts_run_test 2>&1)
+    else (ts_run_test 2>/dev/null)
     fi
+  then status=P
+  else status=F
+  fi
 
-    printf "%% %s [%s:%s] %s\n" "$status" "$test_file" "$lineno" "$test_name"
-  done | ts_process "$raw_file" "$mon_file"
-  end_time=$SECONDS
+  printf "%% %s [%s:%s] %s\n" "$status" "$test_file" "$lineno" "$test_name"
+done | ts_process "$raw_file" "$mon_file"
+end_time=$SECONDS
 
-  ts_summarize "$raw_file" "$start_time" "$end_time"
-  status=$?
-  ts_cleanup
-  return $status
+ts_report "$raw_file"
 }

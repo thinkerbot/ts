@@ -1,25 +1,28 @@
 #!/bin/bash
-arg="[TEST_FILES...]"
+args="[TEST_FILES...]"
 . ts-test-unit
+
+if [ "true" = "$list" ]
+then
+  ts_list "$@"
+  exit
+fi
 
 export TS_USR_DIR
 export TS_TMP_DIR
 
 mkdir -p "$TS_TMP_DIR"
-raw_file="$TS_TMP_DIR/raw"
-mon_file="$TS_TMP_DIR/mon"
+main_raw_file="$TS_TMP_DIR/raw"
+main_mon_file="$TS_TMP_DIR/mon"
 
 start_time=$SECONDS
 for test_file in "$@"
 do
   if [ -x "$test_file" ]
-  then "$test_file"
+  then "$test_file" -r
   else printf "%% X [%s] not executable\n" "$test_file"
   fi
-done | ts_process "$raw_file" "$mon_file"
+done | ts_process "$main_raw_file" "$main_mon_file"
 end_time=$SECONDS
 
-ts_summarize "$raw_file" "$start_time" "$end_time"
-status=$?
-ts_cleanup
-exit $status
+ts_report "$main_raw_file"
