@@ -41,6 +41,10 @@ shift $(($OPTIND - 1))
 TS_USR_DIR="${TS_USR_DIR:-$(pwd)}"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 
+mkdir -p "$TS_TMP_DIR"
+ts_raw_file="$TS_TMP_DIR/raw"
+ts_mon_file="$TS_TMP_DIR/mon"
+
 TS_PASS="${TS_PASS:-[32m}"
 TS_FAIL="${TS_FAIL:-[1;31m}"
 TS_NORM="${TS_NORM:-[0m}"
@@ -195,11 +199,7 @@ then
   exit
 fi
 
-mkdir -p "$TS_TMP_DIR"
-ts_raw_file="$TS_TMP_DIR/$test_case.raw"
-ts_mon_file="$TS_TMP_DIR/$test_case.mon"
 ts_start_time=$SECONDS
-
 ts_list "$test_file" |
 while read test_lineno test_name
 do
@@ -219,7 +219,6 @@ do
 
   printf "%% %s [%s:%s] %s\n" "$ts_status" "$test_file" "$test_lineno" "$test_name"
 done | ts_process
-
 ts_end_time=$SECONDS
 ts_report
 }
@@ -235,11 +234,7 @@ export TS_USR_DIR
 export TS_TMP_DIR
 export TS_NAME
 
-mkdir -p "$TS_TMP_DIR"
-ts_raw_file="$TS_TMP_DIR/raw"
-ts_mon_file="$TS_TMP_DIR/mon"
 ts_start_time=$SECONDS
-
 for test_file in "$@"
 do
   if [ -x "$test_file" ]
@@ -247,7 +242,6 @@ do
   else printf "%% X [%s] not executable\n" "$test_file"
   fi
 done | ts_process
-
 ts_end_time=$SECONDS
 ts_report
 }
