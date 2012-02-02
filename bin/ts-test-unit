@@ -7,7 +7,7 @@ args="${args:-[TEST_NAMES...]}"
 progname="${0##*/}"
 opt="       %s   %s\n"
 
-while getopts "cdfhlmrt:v" option
+while getopts "cdfhlmn:rt:v" option
 do
   case $option in
     c  )  cleanup=true ;;
@@ -27,6 +27,7 @@ do
           exit 0 ;;
     l  )  list=true ;;
     m  )  monitor=true ;;
+    n  )  TS_NAME=$OPTARG ;;
     r  )  raw=true ;;
     t  )  TS_TMP_DIR=$OPTARG ;;
     v  )  verbose=true ;;
@@ -125,7 +126,7 @@ assert_match () {
 ############################################################################
 
 ts_list () {
-  grep -onE "^ *test_\w+ +\(\)" "$@" |
+  grep -onE "^ *${TS_NAME:-test_\w+} +\(\)" "$@" |
   tr -d " ()" |
   tr ":" " "
 }

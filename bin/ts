@@ -10,6 +10,7 @@ fi
 
 export TS_USR_DIR
 export TS_TMP_DIR
+export TS_NAME
 
 mkdir -p "$TS_TMP_DIR"
 main_raw_file="$TS_TMP_DIR/raw"
