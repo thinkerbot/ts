@@ -2,7 +2,6 @@
 ############################################################################
 ts_version="1.0"
 ts_author="Simon Chiang"
-
 ts_usage="usage: %s [-c] [-d] [-f] [-h] [-l] [-r] [-t TS_TMP_DIR] [-v] %s\n"
 ts_args="[TEST_FILES...]"
 ts_args="${ts_args:-[TEST_NAMES...]}"
@@ -48,85 +47,6 @@ TS_NORM="${TS_NORM:-[0m}"
 TS_NOEX="${TS_NOEX:-[1;37m}"
 
 ############################################################################
-setup () {
-  true
-}
-
-teardown () {
-  true
-}
-
-# Runs a command and asserts it's exit status is 0.
-assert () {
-  "$@"
-  exitstatus=$?
-
-  if ! [ 0 -eq $exitstatus ]
-  then
-    printf "exit status %s:\n%s\n" "$exitstatus" "$@"
-    exit 1
-  fi
-}
-
-# Flunks unless the numbers $1 (expected) and $2 (actual) are the same.
-assert_status () {
-  expected=$1; actual=$2
-
-  if ! [ $actual -eq $expected ]
-  then 
-    printf "expected status %s but was %s\n" "$expected" "$actual"
-    exit 1
-  fi
-}
-
-# Flunks unless the variables $1 (expected) and $2 (actual) are the same. 
-# Reads from stdin for '-'.
-assert_output () {
-  expected="$1"; actual="$2"
-
-  # use x to protect against '-' on ancient systems
-  if [ x"$expected" = x"-" ]
-  then expected="$(cat)"
-  fi
-
-  if [ x"$actual" = x"-" ]
-  then actual="$(cat)"
-  fi
-
-  if [ x"$actual" != x"$expected" ]
-  then
-    mkdir -p "$(dirname "$test_dir")"
-    printf "%s" "$expected" > "$test_dir.e.txt"
-    printf "%s" "$actual"   > "$test_dir.a.txt"
-    printf "unequal output:\n"
-    diff "$test_dir.e.txt" "$test_dir.a.txt"
-    exit 1
-  fi
-}
-
-# Flunks unless the extended regular expression $1 (expected pattern) and $2
-# (actual) match.  Reads from stdin for '-'.
-assert_match () {
-  patttern="$1"; actual="$2"
-
-  # use x to protect against '-' on ancient systems
-  if [ x"$patttern" = x"-" ]
-  then patttern="$(cat)"
-  fi
-
-  if [ x"$actual" = x"-" ]
-  then actual="$(cat)"
-  fi
-
-  if ! [[ "$actual" =~ $patttern ]]
-  then
-    printf "output does not match pattern: %s\n%s\n" "$patttern" "$actual"
-    exit 1
-  fi
-}
-
-############################################################################
-
 ts_list () {
   grep -onE "^ *${TS_NAME:-test_\w+} +\(\)" "$@" |
   tr -d " ()" |
@@ -315,7 +235,7 @@ ts_end_time=$SECONDS
 ts_report "$ts_raw_file"
 }
 
-ts_run_suite () {
+ts_run_test_suite () {
 if [ "true" = "$ts_list" ]
 then
   ts_list "$@"
@@ -345,6 +265,85 @@ ts_report "$ts_raw_file"
 
 if [ "ts" = "$ts_progname" ]
 then
-  ts_run_suite "$@"
+  ts_run_test_suite "$@"
   exit $?
 fi
+
+############################################################################
+setup () {
+  true
+}
+
+teardown () {
+  true
+}
+
+# Runs a command and asserts it's exit status is 0.
+assert () {
+  "$@"
+  exitstatus=$?
+
+  if ! [ 0 -eq $exitstatus ]
+  then
+    printf "exit status %s:\n%s\n" "$exitstatus" "$@"
+    exit 1
+  fi
+}
+
+# Flunks unless the numbers $1 (expected) and $2 (actual) are the same.
+assert_status () {
+  expected=$1; actual=$2
+
+  if ! [ $actual -eq $expected ]
+  then 
+    printf "expected status %s but was %s\n" "$expected" "$actual"
+    exit 1
+  fi
+}
+
+# Flunks unless the variables $1 (expected) and $2 (actual) are the same. 
+# Reads from stdin for '-'.
+assert_output () {
+  expected="$1"; actual="$2"
+
+  # use x to protect against '-' on ancient systems
+  if [ x"$expected" = x"-" ]
+  then expected="$(cat)"
+  fi
+
+  if [ x"$actual" = x"-" ]
+  then actual="$(cat)"
+  fi
+
+  if [ x"$actual" != x"$expected" ]
+  then
+    mkdir -p "$(dirname "$test_dir")"
+    printf "%s" "$expected" > "$test_dir.e.txt"
+    printf "%s" "$actual"   > "$test_dir.a.txt"
+    printf "unequal output:\n"
+    diff "$test_dir.e.txt" "$test_dir.a.txt"
+    exit 1
+  fi
+}
+
+# Flunks unless the extended regular expression $1 (expected pattern) and $2
+# (actual) match.  Reads from stdin for '-'.
+assert_match () {
+  patttern="$1"; actual="$2"
+
+  # use x to protect against '-' on ancient systems
+  if [ x"$patttern" = x"-" ]
+  then patttern="$(cat)"
+  fi
+
+  if [ x"$actual" = x"-" ]
+  then actual="$(cat)"
+  fi
+
+  if ! [[ "$actual" =~ $patttern ]]
+  then
+    printf "output does not match pattern: %s\n%s\n" "$patttern" "$actual"
+    exit 1
+  fi
+}
+############################################################################
