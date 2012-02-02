@@ -48,13 +48,13 @@ TS_NOEX="${TS_NOEX:-[1;37m}"
 
 ############################################################################
 ts_list () {
-  grep -onE "^ *${TS_NAME:-test_\w+} +\(\)" "$@" |
-  tr -d " ()" |
-  tr ":" " "
+grep -onE "^ *${TS_NAME:-test_\w+} +\(\)" "$@" |
+tr -d " ()" |
+tr ":" " "
 }
 
 ts_structure () {
-  sed -lne '
+sed -lne '
 /^%/ {
 1 !G
 /^% P/a\
@@ -77,8 +77,6 @@ H
 }
 
 ts_monitor () {
-mon_file="$1"
-
 if [ "true" = "$ts_monitor" ]
 then sed -lne "
 /^\[/ !{
@@ -142,8 +140,6 @@ fi
 }
 
 ts_process () {
-ts_raw_file="$1"; ts_mon_file="$2";
-
 if [ "true" = "$ts_raw" ]
 then cat
 else   
@@ -172,18 +168,11 @@ teardown
 }
 
 ts_report () {
-ts_raw_file="$1"
-
 if [ "true" != "$ts_raw" ]
 then
   npass="$(grep -c '^% P' "$ts_raw_file")"
-  npass=${npass:-0}
-
   nfail="$(grep -c '^% F' "$ts_raw_file")"
-  nfail=${nfail:-0}
-
   nnoex="$(grep -c '^% X' "$ts_raw_file")"
-  nnoex=${nnoex:-0}
 
   printf "%s pass %s fail %s s\n" "$npass" "$(($nfail + $nnoex))" "$(($ts_end_time - $ts_start_time))" >&2
 
@@ -209,10 +198,10 @@ fi
 mkdir -p "$TS_TMP_DIR"
 ts_raw_file="$TS_TMP_DIR/$test_case.raw"
 ts_mon_file="$TS_TMP_DIR/$test_case.mon"
-
 ts_start_time=$SECONDS
+
 ts_list "$test_file" |
-while read lineno test_name
+while read test_lineno test_name
 do
   test_dir="$TS_TMP_DIR/$test_case/$test_name"
 
@@ -228,11 +217,11 @@ do
   else ts_status=F
   fi
 
-  printf "%% %s [%s:%s] %s\n" "$ts_status" "$test_file" "$lineno" "$test_name"
-done | ts_process "$ts_raw_file" "$ts_mon_file"
-ts_end_time=$SECONDS
+  printf "%% %s [%s:%s] %s\n" "$ts_status" "$test_file" "$test_lineno" "$test_name"
+done | ts_process
 
-ts_report "$ts_raw_file"
+ts_end_time=$SECONDS
+ts_report
 }
 
 ts_run_test_suite () {
@@ -249,18 +238,18 @@ export TS_NAME
 mkdir -p "$TS_TMP_DIR"
 ts_raw_file="$TS_TMP_DIR/raw"
 ts_mon_file="$TS_TMP_DIR/mon"
-
 ts_start_time=$SECONDS
+
 for test_file in "$@"
 do
   if [ -x "$test_file" ]
   then "$test_file" -r
   else printf "%% X [%s] not executable\n" "$test_file"
   fi
-done | ts_process "$ts_raw_file" "$ts_mon_file"
-ts_end_time=$SECONDS
+done | ts_process
 
-ts_report "$ts_raw_file"
+ts_end_time=$SECONDS
+ts_report
 }
 
 if [ "ts" = "$ts_progname" ]
