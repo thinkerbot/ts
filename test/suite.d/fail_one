@@ -9,4 +9,4 @@ test_fail () {
 exit 8
 }
 
-run_ts
+ts_run

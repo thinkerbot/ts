@@ -9,4 +9,4 @@ test_pass () {
 exit
 }
 
-run_ts
+ts_run
