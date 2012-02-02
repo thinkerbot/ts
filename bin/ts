@@ -340,7 +340,7 @@ assert_match () {
   then actual="$(cat)"
   fi
 
-  if ! [[ "$actual" =~ $patttern ]]
+  if ! printf "%s" "$actual" | grep -qE "$patttern"
   then
     printf "output does not match pattern: %s\n%s\n" "$patttern" "$actual"
     exit 1
