@@ -1,5 +1,5 @@
 #!/bin/sh
-. ts-test-unit
+. ts
 
 setup () {
 set -x
@@ -9,4 +9,4 @@ test_fail () {
 exit 8
 }
 
-run_test
+run_ts
