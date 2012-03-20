@@ -23,26 +23,36 @@ assert_match "usage:" "$out"
 }
 
 test_ts_does_not_print_passing_tests () {
-out="$(ts test/suite.d/pass_one 2>/dev/null)"
+out=`ts test/ts/pass 2>/dev/null`
 assert_output "" "$out"
 }
 
 test_ts_prints_failing_tests () {
-out="$(ts test/suite.d/fail_one 2>/dev/null)"
+out=`ts test/ts/fail 2>/dev/null`
 assert_output - "$out" <<out
-[test/suite.d/fail_one:8] test_fail
+[test/ts/fail:8] test_fail
 F
 out
 }
 
 test_ts_prints_all_test_for_verbose () {
-out="$(ts -v test/suite.d/*_one 2>/dev/null)"
+out=`ts -v test/ts/pass test/ts/fail 2>/dev/null`
 assert_output - "$out" <<out
-[test/suite.d/fail_one:8] test_fail
-F
-[test/suite.d/pass_one:8] test_pass
+[test/ts/pass:8] test_pass
 P
+[test/ts/fail:8] test_fail
+F
 out
+}
+
+test_ts_assertions_pass () {
+out=`ts test/assertions/pass 2>&1`
+assert_match "[0-9]{1,} pass 0 fail" "$out"
+}
+
+test_ts_assertions_fail () {
+out=`ts test/assertions/fail 2>&1`
+assert_match "0 pass [0-9]{1,} fail" "$out"
 }
 
 ts_run
