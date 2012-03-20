@@ -1,5 +1,13 @@
 #!/bin/sh
 ############################################################################
+if ! which ts > /dev/null
+then
+  printf "%s\n\n%s\n\n" \
+  'Could not find ts.  Try adding the ts bin dir to your PATH.' \
+  '  export PATH="$(pwd)/bin:$PATH"'
+  exit 1
+fi
+
 . ts
 
 setup () {
