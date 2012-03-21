@@ -55,7 +55,9 @@ TS_NOEX="${TS_NOEX:-[1;37m}"
 # private functions
 
 ts_list () {
-  grep -onE "^ *${TS_NAME:-test_\w+} +\(\)" "$@" |
+  for test_pattern in "${@:-test_\w+}"
+  do grep -onE "^ *$test_pattern +\(\)" "$0"
+  done |
   tr -d " ()" |
   tr ":" " "
 }
@@ -202,7 +204,7 @@ ts_run_test_suite () {
   test_case="${test_file##*/}"
   test_case="${test_case%\.*}"
 
-  ts_list "$test_file" |
+  ts_list "$@" |
   while read test_lineno test_name
   do
     test_dir="$TS_TMP_DIR/$test_case/$test_name"
@@ -325,5 +327,5 @@ then
   ts_run_test_files "$@"
   exit $?
 else
-  trap 'ts_run_test_suite' EXIT
+  trap "ts_run_test_suite $*" EXIT
 fi
