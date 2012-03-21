@@ -49,8 +49,6 @@ These options control a **ts** script, or `ts` when running ts scripts as a batc
   Format output with colors, indentation, etc.
 * `-h`: 
   Prints help.
-* `-l`: 
-  List the tests to be run.
 * `-m`: 
   Monitor output.  Rather than providing a stream of results as they are
   generated, provide a ticker indicating the progress of tests.  After all

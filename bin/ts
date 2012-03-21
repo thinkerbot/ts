@@ -2,7 +2,7 @@
 ############################################################################
 ts_version="1.0"
 ts_author="Simon Chiang"
-ts_usage="usage: %s [-c] [-d] [-f] [-h] [-l] [-r] [-t TS_TMP_DIR] [-v] %s\n"
+ts_usage="usage: %s [-c] [-d] [-f] [-h] [-r] [-t TS_TMP_DIR] [-v] %s\n"
 ts_args="[TEST_FILES...]"
 ts_args="${ts_args:-[TEST_NAMES...]}"
 ts_progname="${0##*/}"
@@ -19,7 +19,6 @@ do
           printf "$ts_opt" "-d" "debug mode"
           printf "$ts_opt" "-f" "format output"
           printf "$ts_opt" "-h" "prints this help"
-          printf "$ts_opt" "-l" "list the tests to be run"
           printf "$ts_opt" "-m" "monitor output"
           printf "$ts_opt" "-r" "raw output (overrides -fmv)"
           printf "$ts_opt" "-t" "set the test tmp dir (default tmp)"
@@ -200,12 +199,6 @@ test_file="$0"
 test_case="${test_file##*/}"
 test_case="${test_case%\.*}"
 
-if [ "true" = "$ts_list" ]
-then
-  ts_list "$test_file"
-  exit
-fi
-
 ts_list "$test_file" |
 while read test_lineno test_name
 do
@@ -228,12 +221,6 @@ done | ts_report
 }
 
 ts_run_test_suite () {
-if [ "true" = "$ts_list" ]
-then
-  ts_list "$@"
-  exit
-fi
-
 export TS_USR_DIR
 export TS_TMP_DIR
 export TS_NAME
