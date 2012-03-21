@@ -268,7 +268,7 @@ assert () {
 
   if ! [ 0 -eq $exitstatus ]
   then
-    printf "exit status %s:\n%s\n" "$exitstatus" "$@"
+    printf "exit status %s:\n%s\n" "$exitstatus" "$*"
     exit 1
   fi
 }
