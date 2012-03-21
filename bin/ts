@@ -168,7 +168,10 @@ exec <&-
 
 setup
 "$test_name"
+exitstatus=$?
 teardown
+
+return $exitstatus
 }
 
 ts_report () {

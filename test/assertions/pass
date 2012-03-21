@@ -9,6 +9,10 @@ test_exit_pass () {
 exit
 }
 
+test_return_pass () {
+true
+}
+
 #
 # assert test
 #

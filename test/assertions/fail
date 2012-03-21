@@ -9,6 +9,10 @@ test_exit_fail () {
 exit 8
 }
 
+test_return_fail () {
+false
+}
+
 #
 # assert test
 #
