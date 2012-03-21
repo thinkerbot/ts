@@ -223,6 +223,20 @@ ts_run_test_suite () {
   done | ts_report
 }
 
+ts_run_test_files () {
+  export TS_USR_DIR
+  export TS_TMP_DIR
+  export TS_NAME
+
+  for test_file in "$@"
+  do
+    if [ -x "$test_file" ]
+    then "$test_file" -r
+    else printf "%% X [%s] not executable\n" "$test_file"
+    fi
+  done | ts_report
+}
+
 ############################################################################
 # public functions
 
@@ -305,20 +319,10 @@ assert_match () {
 ############################################################################
 
 # Run the test files if this script is executed directly. Otherwise, set a
-# trap to run the test suite after the tests have been defined.
+# trap to run the current test suite after the tests have been defined.
 if [ "ts" = "$ts_progname" ]
 then
-  export TS_USR_DIR
-  export TS_TMP_DIR
-  export TS_NAME
-
-  for test_file in "$@"
-  do
-    if [ -x "$test_file" ]
-    then "$test_file" -r
-    else printf "%% X [%s] not executable\n" "$test_file"
-    fi
-  done | ts_report
+  ts_run_test_files "$@"
   exit $?
 else
   trap 'ts_run_test_suite' EXIT
