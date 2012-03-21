@@ -181,6 +181,8 @@ ts_run_test () {
     exit 1
   fi
 
+  # close stdin so that tests which mistakenly
+  # read from stdin will not hang
   exec <&-
 
   setup
