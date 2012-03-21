@@ -194,6 +194,7 @@ teardown
 return $exitstatus
 }
 
+# Run the test files if this script is executed directly.
 if [ "ts" = "$ts_progname" ]
 then
   export TS_USR_DIR
