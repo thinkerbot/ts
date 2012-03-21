@@ -52,6 +52,8 @@ TS_NORM="${TS_NORM:-[0m}"
 TS_NOEX="${TS_NOEX:-[1;37m}"
 
 ############################################################################
+# private functions
+
 ts_list () {
   grep -onE "^ *${TS_NAME:-test_\w+} +\(\)" "$@" |
   tr -d " ()" |
@@ -220,7 +222,10 @@ ts_run_test_suite () {
     printf "%% %s [%s:%s] %s\n" "$ts_status" "$test_file" "$test_lineno" "$test_name"
   done | ts_report
 }
+
 ############################################################################
+# public functions
+
 setup () {
   true
 }
