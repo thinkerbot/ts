@@ -323,9 +323,6 @@ assert_match () {
 # Run the test files if this script is executed directly. Otherwise, set a
 # trap to run the current test suite after the tests have been defined.
 if [ "ts" = "$ts_progname" ]
-then
-  ts_run_test_files "$@"
-  exit $?
-else
-  trap "ts_run_test_suite $*" EXIT
+then ts_run_test_files "$@"
+else trap "ts_run_test_suite $*; exit \$?" EXIT
 fi

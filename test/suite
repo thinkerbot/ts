@@ -17,6 +17,10 @@ set -x
 export TS_TMP_DIR="$test_dir"
 }
 
+#
+# options test
+#
+
 test_ts_h_prints_help () {
 out=`ts -h`
 assert_match "usage:" "$out"
@@ -45,6 +49,10 @@ F
 out
 }
 
+#
+# assertions test
+#
+
 test_ts_assertions_pass () {
 out=`ts test/assertions/pass 2>&1 | tail -n 1`
 assert_match "[0-9]{1,} pass 0 fail" "$out"
@@ -53,4 +61,28 @@ assert_match "[0-9]{1,} pass 0 fail" "$out"
 test_ts_assertions_fail () {
 out=`ts test/assertions/fail 2>&1 | tail -n 1`
 assert_match "0 pass [0-9]{1,} fail" "$out"
+}
+
+#
+# exit status test
+#
+
+test_ts_exits_0_for_passing_test () {
+ts test/ts/pass
+assert_status 0 $?
+}
+
+test_ts_script_exits_0_for_passing_test () {
+./test/ts/pass
+assert_status 0 $?
+}
+
+test_ts_exits_1_for_failing_test () {
+ts test/ts/fail
+assert_status 1 $?
+}
+
+test_ts_script_exits_1_for_failing_test () {
+./test/ts/fail
+assert_status 1 $?
 }
