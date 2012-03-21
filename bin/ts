@@ -194,49 +194,19 @@ teardown
 return $exitstatus
 }
 
-ts_run () {
-test_file="$0"
-test_case="${test_file##*/}"
-test_case="${test_case%\.*}"
-
-ts_list "$test_file" |
-while read test_lineno test_name
-do
-  test_dir="$TS_TMP_DIR/$test_case/$test_name"
-
-  # run the test by calling back into the test file
-  # * use stdout for progress, stderr for debug information
-  # * a zero exit status is considered a pass, otherwise fail
-  if
-    if [ "true" = "$ts_debug" ]
-    then (ts_run_test 2>&1)
-    else (ts_run_test 2>/dev/null)
-    fi
-  then ts_status=P
-  else ts_status=F
-  fi
-
-  printf "%% %s [%s:%s] %s\n" "$ts_status" "$test_file" "$test_lineno" "$test_name"
-done | ts_report
-}
-
-ts_run_test_suite () {
-export TS_USR_DIR
-export TS_TMP_DIR
-export TS_NAME
-
-for test_file in "$@"
-do
-  if [ -x "$test_file" ]
-  then "$test_file" -r
-  else printf "%% X [%s] not executable\n" "$test_file"
-  fi
-done | ts_report
-}
-
 if [ "ts" = "$ts_progname" ]
 then
-  ts_run_test_suite "$@"
+  export TS_USR_DIR
+  export TS_TMP_DIR
+  export TS_NAME
+
+  for test_file in "$@"
+  do
+    if [ -x "$test_file" ]
+    then "$test_file" -r
+    else printf "%% X [%s] not executable\n" "$test_file"
+    fi
+  done | ts_report
   exit $?
 fi
 
@@ -316,5 +286,31 @@ assert_match () {
     printf "output does not match pattern: %s\n%s\n" "$patttern" "$actual"
     exit 1
   fi
+}
+
+ts_run () {
+test_file="$0"
+test_case="${test_file##*/}"
+test_case="${test_case%\.*}"
+
+ts_list "$test_file" |
+while read test_lineno test_name
+do
+  test_dir="$TS_TMP_DIR/$test_case/$test_name"
+
+  # run the test by calling back into the test file
+  # * use stdout for progress, stderr for debug information
+  # * a zero exit status is considered a pass, otherwise fail
+  if
+    if [ "true" = "$ts_debug" ]
+    then (ts_run_test 2>&1)
+    else (ts_run_test 2>/dev/null)
+    fi
+  then ts_status=P
+  else ts_status=F
+  fi
+
+  printf "%% %s [%s:%s] %s\n" "$ts_status" "$test_file" "$test_lineno" "$test_name"
+done | ts_report
 }
 ############################################################################
