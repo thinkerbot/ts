@@ -4,7 +4,7 @@ ts(1) -- run ts shell test scripts
 ## SYNOPSIS
 
 `ts` [options] FILE...
-`[ts script]` [options]
+`[ts script]` [options] TESTS...
 
 ## DESCRIPTION
 

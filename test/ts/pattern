@@ -1,0 +1,14 @@
+#!/bin/sh
+. ts
+
+setup () {
+set -x
+}
+
+test_a () {
+true
+}
+
+test_z () {
+true
+}

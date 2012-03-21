@@ -18,6 +18,30 @@ export TS_TMP_DIR="$test_dir"
 }
 
 #
+# ts test
+#
+
+test_ts_runs_files () {
+out=`ts -v test/ts/pass test/ts/fail 2>/dev/null`
+assert_output - "$out" <<out
+[test/ts/pass:8] test_pass
+P
+[test/ts/fail:8] test_fail
+F
+out
+}
+
+test_ts_script_runs_named_tests () {
+count=`./test/ts/pattern -r test_a | grep -c '% P'`
+assert [ $count -eq 1 ]
+}
+
+test_ts_script_runs_all_tests_by_default () {
+count=`./test/ts/pattern -r | grep -c '% P'`
+assert [ $count -eq 2 ]
+}
+
+#
 # options test
 #
 
