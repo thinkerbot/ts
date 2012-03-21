@@ -155,6 +155,27 @@ tee "$ts_raw_file" |
 fi
 }
 
+ts_report () {
+ts_start_time=$SECONDS
+ts_process
+ts_end_time=$SECONDS
+
+if [ "true" != "$ts_raw" ]
+then
+  npass="$(grep -c '^% P' "$ts_raw_file")"
+  nfail="$(grep -c '^% F' "$ts_raw_file")"
+  nnoex="$(grep -c '^% X' "$ts_raw_file")"
+
+  printf "%s pass %s fail %s s\n" "$npass" "$(($nfail + $nnoex))" "$(($ts_end_time - $ts_start_time))" >&2
+
+  if [ "true" = "$ts_cleanup" ]
+  then rm -r "$TS_TMP_DIR"
+  fi
+
+  [ "0" = "$(($nfail + $nnoex))" ]
+fi
+}
+
 # Runs a specific test.  In that case the test output is not filtered or
 # changed. the exit status is the exit status of the specific test.
 ts_run_test () {
@@ -174,23 +195,6 @@ teardown
 return $exitstatus
 }
 
-ts_report () {
-if [ "true" != "$ts_raw" ]
-then
-  npass="$(grep -c '^% P' "$ts_raw_file")"
-  nfail="$(grep -c '^% F' "$ts_raw_file")"
-  nnoex="$(grep -c '^% X' "$ts_raw_file")"
-
-  printf "%s pass %s fail %s s\n" "$npass" "$(($nfail + $nnoex))" "$(($ts_end_time - $ts_start_time))" >&2
-
-  if [ "true" = "$ts_cleanup" ]
-  then rm -r "$TS_TMP_DIR"
-  fi
-
-  [ "0" = "$(($nfail + $nnoex))" ]
-fi
-}
-
 ts_run () {
 test_file="$0"
 test_case="${test_file##*/}"
@@ -202,7 +206,6 @@ then
   exit
 fi
 
-ts_start_time=$SECONDS
 ts_list "$test_file" |
 while read test_lineno test_name
 do
@@ -221,9 +224,7 @@ do
   fi
 
   printf "%% %s [%s:%s] %s\n" "$ts_status" "$test_file" "$test_lineno" "$test_name"
-done | ts_process
-ts_end_time=$SECONDS
-ts_report
+done | ts_report
 }
 
 ts_run_test_suite () {
@@ -237,16 +238,13 @@ export TS_USR_DIR
 export TS_TMP_DIR
 export TS_NAME
 
-ts_start_time=$SECONDS
 for test_file in "$@"
 do
   if [ -x "$test_file" ]
   then "$test_file" -r
   else printf "%% X [%s] not executable\n" "$test_file"
   fi
-done | ts_process
-ts_end_time=$SECONDS
-ts_report
+done | ts_report
 }
 
 if [ "ts" = "$ts_progname" ]
