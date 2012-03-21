@@ -46,12 +46,12 @@ out
 }
 
 test_ts_assertions_pass () {
-out=`ts test/assertions/pass 2>&1`
+out=`ts test/assertions/pass 2>&1 | tail -n 1`
 assert_match "[0-9]{1,} pass 0 fail" "$out"
 }
 
 test_ts_assertions_fail () {
-out=`ts test/assertions/fail 2>&1`
+out=`ts test/assertions/fail 2>&1 | tail -n 1`
 assert_match "0 pass [0-9]{1,} fail" "$out"
 }
 
