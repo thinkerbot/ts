@@ -51,13 +51,13 @@ TS_NOEX="${TS_NOEX:-[1;37m}"
 
 ############################################################################
 ts_list () {
-grep -onE "^ *${TS_NAME:-test_\w+} +\(\)" "$@" |
-tr -d " ()" |
-tr ":" " "
+  grep -onE "^ *${TS_NAME:-test_\w+} +\(\)" "$@" |
+  tr -d " ()" |
+  tr ":" " "
 }
 
 ts_structure () {
-sed -lne '
+  sed -lne '
 /^%/ {
 1 !G
 /^% P/a\
@@ -80,8 +80,9 @@ H
 }
 
 ts_monitor () {
-if [ "true" = "$ts_monitor" ]
-then sed -lne "
+  if [ "true" = "$ts_monitor" ]
+  then
+    sed -lne "
 /^\[/ !{
 H
 $ !d
@@ -98,17 +99,17 @@ F
 -
 \$ a\\
 n
-" | 
-  tr -ud "\n" | 
+" |
+    tr -ud "\n" |
     tr -u "n" "\n" >&2
-cat "$ts_mon_file"
-else cat
-fi
+    cat "$ts_mon_file"
+  else cat
+  fi
 }
 
 ts_format () {
-if [ "true" = "$ts_format" ]
-then sed -lne "
+  if [ "true" = "$ts_format" ]
+  then sed -lne "
 /^\[/ !{
 H
 $ !d
@@ -121,14 +122,14 @@ x
 /X\$/ s/^\[\([^]]*\)/[$TS_NOEX\1$TS_NORM/
 s/[PFX]\$//p
 "
-else cat
-fi
+  else cat
+  fi
 }
 
 ts_filter () {
-if [ "true" = "$ts_verbose" ]
-then cat
-else sed -lne "
+  if [ "true" = "$ts_verbose" ]
+  then cat
+  else sed -lne "
 /^\[/ !{
 H
 $ !d
@@ -139,59 +140,59 @@ x
 /^\[[^[]*\[32m/ d
 s/^[^[]*//p
 "
-fi
+  fi
 }
 
 ts_process () {
-if [ "true" = "$ts_raw" ]
-then cat
-else   
-tee "$ts_raw_file" |
-  ts_structure |
+  if [ "true" = "$ts_raw" ]
+  then cat
+  else
+    tee "$ts_raw_file" |
+    ts_structure |
     ts_monitor "$ts_mon_file" |
-      ts_format |
-        ts_filter
-fi
+    ts_format |
+    ts_filter
+  fi
 }
 
 ts_report () {
-ts_start_time=$SECONDS
-ts_process
-ts_end_time=$SECONDS
+  ts_start_time=$SECONDS
+  ts_process
+  ts_end_time=$SECONDS
 
-if [ "true" != "$ts_raw" ]
-then
-  npass="$(grep -c '^% P' "$ts_raw_file")"
-  nfail="$(grep -c '^% F' "$ts_raw_file")"
-  nnoex="$(grep -c '^% X' "$ts_raw_file")"
+  if [ "true" != "$ts_raw" ]
+  then
+    npass="$(grep -c '^% P' "$ts_raw_file")"
+    nfail="$(grep -c '^% F' "$ts_raw_file")"
+    nnoex="$(grep -c '^% X' "$ts_raw_file")"
 
-  printf "%s pass %s fail %s s\n" "$npass" "$(($nfail + $nnoex))" "$(($ts_end_time - $ts_start_time))" >&2
+    printf "%s pass %s fail %s s\n" "$npass" "$(($nfail + $nnoex))" "$(($ts_end_time - $ts_start_time))" >&2
 
-  if [ "true" = "$ts_cleanup" ]
-  then rm -r "$TS_TMP_DIR"
+    if [ "true" = "$ts_cleanup" ]
+    then rm -r "$TS_TMP_DIR"
+    fi
+
+    [ "0" = "$(($nfail + $nnoex))" ]
   fi
-
-  [ "0" = "$(($nfail + $nnoex))" ]
-fi
 }
 
 # Runs a specific test.  In that case the test output is not filtered or
 # changed. the exit status is the exit status of the specific test.
 ts_run_test () {
-if [ -e "$test_dir" ] && ! rm -r "$test_dir"
-then
-  printf "could not remove existing test dir: %s\n" "$test_dir"
-  exit 1
-fi
+  if [ -e "$test_dir" ] && ! rm -r "$test_dir"
+  then
+    printf "could not remove existing test dir: %s\n" "$test_dir"
+    exit 1
+  fi
 
-exec <&-
+  exec <&-
 
-setup
-"$test_name"
-exitstatus=$?
-teardown
+  setup
+  "$test_name"
+  exitstatus=$?
+  teardown
 
-return $exitstatus
+  return $exitstatus
 }
 
 # Run the test files if this script is executed directly.
@@ -290,28 +291,28 @@ assert_match () {
 }
 
 ts_run () {
-test_file="$0"
-test_case="${test_file##*/}"
-test_case="${test_case%\.*}"
+  test_file="$0"
+  test_case="${test_file##*/}"
+  test_case="${test_case%\.*}"
 
-ts_list "$test_file" |
-while read test_lineno test_name
-do
-  test_dir="$TS_TMP_DIR/$test_case/$test_name"
+  ts_list "$test_file" |
+  while read test_lineno test_name
+  do
+    test_dir="$TS_TMP_DIR/$test_case/$test_name"
 
-  # run the test by calling back into the test file
-  # * use stdout for progress, stderr for debug information
-  # * a zero exit status is considered a pass, otherwise fail
-  if
-    if [ "true" = "$ts_debug" ]
-    then (ts_run_test 2>&1)
-    else (ts_run_test 2>/dev/null)
+    # run the test by calling back into the test file
+    # * use stdout for progress, stderr for debug information
+    # * a zero exit status is considered a pass, otherwise fail
+    if
+      if [ "true" = "$ts_debug" ]
+      then (ts_run_test 2>&1)
+      else (ts_run_test 2>/dev/null)
+      fi
+    then ts_status=P
+    else ts_status=F
     fi
-  then ts_status=P
-  else ts_status=F
-  fi
 
-  printf "%% %s [%s:%s] %s\n" "$ts_status" "$test_file" "$test_lineno" "$test_name"
-done | ts_report
+    printf "%% %s [%s:%s] %s\n" "$ts_status" "$test_file" "$test_lineno" "$test_name"
+  done | ts_report
 }
 ############################################################################
