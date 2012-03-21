@@ -30,8 +30,6 @@ have the following form:
     true             # Return (or exit) 0 to pass.
     }
 
-    ts_run           # Call to run ts when the script is run.
-
 See the FUNCTIONS section for all functions available in tests.
 
 ## OPTIONS
@@ -82,8 +80,6 @@ reserved for internal use.
 * `assert_match EXPECTED ACTUAL`:
   Flunks unless the extended regular expression EXPECTED and variable ACTUAL
   match.  Reads from stdin for '-'.
-* `ts_run`:
-  Runs each test in the test script.
 
 ## VARIABLES
 

@@ -8,5 +8,3 @@ set -x
 test_pass () {
 exit
 }
-
-ts_run

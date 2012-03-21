@@ -54,5 +54,3 @@ test_ts_assertions_fail () {
 out=`ts test/assertions/fail 2>&1 | tail -n 1`
 assert_match "0 pass [0-9]{1,} fail" "$out"
 }
-
-ts_run

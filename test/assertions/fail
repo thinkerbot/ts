@@ -72,5 +72,3 @@ assert_match "hello.+rld" - <<doc
 hell0 world
 doc
 }
-
-ts_run
