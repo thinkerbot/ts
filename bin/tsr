@@ -1,0 +1,82 @@
+#! /bin/sh
+############################################################################
+
+ssh_config_file="${SSH_CONFIG_FILE:-config/ssh}"
+hosts=
+local_dir="${TS_LOCAL_DIR}"
+remote_dir="${TS_REMOTE_DIR:-\$(pwd)/ts}"
+
+usage="usage: %s [-F SSH_CONFIG_FILE] [-H HOST] [-h] [-L LOCAL_DIR] [-R REMOTE_DIR] -- [TS_OPTS] TEST_FILES...\n"
+option="       %s   %s\n"
+while getopts "F:R:H:h" opt
+do
+  case $opt in
+  F  )  ssh_config_file=$OPTARG ;;
+  R  )  remote_dir=$OPTARG ;;
+  H  )  hosts="$hosts $OPTARG" ;;
+  h  )  printf "$usage" $0
+        printf "$option" "-F" "the ssh config file"
+        printf "$option" "-H" "the hosts to run on (default all in ssh config file)"
+        printf "$option" "-h" "prints this help"
+        printf "$option" "-L" "the local dir"
+        printf "$option" "-R" "the remote dir"
+        exit 0 ;;
+  \? )  printf "$usage" $0
+        exit 2 ;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+list_hosts () {
+  grep  "^Host[[:space:]]" "$@" | 
+  sed -e 's/[[:space:]]\{1,\}/ /' | 
+  cut -d ' ' -f 2 | 
+  grep -v '*'
+}
+
+if [ "" = "$hosts" ]
+then hosts=`list_hosts "$ssh_config_file"`
+fi
+
+############################################################################
+#
+# transfer tests
+#
+
+for host in "$hosts"
+do
+ssh -q -T -F "$ssh_config_file" "$host" -- <<SCRIPT
+rm -rf "$remote_dir"
+if [ "\$(dirname "$remote_dir")" != "" ]
+then
+  mkdir -p "\$(dirname "$remote_dir")"
+fi
+SCRIPT
+
+scp -q -r -p -F "$ssh_config_file" "$@" "$host:$remote_dir"
+
+status=$?
+if [ $status -ne 0 ]
+then
+  echo "[$status] could not scp tests to host: $host" >&2
+  exit 1
+fi
+done
+
+#
+# run tests
+#
+
+for host in "$hosts"
+do
+echo "############## $host ##############"
+ssh -q -F "$ssh_config_file" "$host" -- "$remote_dir/bin/ts" "$@" </dev/null
+
+status=$?
+if [ $status -ne 0 ]
+then
+  echo "[$status] $remote_dir/bin/ts $@" >&2
+  exit 1
+fi
+done
+############################################################################
