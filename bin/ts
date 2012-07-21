@@ -305,13 +305,13 @@ assert_output () {
 # Flunks unless the extended regular expression $1 (expected pattern) and $2
 # (actual) match.  Reads from stdin for '-'.
 assert_match () {
-  patttern="$1"; actual="$2"
+  pattern="$1"; actual="$2"
 
   # use x to protect against '-' on ancient systems
-  if [ x"$patttern" = x"-" ]
+  if [ x"$pattern" = x"-" ]
   then
-    patttern=$(cat; printf x)
-    patttern=${patttern%x}
+    pattern=$(cat; printf x)
+    pattern=${pattern%x}
   fi
 
   if [ x"$actual" = x"-" ]
@@ -320,9 +320,9 @@ assert_match () {
     actual=${actual%x}
   fi
 
-  if ! printf "%b" "$actual" | grep -qE "$patttern"
+  if ! printf "%b" "$actual" | grep -qE "$pattern"
   then
-    printf "output does not match pattern: %s\n%s\n" "$patttern" "$actual"
+    printf "output does not match pattern: %s\n%s\n" "$pattern" "$actual"
     exit 1
   fi
 }
