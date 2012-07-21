@@ -187,8 +187,8 @@ ts_run_test () {
     exit 1
   fi
 
-  # close stdin so that tests which mistakenly
-  # read from stdin will not hang
+  # close stdin so that tests which mistakenly read from stdin will
+  # not hang.  note this doesn't work for subcommands like `cat`
   exec <&-
 
   setup
