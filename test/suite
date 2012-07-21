@@ -110,3 +110,11 @@ test_ts_script_exits_1_for_failing_test () {
 ./test/ts/fail
 assert_status 1 $?
 }
+
+#
+# misc
+#
+
+test_ts_closes_stdin_to_prevent_hang () {
+cat | assert_output "" -
+}
