@@ -280,11 +280,15 @@ assert_output () {
 
   # use x to protect against '-' on ancient systems
   if [ x"$expected" = x"-" ]
-  then expected="$(cat)"
+  then
+    expected=$(cat; printf x)
+    expected=${expected%x}
   fi
 
   if [ x"$actual" = x"-" ]
-  then actual="$(cat)"
+  then
+    actual=$(cat; printf x)
+    actual=${actual%x}
   fi
 
   if [ x"$actual" != x"$expected" ]
@@ -305,14 +309,18 @@ assert_match () {
 
   # use x to protect against '-' on ancient systems
   if [ x"$patttern" = x"-" ]
-  then patttern="$(cat)"
+  then
+    patttern=$(cat; printf x)
+    patttern=${patttern%x}
   fi
 
   if [ x"$actual" = x"-" ]
-  then actual="$(cat)"
+  then
+    actual=$(cat; printf x)
+    actual=${actual%x}
   fi
 
-  if ! printf "%s" "$actual" | grep -qE "$patttern"
+  if ! printf "%b" "$actual" | grep -qE "$patttern"
   then
     printf "output does not match pattern: %s\n%s\n" "$patttern" "$actual"
     exit 1

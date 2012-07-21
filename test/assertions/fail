@@ -38,15 +38,22 @@ assert_output "hello world" "hell0 world"
 }
 
 test_assert_output_expected_from_stdin_fail () {
-assert_output - "hell0 world" <<doc
-hello world
-doc
+printf "hello world" | assert_output - "hell0 world"
 }
 
 test_assert_output_actual_from_stdin_fail () {
-assert_output "hello world" - <<doc
-hell0 world
-doc
+printf "hello w0rld" | assert_output "hello world" -
+}
+
+test_assert_output_with_newline_fail () {
+printf "hello w0rld\n" | assert_output "\
+hello world
+" -
+}
+
+test_assert_output_with_numbers_fail () {
+assert_output 0 1
+assert_output "0" "1"
 }
 
 test_assert_output_with_pattern_fail () {
@@ -62,13 +69,9 @@ assert_match "hello.+rld" "hell0 world"
 }
 
 test_assert_match_pattern_from_stdin_fail () {
-assert_match - "hell0 world" <<doc
-hello.+rld
-doc
+printf "hello.+rld" | assert_match - "hell0 world"
 }
 
 test_assert_match_output_from_stdin_fail () {
-assert_match "hello.+rld" - <<doc
-hell0 world
-doc
+printf "hell0 world" | assert_match "hello.+rld" -
 }
