@@ -117,7 +117,10 @@ TODO
 
 ## BUGS
 
-TODO
+* Calling a subcommand that reads from stdin without providing it will quietly
+  hang. Nothing can be done to prevent this behavior (?) but ts should help
+  identify where the hang occurs, for instance by printing the test name in
+  verbose mode.
 
 ## COPYRIGHT
 
