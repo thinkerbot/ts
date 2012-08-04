@@ -274,9 +274,9 @@ assert_status () {
 }
 
 # Flunks unless the variables $1 (expected) and $2 (actual) are the same. 
-# Reads from stdin for '-'.
+# Reads from stdin for '-'.  '-' is assumed if $2 is not specified.
 assert_output () {
-  expected="$1"; actual="$2"
+  expected="$1"; actual="${2:--}"
 
   # use x to protect against '-' on ancient systems
   if [ x"$expected" = x"-" ]
@@ -303,9 +303,10 @@ assert_output () {
 }
 
 # Flunks unless the extended regular expression $1 (expected pattern) and $2
-# (actual) match.  Reads from stdin for '-'.
+# (actual) match.  Reads from stdin for '-'.   '-' is assumed if $2 is not
+# specified.
 assert_match () {
-  pattern="$1"; actual="$2"
+  pattern="$1"; actual="${2:--}"
 
   # use x to protect against '-' on ancient systems
   if [ x"$pattern" = x"-" ]

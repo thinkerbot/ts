@@ -45,6 +45,10 @@ test_assert_output_actual_from_stdin_pass () {
 printf "hello world" | assert_output "hello world" -
 }
 
+test_assert_output_with_implicit_stdin_pass () {
+printf "hello world" | assert_output "hello world"
+}
+
 test_assert_output_with_newline_pass () {
 printf "hello world\n" | assert_output "\
 hello world
@@ -68,7 +72,10 @@ test_assert_match_pattern_from_stdin_pass () {
 printf "hello.+rld" | assert_match - "hello world"
 }
 
-test_assert_match_output_from_stdin_pass () {
+test_assert_match_actual_from_stdin_pass () {
 printf "hello world" | assert_match "hello.+rld" -
 }
 
+test_assert_match_with_implicit_stdin_pass () {
+printf "hello world" | assert_match "hello.+rld"
+}
