@@ -118,3 +118,41 @@ assert_status 1 $?
 test_ts_closes_stdin_to_prevent_hang () {
 cat | assert_output "" -
 }
+
+test_ts_return_fail_in_setup () {
+./test/ts/return_fail_in_setup -v | assert_output "\
+[./test/ts/return_fail_in_setup:13] test_would_pass
+  in setup
+  in teardown
+F
+" -
+}
+
+test_ts_return_fail_in_teardown () {
+./test/ts/return_fail_in_teardown -v | assert_output "\
+[./test/ts/return_fail_in_teardown:13] test_would_pass
+  in setup
+  in test
+  in teardown
+F
+" -
+}
+
+test_ts_exit_fail_in_setup () {
+./test/ts/exit_fail_in_setup -v | assert_output "\
+[./test/ts/exit_fail_in_setup:13] test_would_pass
+  in setup
+F
+" -
+}
+
+test_ts_exit_fail_in_teardown () {
+./test/ts/exit_fail_in_teardown -v | assert_output "\
+[./test/ts/exit_fail_in_teardown:13] test_would_pass
+  in setup
+  in test
+  in teardown
+F
+" -
+}
+

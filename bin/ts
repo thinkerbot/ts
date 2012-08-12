@@ -189,12 +189,9 @@ ts_run_test () {
   # input /dev/null so that tests which read from stdin will not hang
   exec </dev/null
 
-  setup
-  "$test_name"
+  setup && "$test_name"
   exitstatus=$?
-  teardown
-
-  return $exitstatus
+  teardown && return $exitstatus
 }
 
 ts_run_test_suite () {
