@@ -58,7 +58,6 @@ ts_list () {
   for test_pattern in "${@:-test_\w+}"
   do grep -onE "^ *$test_pattern +\(\)" "$0"
   done |
-  tr -d " ()" |
   tr ":" " "
 }
 
@@ -204,7 +203,7 @@ ts_run_test_suite () {
   test_case="${test_case%\.*}"
 
   ts_list "$@" |
-  while read test_lineno test_name
+  while read test_lineno test_name junk
   do
     test_dir="$TS_TMP_DIR/$test_case/$test_name"
 
