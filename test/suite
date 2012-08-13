@@ -32,13 +32,19 @@ F
 }
 
 test_ts_script_runs_named_tests () {
-count=`./test/ts/pattern -r test_a | grep -c '% P'`
-assert [ $count -eq 1 ]
+./test/ts/pattern -v test_a | assert_output "\
+[./test/ts/pattern:8] test_a
+P
+"
 }
 
 test_ts_script_runs_all_tests_by_default () {
-count=`./test/ts/pattern -r | grep -c '% P'`
-assert [ $count -eq 2 ]
+./test/ts/pattern -v | assert_output "\
+[./test/ts/pattern:8] test_a
+P
+[./test/ts/pattern:12] test_z
+P
+"
 }
 
 #
@@ -102,12 +108,12 @@ assert_status 0 $?
 }
 
 test_ts_exits_1_for_failing_test () {
-ts test/ts/fail
+ts test/ts/fail >&2
 assert_status 1 $?
 }
 
 test_ts_script_exits_1_for_failing_test () {
-./test/ts/fail
+./test/ts/fail >&2
 assert_status 1 $?
 }
 
@@ -117,6 +123,28 @@ assert_status 1 $?
 
 test_ts_closes_stdin_to_prevent_hang () {
 cat | assert_output "" -
+}
+
+test_ts_displays_stdout () {
+./test/ts/log -v | assert_output "\
+[./test/ts/log:4] test_log_to_stdout_a
+  out
+P
+[./test/ts/log:10] test_log_to_stdout_b
+  out
+P
+" -
+}
+
+test_ts_displays_stderr_on_debug () {
+./test/ts/log -vd | assert_output "\
+[./test/ts/log:4] test_log_to_stdout_a
+  outerr
+P
+[./test/ts/log:10] test_log_to_stdout_b
+  outerr
+P
+" -
 }
 
 test_ts_return_fail_in_setup () {

@@ -1,0 +1,14 @@
+#!/bin/sh
+. ts
+
+test_log_to_stdout_a () {
+  printf "out"
+  printf "err" >&2
+  true
+}
+
+test_log_to_stdout_b () {
+  printf "out"
+  printf "err" >&2
+  true
+}

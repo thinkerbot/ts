@@ -43,13 +43,13 @@ TS_USR_DIR="${TS_USR_DIR:-$(pwd)}"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 
 mkdir -p "$TS_TMP_DIR"
-ts_raw_file="$TS_TMP_DIR/raw"
+ts_stat_file="$TS_TMP_DIR/stat"
 ts_mon_file="$TS_TMP_DIR/mon"
 
 TS_PASS="${TS_PASS:-[32m}"
 TS_FAIL="${TS_FAIL:-[1;31m}"
 TS_NORM="${TS_NORM:-[0m}"
-TS_NOEX="${TS_NOEX:-[1;37m}"
+TS_NOEX="${TS_NOEX:-[1;33m}"
 
 ############################################################################
 # private functions
@@ -62,25 +62,33 @@ ts_list () {
 }
 
 ts_structure () {
-  sed -lne '
-/^%/ {
-1 !G
-/^% P/a\
-P
-/^% F/a\
-F
-/^% X/a\
-X
-s/^% [PFX] //
-s/\n//
-p
-c\
+  awk '
+function readbytes (bytes) {
+  # account for trailing 'x'
+  bytes -= 1
 
-x
-d
+  # read bytes
+  while(getline == 1 && (bytes -= length + 1) > 0) {
+    print "  " $0
+  }
+
+  # manually remove trailing x if needed
+  if(bytes < 0) {
+    $0 = substr($0, 1, length + bytes + 1)
+  }
+
+  if(length > 0) {
+    print "  " $0
+    $0=""
+  }
 }
-s/^/  /
-H
+
+BEGIN   { npass=nfail=0 }
+/^\[/   { print }
+/^P/    { readbytes($2); npass++; printf "P\n" }
+/^F/    { readbytes($2); nfail++; printf "F\n" }
+/^X/    { readbytes($2); nfail++; printf "X\n" }
+END     { printf "%d %d", npass, nfail > "'"$ts_stat_file"'" }
 '
 }
 
@@ -88,13 +96,6 @@ ts_monitor () {
   if [ "true" = "$ts_monitor" ]
   then
     sed -lne "
-/^\[/ !{
-H
-$ !d
-}
-x
-1 d
-
 w $ts_mon_file
 /P\$/a\\
 .
@@ -102,11 +103,8 @@ w $ts_mon_file
 F
 /X\$/a\\
 -
-\$ a\\
-n
-" |
-    tr -ud "\n" |
-    tr -u "n" "\n" >&2
+" | tr -ud "\n" >&2
+    printf "\n" >&2
     cat "$ts_mon_file"
   else cat
   fi
@@ -115,17 +113,20 @@ n
 ts_format () {
   if [ "true" = "$ts_format" ]
   then sed -lne "
-/^\[/ !{
-H
-$ !d
-}
+/^\[/ {
 x
 1 p
-
+d
+}
+H
+/^[PFX]/ {
+x
 /P\$/ s/^\[\([^]]*\)/[$TS_PASS\1$TS_NORM/
 /F\$/ s/^\[\([^]]*\)/[$TS_FAIL\1$TS_NORM/
 /X\$/ s/^\[\([^]]*\)/[$TS_NOEX\1$TS_NORM/
-s/[PFX]\$//p
+s/[PFX]\$//
+p
+}
 "
   else cat
   fi
@@ -135,15 +136,15 @@ ts_filter () {
   if [ "true" = "$ts_verbose" ]
   then cat
   else sed -lne "
-/^\[/ !{
-H
-$ !d
-}
+/^\[/ {
 x
-1 d
-/P\$/ d
-/^\[[^[]*\[32m/ d
-s/^[^[]*//p
+d
+}
+H
+/^[PFX]/ {
+x
+/[FX]\$/ p
+}
 "
   fi
 }
@@ -153,27 +154,20 @@ ts_report () {
   if [ "true" = "$ts_raw" ]
   then cat
   else
-    tee "$ts_raw_file" |
-    ts_structure |
+    ts_structure "$ts_stat_file" |
     ts_monitor "$ts_mon_file" |
-    ts_format |
-    ts_filter
+    ts_filter |
+    ts_format
   fi
   ts_end_time=$SECONDS
 
   if [ "true" != "$ts_raw" ]
   then
-    npass="$(grep -c '^% P' "$ts_raw_file")"
-    nfail="$(grep -c '^% F' "$ts_raw_file")"
-    nnoex="$(grep -c '^% X' "$ts_raw_file")"
-
-    printf "%s pass %s fail %s s\n" "$npass" "$(($nfail + $nnoex))" "$(($ts_end_time - $ts_start_time))" >&2
-
-    if [ "true" = "$ts_cleanup" ]
-    then rm -r "$TS_TMP_DIR"
-    fi
-
-    [ "0" = "$(($nfail + $nnoex))" ]
+    cat "$ts_stat_file" | awk -v time="$(($ts_end_time - $ts_start_time))" '{
+      npass=$1; nfail=$2
+      printf "%d pass %d fail %d s\n", npass, nfail, time
+      if(nfail > 0) exit 1;
+    }' >&2
   fi
 }
 
@@ -190,8 +184,8 @@ ts_run_test () {
   exec </dev/null
 
   setup && "$test_name"
-  exitstatus=$?
-  teardown && return $exitstatus
+  ts_exitstatus=$?
+  teardown && return $ts_exitstatus
 }
 
 ts_run_test_suite () {
@@ -207,17 +201,24 @@ ts_run_test_suite () {
     # run the test by calling back into the test file
     # * use stdout for progress, stderr for debug information
     # * a zero exit status is considered a pass, otherwise fail
-    if
+    # * capture as a variable to calculate length
+    # * use a subprocess to prevent leakage (ex set -x)
+    # * append x to preserve trailing newline
+    if ts_stdout=$(
       if [ "true" = "$ts_debug" ]
       then (ts_run_test 2>&1)
       else (ts_run_test 2>/dev/null)
       fi
+      ts_exitstatus=$?
+      printf x
+      exit $ts_exitstatus
+      )
     then ts_status=P
     else ts_status=F
     fi
 
-    printf "%% %s [%s:%s] %s\n" "$ts_status" "$test_file" "$test_lineno" "$test_name"
-  done | ts_report
+    printf "[%s:%s] %s\n%s %d\n%s\n" "$test_file" "$test_lineno" "$test_name" "$ts_status" "${#ts_stdout}" "$ts_stdout"
+  done  | ts_report
 }
 
 ts_run_test_files () {
@@ -229,7 +230,7 @@ ts_run_test_files () {
   do
     if [ -x "$test_file" ]
     then "$test_file" -r
-    else printf "%% X [%s] not executable\n" "$test_file"
+    else printf "[%s] not executable\nX 1\nx\n" "$test_file"
     fi
   done | ts_report
 }
