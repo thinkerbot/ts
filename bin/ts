@@ -115,7 +115,6 @@ ts_format () {
   then sed -lne "
 /^\[/ {
 x
-1 p
 d
 }
 H
