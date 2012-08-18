@@ -11,8 +11,6 @@ fi
 . ts
 
 setup () {
-set -x
-
 # ensure ts called in the tests will not collide with the suite itself
 export TS_TMP_DIR="$test_dir"
 }
@@ -22,33 +20,132 @@ export TS_TMP_DIR="$test_dir"
 #
 
 test_ts_runs_files () {
-ts -v test/ts/pass test/ts/fail 2>/dev/null |
+ts -as test/ts/pass test/ts/fail 2>/dev/null |
 assert_output "\
-[test/ts/pass:8] test_pass
-P
-[test/ts/fail:8] test_fail
-F
+P [test/ts/pass:8] test_pass
+
+F [test/ts/fail:8] test_fail
+
 " -
 }
 
-test_ts_script_runs_named_tests () {
-./test/ts/pattern -v test_a | assert_output "\
-[./test/ts/pattern:8] test_a
-P
+test_script_runs_named_tests () {
+./test/ts/pattern -as test_a | assert_output "\
+P [./test/ts/pattern:8] test_a
+
 "
 }
 
-test_ts_script_runs_all_tests_by_default () {
-./test/ts/pattern -v | assert_output "\
-[./test/ts/pattern:8] test_a
-P
-[./test/ts/pattern:12] test_z
-P
+test_script_runs_all_tests_by_default () {
+./test/ts/pattern -as | assert_output "\
+P [./test/ts/pattern:8] test_a
+
+P [./test/ts/pattern:12] test_z
+
 "
 }
 
 #
-# options test
+# -a option
+#
+
+test_ts_does_not_print_passing_tests_by_default () {
+ts -s test/ts/pass test/ts/fail | assert_output "\
+F [test/ts/fail:8] test_fail
+
+" -
+}
+
+test_ts_a_options_prints_all_tests () {
+ts -as test/ts/pass test/ts/fail | assert_output "\
+P [test/ts/pass:8] test_pass
+
+F [test/ts/fail:8] test_fail
+
+" -
+}
+
+test_script_does_not_print_passing_tests_by_default () {
+./test/ts/pass -s | assert_output "" -
+}
+
+test_script_a_options_prints_all_tests () {
+./test/ts/pass -as | assert_output "\
+P [./test/ts/pass:8] test_pass
+
+" -
+}
+
+#
+# -c option
+#
+
+test_ts_c_option_prints_color_output () {
+ts -asc test/ts/output 2>&1 |
+assert_output "\
+[[32mtest/ts/output:4[0m] test_output_a
+  out
+
+[[32mtest/ts/output:10[0m] test_output_b
+  oot
+
+" -
+}
+
+test_script_c_option_prints_color_output () {
+./test/ts/output -asc 2>&1 |
+assert_output "\
+[[32m./test/ts/output:4[0m] test_output_a
+  out
+
+[[32m./test/ts/output:10[0m] test_output_b
+  oot
+
+" -
+}
+
+#
+# -m option
+#
+
+test_ts_m_option_monitors_output () {
+ts -am test/ts/output 2>&1 |
+sed -e "s/[0-9] s/# s/" |
+assert_output "\
+..
+
+[test/ts/output:4] test_output_a
+  out
+P
+
+[test/ts/output:10] test_output_b
+  oot
+P
+
+2 pass 0 fail # s
+" -
+}
+
+test_script_m_option_monitors_output () {
+./test/ts/output -am 2>&1 |
+sed -e "s/[0-9] s/# s/" |
+assert_output "\
+..
+
+[./test/ts/output:4] test_output_a
+  out
+P
+
+[./test/ts/output:10] test_output_b
+  oot
+P
+
+2 pass 0 fail # s
+" -
+}
+
+#
+# -h option
 #
 
 test_ts_h_prints_help () {
@@ -56,26 +153,108 @@ out=`ts -h`
 assert_match "usage:" "$out"
 }
 
-test_ts_does_not_print_passing_tests () {
-ts test/ts/pass 2>/dev/null |
-assert_output "" -
+test_script_h_prints_help () {
+out=`./test/ts/output -h`
+assert_match "usage:" "$out"
 }
 
-test_ts_prints_failing_tests () {
-ts test/ts/fail 2>/dev/null |
-assert_output "\
-[test/ts/fail:8] test_fail
-F
+#
+# -r option
+#
+
+test_ts_r_option_prints_raw_output () {
+ts -r test/ts/output | assert_output "\
+[test/ts/output:4] test_output_a
+P 4
+outx
+[test/ts/output:10] test_output_b
+P 4
+ootx
 " -
 }
 
-test_ts_prints_all_test_for_verbose () {
-ts -v test/ts/pass test/ts/fail 2>/dev/null |
-assert_output "\
-[test/ts/pass:8] test_pass
-P
-[test/ts/fail:8] test_fail
-F
+test_script_r_option_prints_raw_output () {
+./test/ts/output -r | assert_output "\
+[./test/ts/output:4] test_output_a
+P 4
+outx
+[./test/ts/output:10] test_output_b
+P 4
+ootx
+" -
+}
+
+#
+# -s option
+#
+
+test_ts_s_option_prints_structured_output () {
+ts -as test/ts/output | assert_output "\
+P [test/ts/output:4] test_output_a
+  out
+
+P [test/ts/output:10] test_output_b
+  oot
+
+" -
+}
+
+test_script_s_option_prints_structured_output () {
+./test/ts/output -as | assert_output "\
+P [./test/ts/output:4] test_output_a
+  out
+
+P [./test/ts/output:10] test_output_b
+  oot
+
+" -
+}
+
+#
+# -v option
+#
+
+test_ts_displays_stdout () {
+ts -as test/ts/output | assert_output "\
+P [test/ts/output:4] test_output_a
+  out
+
+P [test/ts/output:10] test_output_b
+  oot
+
+" -
+}
+
+test_ts_v_opton_displays_stderr () {
+ts -asv test/ts/output | assert_output "\
+P [test/ts/output:4] test_output_a
+  outerr
+
+P [test/ts/output:10] test_output_b
+  ootear
+
+" -
+}
+
+test_script_displays_stdout () {
+./test/ts/output -as | assert_output "\
+P [./test/ts/output:4] test_output_a
+  out
+
+P [./test/ts/output:10] test_output_b
+  oot
+
+" -
+}
+
+test_script_v_opton_displays_stderr () {
+./test/ts/output -asv | assert_output "\
+P [./test/ts/output:4] test_output_a
+  outerr
+
+P [./test/ts/output:10] test_output_b
+  ootear
+
 " -
 }
 
@@ -84,13 +263,13 @@ F
 #
 
 test_ts_assertions_pass () {
-ts test/assertions/pass 2>&1 | tail -n 1 |
-assert_match "[0-9]{1,} pass 0 fail" -
+nfails=$(ts test/assertions/pass | grep -c '^F')
+assert_output "0" "$nfails"
 }
 
 test_ts_assertions_fail () {
-ts test/assertions/fail 2>&1 | tail -n 1 |
-assert_match "0 pass [0-9]{1,} fail" -
+npass=$(ts test/assertions/fail | grep -c '^P')
+assert_output "0" "$npass"
 }
 
 #
@@ -102,17 +281,17 @@ ts test/ts/pass
 assert_status 0 $?
 }
 
-test_ts_script_exits_0_for_passing_test () {
-./test/ts/pass
-assert_status 0 $?
-}
-
 test_ts_exits_1_for_failing_test () {
 ts test/ts/fail >&2
 assert_status 1 $?
 }
 
-test_ts_script_exits_1_for_failing_test () {
+test_script_exits_0_for_passing_test () {
+./test/ts/pass
+assert_status 0 $?
+}
+
+test_script_exits_1_for_failing_test () {
 ./test/ts/fail >&2
 assert_status 1 $?
 }
@@ -121,66 +300,53 @@ assert_status 1 $?
 # misc
 #
 
-test_ts_closes_stdin_to_prevent_hang () {
-cat | assert_output "" -
-}
-
-test_ts_displays_stdout () {
-./test/ts/log -v | assert_output "\
-[./test/ts/log:4] test_log_to_stdout_a
-  out
-P
-[./test/ts/log:10] test_log_to_stdout_b
-  out
-P
-" -
-}
-
-test_ts_displays_stderr_on_debug () {
-./test/ts/log -vd | assert_output "\
-[./test/ts/log:4] test_log_to_stdout_a
-  outerr
-P
-[./test/ts/log:10] test_log_to_stdout_b
-  outerr
-P
-" -
+test_ts_prevents_hang_by_stdin () {
+  # cat will hang if stdin is waiting
+  cat | assert_output "" -
 }
 
 test_ts_return_fail_in_setup () {
-./test/ts/return_fail_in_setup -v | assert_output "\
-[./test/ts/return_fail_in_setup:13] test_would_pass
+ts -s test/ts/return_fail_in_setup | assert_output "\
+F [test/ts/return_fail_in_setup:13] test_would_pass
   in setup
   in teardown
-F
+
 " -
 }
 
 test_ts_return_fail_in_teardown () {
-./test/ts/return_fail_in_teardown -v | assert_output "\
-[./test/ts/return_fail_in_teardown:13] test_would_pass
+ts -s test/ts/return_fail_in_teardown | assert_output "\
+F [test/ts/return_fail_in_teardown:13] test_would_pass
   in setup
   in test
   in teardown
-F
+
 " -
 }
 
 test_ts_exit_fail_in_setup () {
-./test/ts/exit_fail_in_setup -v | assert_output "\
-[./test/ts/exit_fail_in_setup:13] test_would_pass
+ts -s test/ts/exit_fail_in_setup | assert_output "\
+F [test/ts/exit_fail_in_setup:13] test_would_pass
   in setup
-F
+
+" -
+}
+
+test_ts_exit_fail_in_test () {
+ts -s test/ts/exit_fail_in_test | assert_output "\
+F [test/ts/exit_fail_in_test:12] test_would_pass
+  in setup
+  in test
+
 " -
 }
 
 test_ts_exit_fail_in_teardown () {
-./test/ts/exit_fail_in_teardown -v | assert_output "\
-[./test/ts/exit_fail_in_teardown:13] test_would_pass
+ts -s test/ts/exit_fail_in_teardown | assert_output "\
+F [test/ts/exit_fail_in_teardown:13] test_would_pass
   in setup
   in test
   in teardown
-F
+
 " -
 }
-

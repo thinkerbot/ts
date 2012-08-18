@@ -1,0 +1,14 @@
+#!/bin/sh
+. ts
+
+test_output_a () {
+  printf "out"
+  printf "err" >&2
+  true
+}
+
+test_output_b () {
+  printf "oot"
+  printf "ear" >&2
+  true
+}

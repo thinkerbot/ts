@@ -6,5 +6,5 @@ set -x
 }
 
 test_fail () {
-exit 8
+false
 }

@@ -6,5 +6,5 @@ set -x
 }
 
 test_pass () {
-exit
+true
 }
