@@ -46,6 +46,20 @@ P [./test/ts/pattern:12] test_z
 }
 
 #
+# options test
+#
+
+test_ts_accepts_interleaved_options () {
+ts test/ts/pass -a test/ts/fail -s 2>/dev/null |
+assert_output "\
+P [test/ts/pass:8] test_pass
+
+F [test/ts/fail:8] test_fail
+
+" -
+}
+
+#
 # -a option
 #
 
