@@ -3,7 +3,7 @@
 ts_progname="${0##*/}"
 ts_version="1.0"
 ts_author="Simon Chiang"
-ts_usage="usage: %s [-acfhrsv] [-t TS_TMP_DIR] %s\n"
+ts_usage="usage: %s [-acfhsv] [-t TS_TMP_DIR] %s\n"
 if [ "ts" = "$ts_progname" ]
 then ts_args="[TEST_FILES...]"
 else ts_args="[TEST_NAMES...]"
@@ -13,7 +13,7 @@ ts_opt="       %s   %s\n"
 args=""
 while [ $OPTIND -le $# ]
 do
-  if getopts "achmrst:v" ts_option
+  if getopts "achmst:v" ts_option
   then
     case $ts_option in
       a  )  TS_FILTER=false ;;
@@ -23,14 +23,12 @@ do
             printf "$ts_opt" "-c" "color output"
             printf "$ts_opt" "-h" "prints this help"
             printf "$ts_opt" "-m" "monitor output"
-            printf "$ts_opt" "-r" "raw output (overrides -cms)"
             printf "$ts_opt" "-s" "stream output"
             printf "$ts_opt" "-t" "set the test tmp dir (default tmp)"
             printf "$ts_opt" "-v" "verbose output (show stderr)"
             printf "\n"
             exit 0 ;;
       m  )  TS_REPORT=monitor ;;
-      r  )  TS_REPORT=raw ;;
       s  )  TS_REPORT=stream ;;
       t  )  TS_TMP_DIR=$OPTARG ;;
       v  )  TS_MODE=verbose ;;
@@ -249,7 +247,7 @@ ts_run_test_files () {
   for test_file in "$@"
   do
     if [ -x "$test_file" ]
-    then "$test_file" -r
+    then TS_REPORT="raw" "$test_file"
     else printf "[%s] not executable\nX 1\nx\n" "$test_file"
     fi
   done | ts_report

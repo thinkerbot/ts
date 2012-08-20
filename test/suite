@@ -173,32 +173,6 @@ assert_match "usage:" "$out"
 }
 
 #
-# -r option
-#
-
-test_ts_r_option_prints_raw_output () {
-ts -r test/ts/output | assert_output "\
-[test/ts/output:4] test_output_a
-P 4
-outx
-[test/ts/output:10] test_output_b
-P 4
-ootx
-" -
-}
-
-test_script_r_option_prints_raw_output () {
-./test/ts/output -r | assert_output "\
-[./test/ts/output:4] test_output_a
-P 4
-outx
-[./test/ts/output:10] test_output_b
-P 4
-ootx
-" -
-}
-
-#
 # -s option
 #
 
