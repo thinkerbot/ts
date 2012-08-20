@@ -173,6 +173,22 @@ assert_match "usage:" "$out"
 }
 
 #
+# -r option
+#
+
+test_ts_r_option_removes_tmp_dir () {
+tmpdir="$test_dir/tmp"
+ts -r -t "$tmpdir" test/ts/pass
+assert [ ! -e "$tmpdir" ]
+}
+
+test_script_r_option_removes_tmp_dir () {
+tmpdir="$test_dir/tmp"
+./test/ts/pass -r -t "$tmpdir"
+assert [ ! -e "$tmpdir" ]
+}
+
+#
 # -s option
 #
 
