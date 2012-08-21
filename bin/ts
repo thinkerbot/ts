@@ -334,31 +334,6 @@ assert_output () {
   fi
 }
 
-# Flunks unless the extended regular expression $1 (expected pattern) and $2
-# (actual) match.  Reads from stdin for '-'.   '-' is assumed if $2 is not
-# specified.
-assert_match () {
-  pattern="$1"; actual="${2:--}"
-
-  # use x to protect against '-' on ancient systems
-  if [ x"$pattern" = x"-" ]
-  then
-    pattern=$(cat; printf x)
-    pattern=${pattern%x}
-  fi
-
-  if [ x"$actual" = x"-" ]
-  then
-    actual=$(cat; printf x)
-    actual=${actual%x}
-  fi
-
-  if ! printf "%b" "$actual" | grep -qE "$pattern"
-  then
-    printf "output does not match pattern: %s\n%s\n" "$pattern" "$actual"
-    exit 1
-  fi
-}
 ############################################################################
 
 # Run the test files if this script is executed directly. Otherwise, set a

@@ -59,19 +59,3 @@ assert_output "0" "1"
 test_assert_output_with_pattern_fail () {
 assert_output "hello.+rld" "hello world"
 }
-
-#
-# assert_match tests
-#
-
-test_assert_match_fail () {
-assert_match "hello.+rld" "hell0 world"
-}
-
-test_assert_match_pattern_from_stdin_fail () {
-printf "hello.+rld" | assert_match - "hell0 world"
-}
-
-test_assert_match_output_from_stdin_fail () {
-printf "hell0 world" | assert_match "hello.+rld" -
-}

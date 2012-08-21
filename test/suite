@@ -197,13 +197,13 @@ P
 #
 
 test_ts_h_prints_help () {
-out=`ts -h`
-assert_match "usage:" "$out"
+ts -h | grep -q "usage:"
+assert_status 0 $?
 }
 
 test_script_h_prints_help () {
-out=`./test/ts/output -h`
-assert_match "usage:" "$out"
+./test/ts/output -h | grep -q "usage:"
+assert_status 0 $?
 }
 
 #
