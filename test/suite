@@ -119,6 +119,40 @@ assert_output "\
 }
 
 #
+# -d option
+#
+
+test_ts_d_options_turns_on_xtrace_and_verbose () {
+ts -dsa test/ts/pass | assert_output "\
+P [test/ts/pass:8] test_pass
+  ++ setup
+  ++ set -x
+  ++ test_pass
+  ++ true
+  ++ ts_exitstatus=0
+  ++ teardown
+  ++ true
+  ++ return 0
+
+" -
+}
+
+test_script_d_options_turns_on_xtrace_and_verbose () {
+./test/ts/pass -dsa | assert_output "\
+P [./test/ts/pass:8] test_pass
+  ++ setup
+  ++ set -x
+  ++ test_pass
+  ++ true
+  ++ ts_exitstatus=0
+  ++ teardown
+  ++ true
+  ++ return 0
+
+" -
+}
+
+#
 # -m option
 #
 

@@ -13,11 +13,12 @@ ts_opt="       %s   %s\n"
 args=""
 while [ $OPTIND -le $# ]
 do
-  if getopts "achmrst:v" ts_option
+  if getopts "acdhmrst:v" ts_option
   then
     case $ts_option in
       a  )  TS_FILTER=false ;;
       c  )  TS_COLOR=true ;;
+      d  )  TS_DEBUG=true; TS_MODE=verbose ;;
       h  )  printf "$ts_usage" "$ts_progname" "$ts_args"
             printf "$ts_opt" "-a" "show all tests"
             printf "$ts_opt" "-c" "color output"
@@ -48,6 +49,7 @@ TS_USR_DIR="${TS_USR_DIR:-$(pwd)}"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
 
 TS_COLOR=${TS_COLOR:-false}
+TS_DEBUG=${TS_DEBUG:-false}
 TS_FILTER=${TS_FILTER:-true}
 TS_REPORT=${TS_REPORT:-monitor}
 TS_MODE=${TS_MODE:-normal}
@@ -208,6 +210,10 @@ ts_run_test () {
   # input /dev/null so that tests which read from stdin will not hang
   exec </dev/null
 
+  if [ "true" = "$TS_DEBUG" ]
+  then set -x
+  fi
+
   setup && "$test_name"
   ts_exitstatus=$?
   teardown && return $ts_exitstatus
@@ -254,6 +260,7 @@ ts_run_test_files () {
   export TS_COLOR
   export TS_FILTER
   export TS_MODE
+  export TS_DEBUG
 
   for test_file in "$@"
   do
