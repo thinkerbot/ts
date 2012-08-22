@@ -164,18 +164,20 @@ ts_color_or_format () {
   fi
 }
 
-ts_cleanup () {
-  if [ "true" = "$TS_REMOVE_TMP_DIR" ]
-  then rm -r "$TS_TMP_DIR"
-  fi
-}
-
 ts_check_status () {
   awk -v nsec="$1" '
 BEGIN { npass=nfail=0 }
       { npass += $1; nfail += $2; }
 END   { printf("%d pass %d fail %d s\n", npass, nfail, nsec); if(nfail > 0) exit 1 }
 ' < "$ts_status_file"
+
+  ts_exitstatus=$?
+
+  if [ "true" = "$TS_REMOVE_TMP_DIR" ]
+  then rm -r "$TS_TMP_DIR"
+  fi
+
+  return $ts_exitstatus
 }
 
 ts_report () {
@@ -184,12 +186,10 @@ ts_report () {
       ts_start_time=$SECONDS
       ts_structure | ts_monitor | ts_filter | ts_color_or_format
       ts_end_time=$SECONDS
-      ts_cleanup
       ts_check_status "$(($ts_end_time - $ts_start_time))" >&2
       ;;
     (stream)
       ts_structure | ts_filter | ts_color
-      ts_cleanup
       ts_check_status > /dev/null
       ;;
     (raw)
