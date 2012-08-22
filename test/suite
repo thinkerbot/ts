@@ -11,6 +11,9 @@ fi
 . ts
 
 setup () {
+# clear out all ts variables
+unset $(set | grep -i '^TS_' | sed -e 's/=.*//' | tr "\n" " ")
+
 # ensure ts called in the tests will not collide with the suite itself
 export TS_TMP_DIR="$test_dir"
 }
