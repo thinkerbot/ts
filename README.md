@@ -8,17 +8,14 @@ ts(1) -- run ts shell test scripts
 
 ## DESCRIPTION
 
-**NOTE** this document is not 100% supported yet.
-
-**ts** provides minimal functions for writing tests in shell. Tests are
-written in test scripts that source `ts` to define test functions. The test
-scripts can be run individually or in a batch format using `ts` as a command.
+**ts** provides functions for writing tests in shell. The test scripts can be
+run individually or in a batch format using `ts` as a command.
 
 **ts** makes a test directory available on a per-test basis so it's easy to
-sandbox tests that write or manipulate files. **ts** tries to use POSIX
-exclusively and so should work on any POSIX-compliant systems.
+sandbox tests that write or manipulate files. **ts** tries to use [POSIX]
+exclusively and so should (hopefully) work on any POSIX-compliant systems.
 
-## FILES
+## TEST SCRIPTS
 
 The `ts` command expects script files that define test cases. Test scripts
 have the following form:
@@ -27,7 +24,7 @@ have the following form:
     . ts             # Source ts to get test functions.
 
     test_pass () {   # Write tests named like "test_".
-    true             # Return (or exit) 0 to pass.
+      true           # Return 0 to pass.
     }
 
 See the FUNCTIONS section for all functions available in tests.
@@ -36,30 +33,27 @@ See the FUNCTIONS section for all functions available in tests.
 
 These options control a **ts** script, or `ts` when running ts scripts as a batch.
 
-* `-c`: 
-  Cleanup the test dirs on complete.  Cleanup is done using `rm -r`.
+* `-a`:
+  Show passing outputs, which are normally filtered.
+* `-c`:
+  Colorize output. (green/red/yellow - pass/fail/not-executable)
 * `-d`: 
-  Debug mode.  Normally **ts** only captures stdout for each test.  In debug
-  mode stderr is also captured.  This flag is especially useful when using
-  `set -x` in the setup method (which will cause an xtrace to be printed
-  for each test case in debug mode).
-* `-f`: 
-  Format output with colors, indentation, etc.
+  Debug mode. Turns on xtrace (set -x) for the tests and enables verbose.
 * `-h`: 
   Prints help.
 * `-m`: 
-  Monitor output.  Rather than providing a stream of results as they are
-  generated, provide a ticker indicating the progress of tests.  After all
-  tests are done, prints summaries for failing tests.  Combine with -v to
-  print summaries of passing tests as well.
+  Monitor output. Provide a ticker indicating the progress of tests and 
+  print a summary. Monitor is the default.
 * `-r`: 
-  Raw output (overrides -fmv).  Print the unprocessed **ts** output.
+  Remove the tmp dir on complete. Removal is done using `rm -r`.
+* `-s`: 
+  Stream output. Show test progress as it happens. No summary is printed.
 * `-t`: 
-  Set the test tmp dir (default tmp).  The test-specific directories will
-  be located under this directory.  Cleanup will remove this and all sub
-  directories.
+  Set the test tmp dir (default tmp).  The test-specific directories are
+  be located under this directory.
 * `-v`: 
-  Verbose output.  Show passing outputs, which are normally filtered.
+  Verbose output. Enables **ts** to display stderr for the tests (normally
+  only stdout is shown).
 
 ## FUNCTIONS
 
@@ -77,9 +71,6 @@ reserved for internal use.
 * `assert_output EXPECTED ACTUAL`:
   Flunks unless the variables EXPECTED and ACTUAL are the same. Reads from
   stdin for '-'.
-* `assert_match EXPECTED ACTUAL`:
-  Flunks unless the extended regular expression EXPECTED and variable ACTUAL
-  match.  Reads from stdin for '-'.
 
 ## VARIABLES
 
@@ -106,21 +97,44 @@ TODO
 
 ## ENVIRONMENT
 
+Defaults for options can be set via environment variables. Options provided by
+the user override these defaults. All variable names starting with 'TS_' are
+reserved for internal use.
+
 * `TS_USR_DIR`:
-  The user dir.  By default `pwd`.  Used to determine the default tmp dir.
+  The user dir. By default `pwd`. Used to determine the default tmp dir.
 * `TS_TMP_DIR`:
-  The base tmp dir.  By default `$TS_USR_DIR/tmp`.
-* `TS_NAME`:
-  The prefix of test functions that will be run by **ts**.  By default 'test\_',
-  such that all tests will be run.  Override with the full name of a test to run
-  just one test.
+  The base tmp dir. By default `$TS_USR_DIR/tmp`.
+* `TS_COLOR`:
+  Set to "true" to enable color.
+* `TS_DEBUG`:
+  Set to "true" to enable debug mode.
+* `TS_FILTER`:
+  Set to "false" to not filter passing tests.
+* `TS_REPORT`:
+  Report mode. Valid values are "monitor", "stream", and "raw" (raw output
+  is used internally and should not be relied upon externally).
+* `TS_MODE`:
+  Execution mode. Set to "verbose" to capture stderr.
+* `TS_REMOVE_TMP_DIR`:
+  Set to "true" to remove tmp dir.
+
+In addition these variables can be set to adjust the color output.
+
+* `TS_PASS`:
+   Passing tests.
+* `TS_FAIL`:
+   Failing tests.
+* `TS_NORM`:
+   The normal output color.
+* `TS_NOEX`:
+   Non-executable test files.
+
+For example to turn failures blue:
+
+    export TS_FAIL=$(printf "%b" "\033[0;34m")
 
 ## BUGS
-
-* Calling a subcommand that reads from stdin without providing it will quietly
-  hang. Nothing can be done to prevent this behavior (?) but ts should help
-  identify where the hang occurs, for instance by printing the test name in
-  verbose mode.
 
 ## COPYRIGHT
 
