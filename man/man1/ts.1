@@ -1,0 +1,262 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "TS" "1" "September 2012" "" ""
+.
+.SH "NAME"
+\fBts\fR \- run ts shell test scripts
+.
+.SH "SYNOPSIS"
+\fBts\fR \fIoptions\fR FILE\.\.\. \fB[ts script]\fR \fIoptions\fR TESTS\.\.\.
+.
+.SH "DESCRIPTION"
+\fBts\fR supports writing tests in shell\. The test scripts can be run individually or in a batch format using \fBts\fR as a command\.
+.
+.P
+\fBts\fR makes a test directory available on a per\-test basis so it\'s easy to sandbox tests that write or manipulate files\. \fBts\fR tries to use POSIX exclusively and so should (hopefully) work on any POSIX\-compliant system\.
+.
+.SH "TEST SCRIPTS"
+The \fBts\fR command expects script files that define test cases\. Test scripts have the following form:
+.
+.IP "" 4
+.
+.nf
+
+[\./example]
+#!/bin/sh           # Pick a shell
+\. ts                # Source ts to get test functions\.
+
+setup () {          # optional setup
+  mkdir \-p "$test_dir"
+}
+
+teardown () {       # optional teardown
+  rm \-r "$test_dir"
+}
+
+test_a_thing () {   # Write tests named like "test_"\.
+  ls "$test_dir"    # Return 0 to pass\.
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+To run, use any of:
+.
+.IP "" 4
+.
+.nf
+
+ts example
+\./example
+\./example test_a_thing
+.
+.fi
+.
+.IP "" 0
+.
+.P
+See the FUNCTIONS section for all functions available in tests\.
+.
+.SH "OPTIONS"
+These options control a \fBts\fR script, or \fBts\fR when running ts scripts as a batch\.
+.
+.TP
+\fB\-a\fR
+Show passing outputs, which are normally filtered\.
+.
+.TP
+\fB\-c\fR
+Colorize output\. (green/red/yellow \- pass/fail/not\-executable)
+.
+.TP
+\fB\-d\fR
+Debug mode\. Turns on xtrace (set \-x) for the tests and enables verbose\.
+.
+.TP
+\fB\-h\fR
+Prints help\.
+.
+.TP
+\fB\-m\fR
+Monitor output\. Provide a ticker indicating the progress of tests and print a summary\. Monitor is the default\.
+.
+.TP
+\fB\-r\fR
+Remove the tmp dir on complete\. Removal is done using \fBrm \-r\fR\.
+.
+.TP
+\fB\-s\fR
+Stream output\. Show test progress as it happens\. No summary is printed\.
+.
+.TP
+\fB\-t\fR
+Set the test tmp dir (default tmp)\. The test\-specific directories are be located under this directory\.
+.
+.TP
+\fB\-v\fR
+Verbose output\. Enables \fBts\fR to display stderr for the tests (normally only stdout is shown)\.
+.
+.SH "FUNCTIONS"
+Functions provided by \fBts\fR\. All function names starting with \'ts_\' are reserved for internal use\.
+.
+.TP
+\fBsetup\fR
+A setup function run before each test\.
+.
+.TP
+\fBteardown\fR
+A teardown function run after each test\.
+.
+.TP
+\fBassert COMMAND\.\.\.\fR
+Runs a command and asserts exit status 0\.
+.
+.TP
+\fBassert_status EXPECTED ACTUAL\fR
+Flunks unless the numbers EXPECTED and ACTUAL are the same\.
+.
+.TP
+\fBassert_output EXPECTED ACTUAL\fR
+Flunks unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin for \'\-\'\.
+.
+.SH "VARIABLES"
+Variables provided by \fBts\fR at runtime\. All variable names starting with \'ts_\' are reserved for internal use\.
+.
+.TP
+\fBtest_file\fR
+The name of the current test script being run\.
+.
+.TP
+\fBtest_case\fR
+The basename of the test file, minus the extname\. Example: \'test/test_stuff\.sh\' => \'test_stuff\'
+.
+.TP
+\fBtest_lineno\fR
+The line number where the current test is defined\.
+.
+.TP
+\fBtest_name\fR
+The name of the current test\.
+.
+.TP
+\fBtest_dir\fR
+The test\-specific directory\. The test dir is \'tmp_dir/test_case\'\. \fBts\fR does not create this directory automatically\. Add that functionality in the setup function as needed\.
+.
+.SH "EXAMPLES"
+TODO
+.
+.SH "ENVIRONMENT"
+Defaults for options can be set via environment variables\. Options provided by the user override these defaults\. All variable names starting with \'TS_\' are reserved for internal use\.
+.
+.TP
+\fBTS_USR_DIR\fR
+The user dir\. By default \fBpwd\fR\. Used to determine the default tmp dir\.
+.
+.TP
+\fBTS_TMP_DIR\fR
+The base tmp dir\. By default \fB$TS_USR_DIR/tmp\fR\.
+.
+.TP
+\fBTS_COLOR\fR
+Set to "true" to enable color\.
+.
+.TP
+\fBTS_DEBUG\fR
+Set to "true" to enable debug mode\.
+.
+.TP
+\fBTS_FILTER\fR
+Set to "false" to not filter passing tests\.
+.
+.TP
+\fBTS_REPORT\fR
+Report mode\. Valid values are "monitor", "stream", and "raw" (raw output is used internally and should not be relied upon externally)\.
+.
+.TP
+\fBTS_MODE\fR
+Execution mode\. Set to "verbose" to capture stderr\.
+.
+.TP
+\fBTS_REMOVE_TMP_DIR\fR
+Set to "true" to remove tmp dir\.
+.
+.P
+In addition these variables can be set to adjust the color output\.
+.
+.TP
+\fBTS_PASS\fR
+Passing tests\.
+.
+.TP
+\fBTS_FAIL\fR
+Failing tests\.
+.
+.TP
+\fBTS_NORM\fR
+The normal output color\.
+.
+.TP
+\fBTS_NOEX\fR
+Non\-executable test files\.
+.
+.P
+For example to turn failures blue:
+.
+.IP "" 4
+.
+.nf
+
+export TS_FAIL=$(printf "%b" "\e033[0;34m")
+.
+.fi
+.
+.IP "" 0
+.
+.SH "INSTALLATION"
+Add \fBts\fR to your PATH (or execute it directly)\. A nice way of doing so is to clone the repo and add the bin dir to PATH\. This allows easy updates via \fBgit pull\fR and should make the manpages available via \fBman ts\fR\.
+.
+.IP "" 4
+.
+.nf
+
+git clone git://github\.com/thinkerbot/ts\.git
+export PATH="$PATH:$(pwd)/ts/bin"
+.
+.fi
+.
+.IP "" 0
+.
+.SH "DEVELOPMENT"
+Clone the repo as above\. To run the tests (written in \fBts\fR):
+.
+.IP "" 4
+.
+.nf
+
+ts test/suite
+.
+.fi
+.
+.IP "" 0
+.
+.P
+To generate the manpages (assumes \fBruby\fR/\fBrubygems\fR):
+.
+.IP "" 4
+.
+.nf
+
+gem install ronn
+ronn \-r \-\-pipe README\.md > man/man1/ts\.1
+.
+.fi
+.
+.IP "" 0
+.
+.SH "BUGS"
+.
+.SH "COPYRIGHT"
+TS is Copyright (C) 2011 Simon Chiang \fIhttp://github\.com/thinkerbot\fR
