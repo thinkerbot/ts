@@ -8,24 +8,39 @@ ts(1) -- run ts shell test scripts
 
 ## DESCRIPTION
 
-**ts** provides functions for writing tests in shell. The test scripts can be
-run individually or in a batch format using `ts` as a command.
+**ts** supports writing tests in shell. The test scripts can be run
+individually or in a batch format using `ts` as a command.
 
 **ts** makes a test directory available on a per-test basis so it's easy to
-sandbox tests that write or manipulate files. **ts** tries to use [POSIX]
-exclusively and so should (hopefully) work on any POSIX-compliant systems.
+sandbox tests that write or manipulate files. **ts** tries to use POSIX
+exclusively and so should (hopefully) work on any POSIX-compliant system.
 
 ## TEST SCRIPTS
 
 The `ts` command expects script files that define test cases. Test scripts
 have the following form:
 
-    #!/bin/sh        # Pick a shell
-    . ts             # Source ts to get test functions.
+    [./example]
+    #!/bin/sh           # Pick a shell
+    . ts                # Source ts to get test functions.
 
-    test_pass () {   # Write tests named like "test_".
-      true           # Return 0 to pass.
+    setup () {          # optional setup
+      mkdir -p "$test_dir"
     }
+
+    teardown () {       # optional teardown
+      rm -r "$test_dir"
+    }
+
+    test_a_thing () {   # Write tests named like "test_".
+      ls "$test_dir"    # Return 0 to pass.
+    }
+
+To run, use any of:
+
+    ts example              
+    ./example               
+    ./example test_a_thing  
 
 See the FUNCTIONS section for all functions available in tests.
 
@@ -133,6 +148,26 @@ In addition these variables can be set to adjust the color output.
 For example to turn failures blue:
 
     export TS_FAIL=$(printf "%b" "\033[0;34m")
+
+## INSTALLATION
+
+Add `ts` to your PATH (or execute it directly). A nice way of doing so is to
+clone the repo and add the bin dir to PATH. This allows easy updates via `git
+pull` and should make the manpages available via `man ts`.
+
+    git clone git://github.com/thinkerbot/ts.git
+    export PATH="$PATH:$(pwd)/ts/bin"
+
+## DEVELOPMENT
+
+Clone the repo as above.  To run the tests (written in `ts`):
+
+    ts test/suite
+
+To generate the manpages (assumes `ruby`/`rubygems`):
+
+    gem install ronn
+    ronn -r --pipe README.md > man/man1/ts.1
 
 ## BUGS
 
