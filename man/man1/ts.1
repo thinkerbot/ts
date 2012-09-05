@@ -7,7 +7,7 @@
 \fBts\fR \- run ts shell test scripts
 .
 .SH "SYNOPSIS"
-\fBts\fR \fIoptions\fR FILE\.\.\. \fB[ts script]\fR \fIoptions\fR TESTS\.\.\.
+\fBts\fR \fIoptions\fR FILE\|\.\|\.\|\. \fB[ts script]\fR \fIoptions\fR TESTS\|\.\|\.\|\.
 .
 .SH "DESCRIPTION"
 \fBts\fR supports writing tests in shell\. The test scripts can be run individually or in a batch format using \fBts\fR as a command\.
@@ -24,7 +24,7 @@ The \fBts\fR command expects script files that define test cases\. Test scripts 
 
 [\./example]
 #!/bin/sh           # Pick a shell
-\. ts                # Source ts to get test functions\.
+\[char46] ts                # Source ts to get test functions\.
 
 setup () {          # optional setup
   mkdir \-p "$test_dir"
@@ -50,8 +50,8 @@ To run, use any of:
 .nf
 
 ts example
-\./example
-\./example test_a_thing
+\[char46]/example
+\[char46]/example test_a_thing
 .
 .fi
 .
@@ -111,7 +111,7 @@ A setup function run before each test\.
 A teardown function run after each test\.
 .
 .TP
-\fBassert COMMAND\.\.\.\fR
+\fBassert COMMAND\|\.\|\.\|\.\fR
 Runs a command and asserts exit status 0\.
 .
 .TP
