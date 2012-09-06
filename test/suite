@@ -304,12 +304,12 @@ P [./test/ts/output:10] test_output_b
 #
 
 test_ts_assertions_pass () {
-nfails=$(ts test/assertions/pass | grep -c '^F')
+nfails=$(ts -a test/assertions/pass | grep -c '^F')
 assert_output "0" "$nfails"
 }
 
 test_ts_assertions_fail () {
-npass=$(ts test/assertions/fail | grep -c '^P')
+npass=$(ts -a test/assertions/fail | grep -c '^P')
 assert_output "0" "$npass"
 }
 
