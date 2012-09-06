@@ -391,3 +391,21 @@ F [test/ts/exit_fail_in_teardown:13] test_would_pass
 
 " -
 }
+
+#
+# readme test
+#
+
+test_ts_readme_pass () {
+nfails=$(ts -a test/ts/readme_pass | grep -c '^F')
+assert_output "0" "$nfails"
+}
+
+test_ts_readme_fail () {
+npass=$(ts -a test/ts/readme_fail | grep -c '^P')
+assert_output "0" "$npass"
+}
+
+test_ts_readme_example () {
+assert ts test/ts/readme_example
+}

@@ -7,10 +7,13 @@
 \fBts\fR \- run ts shell test scripts
 .
 .SH "SYNOPSIS"
-\fBts\fR \fIoptions\fR FILE\.\.\. \fB[ts script]\fR \fIoptions\fR TESTS\.\.\.
+\fBts\fR \fIoptions\fR TEST_SCRIPT\.\.\.
+.
+.P
+\fB[\./test_script]\fR \fIoptions\fR TESTS\.\.\.
 .
 .SH "DESCRIPTION"
-\fBts\fR supports writing tests in shell\. The test scripts can be run individually or in a batch format using \fBts\fR as a command\.
+\fBts\fR provides functions for writing tests in shell\. The test scripts can be run individually or in a batch format using \fBts\fR as a command\.
 .
 .P
 \fBts\fR makes a test directory available on a per\-test basis so it\'s easy to sandbox tests that write or manipulate files\. \fBts\fR tries to use POSIX exclusively and so should (hopefully) work on any POSIX\-compliant system\.
@@ -23,19 +26,19 @@ The \fBts\fR command expects script files that define test cases\. Test scripts 
 .nf
 
 [\./example]
-#!/bin/sh           # Pick a shell
-\[char46] ts                # Source ts to get test functions\.
+#!/bin/sh               # pick a shell, any (POSIX) shell
+\[char46] ts                    # source ts to add test functions
 
-setup () {          # optional setup
+setup () {              # optional setup
   mkdir \-p "$test_dir"
 }
 
-teardown () {       # optional teardown
+teardown () {           # optional teardown
   rm \-r "$test_dir"
 }
 
-test_a_thing () {   # Write tests named like "test_"\.
-  ls "$test_dir"    # Return 0 to pass\.
+test_a_thing () {       # write tests named like "test_"
+  [ \-d "$test_dir" ]    # return 0 to pass\.
 }
 .
 .fi
@@ -49,9 +52,9 @@ To run, use any of:
 .
 .nf
 
-ts example
-\[char46]/example
-\[char46]/example test_a_thing
+ts example              # run multiple test scripts
+\[char46]/example               # run a single test script
+\[char46]/example test_a_thing  # run a single test
 .
 .fi
 .
@@ -61,7 +64,7 @@ ts example
 See the FUNCTIONS section for all functions available in tests\.
 .
 .SH "OPTIONS"
-These options control a \fBts\fR script, or \fBts\fR when running ts scripts as a batch\.
+These options control how \fBts\fR operates:
 .
 .TP
 \fB\-a\fR
@@ -73,7 +76,7 @@ Colorize output\. (green/red/yellow \- pass/fail/not\-executable)
 .
 .TP
 \fB\-d\fR
-Debug mode\. Turns on xtrace (set \-x) for the tests and enables verbose\.
+Debug mode\. Turns on xtrace (set \-x) for the tests and enables \-v\.
 .
 .TP
 \fB\-h\fR
@@ -100,7 +103,7 @@ Set the test tmp dir (default tmp)\. The test\-specific directories are be locat
 Verbose output\. Enables \fBts\fR to display stderr for the tests (normally only stdout is shown)\.
 .
 .SH "FUNCTIONS"
-Functions provided by \fBts\fR\. All function names starting with \'ts_\' are reserved for internal use\.
+Functions provided by \fBts\fR\.
 .
 .TP
 \fBsetup\fR
@@ -116,14 +119,20 @@ Runs a command and asserts exit status 0\.
 .
 .TP
 \fBassert_status EXPECTED ACTUAL\fR
-Flunks unless the numbers EXPECTED and ACTUAL are the same\.
+Exit 1 unless the numbers EXPECTED and ACTUAL are the same\.
 .
 .TP
 \fBassert_output EXPECTED ACTUAL\fR
-Flunks unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin for \'\-\'\.
+Exit 1 unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin for \'\-\'\.
+.
+.IP
+Using assert_output in a pipeline is often convenient, but be careful you don\'t expect a failing assert_output to exit your test case as, in that case, it will only exit the pipeline\. See the GOTCHAS section for more details\.
+.
+.P
+\fBts\fR reserves all function names starting with \'ts_\' for internal use\.
 .
 .SH "VARIABLES"
-Variables provided by \fBts\fR at runtime\. All variable names starting with \'ts_\' are reserved for internal use\.
+Variables provided by \fBts\fR at runtime\. Feel free to use any of them but treat them as read\-only\.
 .
 .TP
 \fBtest_file\fR
@@ -145,62 +154,50 @@ The name of the current test\.
 \fBtest_dir\fR
 The test\-specific directory\. The test dir is \'tmp_dir/test_case\'\. \fBts\fR does not create this directory automatically\. Add that functionality in the setup function as needed\.
 .
-.SH "EXAMPLES"
-TODO
+.P
+\fBts\fR reserves all variables starting with \'ts_\' for internal use\.
 .
 .SH "ENVIRONMENT"
-Defaults for options can be set via environment variables\. Options provided by the user override these defaults\. All variable names starting with \'TS_\' are reserved for internal use\.
+Default \fBts\fR behavior can be set via environment variables\. Options provided to \fBts\fR override these defaults\.
 .
 .TP
-\fBTS_USR_DIR\fR
-The user dir\. By default \fBpwd\fR\. Used to determine the default tmp dir\.
+\fBTS_USR_DIR\fR (pwd)
+The user dir\. Used to determine the ts tmp dir\.
 .
 .TP
-\fBTS_TMP_DIR\fR
-The base tmp dir\. By default \fB$TS_USR_DIR/tmp\fR\.
+\fBTS_TMP_DIR\fR (\fB$TS_USR_DIR/tmp\fR)
+The base tmp dir\.
 .
 .TP
-\fBTS_COLOR\fR
+\fBTS_COLOR\fR (false)
 Set to "true" to enable color\.
 .
 .TP
-\fBTS_DEBUG\fR
+\fBTS_DEBUG\fR (false)
 Set to "true" to enable debug mode\.
 .
 .TP
-\fBTS_FILTER\fR
-Set to "false" to not filter passing tests\.
-.
-.TP
-\fBTS_REPORT\fR
-Report mode\. Valid values are "monitor", "stream", and "raw" (raw output is used internally and should not be relied upon externally)\.
-.
-.TP
-\fBTS_MODE\fR
-Execution mode\. Set to "verbose" to capture stderr\.
-.
-.TP
-\fBTS_REMOVE_TMP_DIR\fR
+\fBTS_REMOVE_TMP_DIR\fR (false)
 Set to "true" to remove tmp dir\.
 .
 .P
-In addition these variables can be set to adjust the color output\.
+In addition these variables adjust the color output\.
 .
 .TP
-\fBTS_PASS\fR
+\fBTS_PASS\fR (green)
 Passing tests\.
 .
 .TP
-\fBTS_FAIL\fR
+\fBTS_FAIL\fR (red)
 Failing tests\.
 .
 .TP
-\fBTS_NORM\fR
-The normal output color\.
+\fBTS_NOEX\fR (yellow)
+Non\-executable test files\.
 .
 .TP
-\fBTS_NOEX\fR
-Non\-executable test files\.
+\fBTS_NORM\fR (normal)
+The normal output color\.
 .
 .P
 For example to turn failures blue:
@@ -210,6 +207,108 @@ For example to turn failures blue:
 .nf
 
 export TS_FAIL=$(printf "%b" "\e033[0;34m")
+.
+.fi
+.
+.IP "" 0
+.
+.P
+\fBts\fR reserves all variables starting with \'TS_\' for internal use\.
+.
+.SH "EXAMPLES"
+Basic usage:
+.
+.IP "" 4
+.
+.nf
+
+[\./example]
+#!/bin/sh
+\[char46] ts
+
+test_pass () {
+  true
+}
+
+test_assert_pass () {
+  assert true
+}
+
+test_assert_status_pass () {
+  true
+  assert_status 0 $?
+}
+
+test_assert_output_style_one () {
+  out=$(printf "hello world")
+  assert_output "hello world" "$out"
+}
+
+test_assert_output_style_two () {
+  printf "hello world" | assert_output "hello world"
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Run like:
+.
+.IP "" 4
+.
+.nf
+
+chmod +x example
+ts example
+.
+.fi
+.
+.IP "" 0
+.
+.SH "GOTCHAS"
+The assert methods will literally exit the function, so multiple assertions are ok\.
+.
+.IP "" 4
+.
+.nf
+
+test_fails_as_expected () {
+  assert_output "1" "0"
+  assert true
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+\fBBeware\fR doing this as you may accidentally use them in pipelines where a failure will exit the pipeline and not the test function\.
+.
+.IP "" 4
+.
+.nf
+
+test_this_has_a_bug_and_does_not_fail () {
+  printf "0" | assert_output "1"
+  assert true
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+A safer approach is to always rely on the return status of the function, instead of the exits from the assert methods\.
+.
+.IP "" 4
+.
+.nf
+
+test_now_fails_as_expected () {
+  printf "0" | assert_output "1" &&
+  assert true
+}
 .
 .fi
 .

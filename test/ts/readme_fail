@@ -1,0 +1,16 @@
+#!/bin/sh
+. ts
+
+#
+# GOTCHAS
+#
+
+test_fails_as_expected () {
+  assert_output "1" "0"
+  assert true
+}
+
+test_now_fails_as_expected () {
+  printf "0" | assert_output "1" &&
+  assert true
+}
