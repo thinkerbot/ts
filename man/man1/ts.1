@@ -7,7 +7,7 @@
 \fBts\fR \- run ts shell test scripts
 .
 .SH "SYNOPSIS"
-\fBts\fR \fIoptions\fR FILE\|\.\|\.\|\. \fB[ts script]\fR \fIoptions\fR TESTS\|\.\|\.\|\.
+\fBts\fR \fIoptions\fR FILE\.\.\. \fB[ts script]\fR \fIoptions\fR TESTS\.\.\.
 .
 .SH "DESCRIPTION"
 \fBts\fR supports writing tests in shell\. The test scripts can be run individually or in a batch format using \fBts\fR as a command\.
@@ -111,7 +111,7 @@ A setup function run before each test\.
 A teardown function run after each test\.
 .
 .TP
-\fBassert COMMAND\|\.\|\.\|\.\fR
+\fBassert COMMAND\.\.\.\fR
 Runs a command and asserts exit status 0\.
 .
 .TP
@@ -243,20 +243,33 @@ ts test/suite
 .IP "" 0
 .
 .P
-To generate the manpages (assumes \fBruby\fR/\fBrubygems\fR):
+To generate the manpages, use a patched version of ronn (assumes \fBruby\fR):
 .
 .IP "" 4
 .
 .nf
 
-gem install ronn
-ronn \-r \-\-pipe README\.md > man/man1/ts\.1
+git clone git://github\.com/thinkerbot/ronn\.git
+cd ronn
+rake package
+gem install pkg/ronn\-0\.7\.3\.gem
 .
 .fi
 .
 .IP "" 0
 .
-.SH "BUGS"
+.P
+Then in ts:
+.
+.IP "" 4
+.
+.nf
+
+ronn \-r \-\-pipe README\.md > man/man1/ts\.1
+.
+.fi
+.
+.IP "" 0
 .
 .SH "COPYRIGHT"
 TS is Copyright (C) 2011 Simon Chiang \fIhttp://github\.com/thinkerbot\fR

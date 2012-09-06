@@ -164,12 +164,16 @@ Clone the repo as above.  To run the tests (written in `ts`):
 
     ts test/suite
 
-To generate the manpages (assumes `ruby`/`rubygems`):
+To generate the manpages, use a patched version of ronn (assumes `ruby`):
 
-    gem install ronn
+    git clone git://github.com/thinkerbot/ronn.git
+    cd ronn
+    rake package
+    gem install pkg/ronn-0.7.3.gem
+
+Then in ts:
+
     ronn -r --pipe README.md > man/man1/ts.1
-
-## BUGS
 
 ## COPYRIGHT
 
