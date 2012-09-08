@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "TS" "1" "September 2012" "" ""
+.TH "TS" "1" "September 2012" "1.0.0-beta" ""
 .
 .SH "NAME"
 \fBts\fR \- run ts shell test scripts
@@ -342,29 +342,13 @@ ts test/suite
 .IP "" 0
 .
 .P
-To generate the manpages, use a patched version of ronn (assumes \fBruby\fR):
+To generate the manpages:
 .
 .IP "" 4
 .
 .nf
 
-git clone git://github\.com/thinkerbot/ronn\.git
-cd ronn
-rake package
-gem install pkg/ronn\-0\.7\.3\.gem
-.
-.fi
-.
-.IP "" 0
-.
-.P
-Then in ts:
-.
-.IP "" 4
-.
-.nf
-
-ronn \-r \-\-pipe README\.md > man/man1/ts\.1
+make manpages
 .
 .fi
 .
