@@ -6,10 +6,11 @@
 #   version / YYYY-MM-DD
 #
 manpages:
-	read VERSION s DATE < History.md; make man/man1/ts.1 VERSION=$$VERSION DATE=$$DATE
+	. ts; make man/man1/ts.1 VERSION=$$ts_version DATE=$$ts_release_date
 
 ronn/bin/ronn:
 	git clone git://github.com/thinkerbot/ronn.git
 
 man/man1/ts.1: README.md History.md ronn/bin/ronn
+	mkdir -p man/man1
 	ruby -Ironn/lib ronn/bin/ronn -r --pipe --organization="$(VERSION)" --date="$(DATE)" $< > $@
