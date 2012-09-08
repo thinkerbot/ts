@@ -1,10 +1,4 @@
 # Builds the ts man pages.
-#
-# For this to work, History.md must have the current version and release date
-# on it's first line like:
-#
-#   version / YYYY-MM-DD
-#
 manpages:
 	. ts; make man/man1/ts.1 VERSION=$$ts_version DATE=$$ts_release_date
 
