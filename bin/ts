@@ -217,8 +217,10 @@ ts_run_test () {
   then set -x
   fi
 
+  trap 'teardown' EXIT
   setup && "$test_name"
   ts_exitstatus=$?
+  trap - EXIT
   teardown && return $ts_exitstatus
 }
 
