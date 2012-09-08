@@ -1,17 +1,19 @@
 #!/bin/bash
 ############################################################################
 ts_progname="${0##*/}"
-ts_version="1.0.0"
 ts_author="Simon Chiang"
+ts_version="1.0.0-beta"
+ts_release_date="2012-09-07"
 ts_url="http://github.com/thinkerbot/ts"
-ts_usage="usage: %s [-achmrsv] [-t TS_TMP_DIR] %s\n"
-if [ "ts" = "$ts_progname" ]
-then ts_args="[TEST_FILES...]"
-else ts_args="[TEST_NAMES...]"
+
+ts_usage="usage: %s [-achmrsv] [-t TS_TMP_DIR]"
+if [ xts = x"$ts_progname" ]
+then ts_usage="$ts_usage [TEST_FILES...]\n"
+else ts_usage="$ts_usage [TEST_NAMES...]\n"
 fi
 ts_opt="       %s   %s\n"
 
-args=""
+ts_args=""
 while [ $OPTIND -le $# ]
 do
   if getopts "acdhmrst:v" ts_option
@@ -20,7 +22,7 @@ do
       a  )  TS_FILTER=false ;;
       c  )  TS_COLOR=true ;;
       d  )  TS_DEBUG=true; TS_MODE=verbose ;;
-      h  )  printf "$ts_usage" "$ts_progname" "$ts_args"
+      h  )  printf "$ts_usage" "$ts_progname"
             printf "$ts_opt" "-a" "show all tests"
             printf "$ts_opt" "-c" "color output"
             printf "$ts_opt" "-h" "prints this help"
@@ -36,15 +38,15 @@ do
       s  )  TS_REPORT=stream ;;
       t  )  TS_TMP_DIR=$OPTARG ;;
       v  )  TS_MODE=verbose ;;
-      \? )  printf "$ts_usage" "$ts_progname" "$ts_args"
+      \? )  printf "$ts_usage" "$ts_progname"
             exit 2 ;;
     esac
   else
-    args="$args \${$OPTIND}" 
+    ts_args="$ts_args \${$OPTIND}" 
     OPTIND=$(($OPTIND + 1))
   fi
 done
-eval set -- "$args"
+eval set -- "$ts_args"
 
 TS_USR_DIR="${TS_USR_DIR:-$(pwd)}"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
