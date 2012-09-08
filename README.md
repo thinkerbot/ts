@@ -37,6 +37,8 @@ have the following form:
       [ -d "$test_dir" ]    # return 0 to pass.
     }
 
+    ts .                    # run the tests
+
 To run, use any of:
 
     ts example              # run multiple test scripts
@@ -92,7 +94,9 @@ Functions provided by **ts**.
   case, it will only exit the pipeline.  See the GOTCHAS section for more
   details.
 
-**ts** reserves all function names starting with 'ts_' for internal use.
+**ts** reserves all function names starting with 'ts_' for internal use. When
+**ts** is sourced, a 'ts' function is defined to allow `ts .` to run the
+tests.
 
 ## VARIABLES
 
@@ -177,6 +181,8 @@ Basic usage:
     test_assert_output_style_two () {
       printf "hello world" | assert_output "hello world"
     }
+
+    ts .
 
 Run like:
 

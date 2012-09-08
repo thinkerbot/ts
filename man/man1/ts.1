@@ -40,6 +40,8 @@ teardown () {           # optional teardown
 test_a_thing () {       # write tests named like "test_"
   [ \-d "$test_dir" ]    # return 0 to pass\.
 }
+
+ts \.                    # run the tests
 .
 .fi
 .
@@ -129,7 +131,7 @@ Exit 1 unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin 
 Using assert_output in a pipeline is often convenient, but be careful you don\'t expect a failing assert_output to exit your test case as, in that case, it will only exit the pipeline\. See the GOTCHAS section for more details\.
 .
 .P
-\fBts\fR reserves all function names starting with \'ts_\' for internal use\.
+\fBts\fR reserves all function names starting with \'ts_\' for internal use\. When \fBts\fR is sourced, a \'ts\' function is defined to allow \fBts \.\fR to run the tests\.
 .
 .SH "VARIABLES"
 Variables provided by \fBts\fR at runtime\. Feel free to use any of them but treat them as read\-only\.
@@ -247,6 +249,8 @@ test_assert_output_style_one () {
 test_assert_output_style_two () {
   printf "hello world" | assert_output "hello world"
 }
+
+ts \.
 .
 .fi
 .

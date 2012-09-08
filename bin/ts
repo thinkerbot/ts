@@ -337,9 +337,18 @@ assert_output () {
 
 ############################################################################
 
-# Run the test files if this script is executed directly. Otherwise, set a
-# trap to run the current test suite after the tests have been defined.
-if [ "ts" = "$ts_progname" ]
+# Run the test files if this script is executed directly. Otherwise, override
+# ts so that 'ts .' will run the test suite.  Allow non-dot inputs to execute
+# the ts command.
+if [ xts = x"$ts_progname" ]
 then ts_run_test_files "$@"
-else trap "ts_run_test_suite $*; exit \$?" EXIT
+else
+  ts_test_names="$*"
+
+  ts () {
+    if [ x. = x"$*" ]
+    then ts_run_test_suite $ts_test_names
+    else $(which ts) "$@"
+    fi
+  }
 fi

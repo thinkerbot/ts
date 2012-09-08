@@ -12,3 +12,5 @@ true
 test_z () {
 true
 }
+
+ts .

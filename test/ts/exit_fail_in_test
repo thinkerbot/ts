@@ -13,3 +13,5 @@ test_would_pass () {
   printf "in test\n"
   exit 1
 }
+
+ts .

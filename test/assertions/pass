@@ -59,3 +59,5 @@ test_assert_output_with_numbers_pass () {
 assert_output 0 0
 assert_output "0" "0"
 }
+
+ts .

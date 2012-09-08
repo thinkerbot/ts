@@ -12,3 +12,5 @@ test_output_b () {
   printf "ear" >&2
   true
 }
+
+ts .

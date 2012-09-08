@@ -12,3 +12,5 @@ teardown () {           # optional teardown
 test_a_thing () {       # write tests named like "test_"
   [ -d "$test_dir" ]    # return 0 to pass.
 }
+
+ts .

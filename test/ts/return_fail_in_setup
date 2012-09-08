@@ -13,3 +13,5 @@ teardown () {
 test_would_pass () {
   printf "in test\n"
 }
+
+ts .

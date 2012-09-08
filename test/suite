@@ -409,3 +409,5 @@ assert_output "0" "$npass"
 test_ts_readme_example () {
 assert ts test/ts/readme_example
 }
+
+ts .

@@ -59,3 +59,5 @@ assert_output "0" "1"
 test_assert_output_with_pattern_fail () {
 assert_output "hello.+rld" "hello world"
 }
+
+ts .
