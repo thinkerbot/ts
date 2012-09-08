@@ -403,6 +403,15 @@ trap "exit 0" EXIT
 exit 1
 }
 
+test_ts_exit_fail_after_trap_EXIT_in_test () {
+ts -s test/ts/exit_fail_in_test_after_trap | assert_output "\
+F [test/ts/exit_fail_in_test_after_trap:12] test_would_pass
+  in setup
+  in test
+
+" -
+}
+
 #
 # readme test
 #

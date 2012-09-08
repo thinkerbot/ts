@@ -81,6 +81,11 @@ Functions provided by **ts**.
   A setup function run before each test.
 * `teardown`:
   A teardown function run after each test.
+  
+  Note **ts** ensures teardown runs by setting a trap for EXIT signals during
+  setup and the actual test. As a result, EXIT traps in tests can prevent
+  teardown.
+  
 * `assert COMMAND...`:
   Runs a command and asserts exit status 0.
 * `assert_status EXPECTED ACTUAL`:

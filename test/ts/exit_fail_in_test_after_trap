@@ -1,0 +1,18 @@
+#!/bin/sh
+. ts
+
+setup () {
+  printf "in setup\n"
+}
+
+teardown () {
+  printf "in teardown\n"
+}
+
+test_would_pass () {
+  printf "in test\n"
+  trap - EXIT
+  exit 1
+}
+
+ts .

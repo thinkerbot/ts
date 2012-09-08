@@ -115,6 +115,9 @@ A setup function run before each test\.
 \fBteardown\fR
 A teardown function run after each test\.
 .
+.IP
+Note \fBts\fR ensures teardown runs by setting a trap for EXIT signals during setup and the actual test\. As a result, EXIT traps in tests can prevent teardown\.
+.
 .TP
 \fBassert COMMAND\.\.\.\fR
 Runs a command and asserts exit status 0\.
