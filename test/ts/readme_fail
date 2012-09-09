@@ -1,5 +1,4 @@
 #!/bin/sh
-. ts
 
 #
 # GOTCHAS
@@ -15,4 +14,4 @@ test_now_fails_as_expected () {
   assert true
 }
 
-ts .
+. ts

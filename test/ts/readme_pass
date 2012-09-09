@@ -1,5 +1,4 @@
 #!/bin/sh
-. ts
 
 #
 # EXAMPLES
@@ -36,5 +35,5 @@ test_this_has_a_bug_and_does_not_fail () {
   assert true
 }
 
-ts .
+. ts
 

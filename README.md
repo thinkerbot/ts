@@ -23,7 +23,6 @@ have the following form:
 
     [./example]
     #!/bin/sh               # pick a shell, any (POSIX) shell
-    . ts                    # source ts to add test functions
 
     setup () {              # optional setup
       mkdir -p "$test_dir"
@@ -37,7 +36,7 @@ have the following form:
       [ -d "$test_dir" ]    # return 0 to pass.
     }
 
-    ts .                    # run the tests
+    . ts                    # source ts to run the tests
 
 To run, use any of:
 
@@ -99,9 +98,7 @@ Functions provided by **ts**.
   case, it will only exit the pipeline.  See the GOTCHAS section for more
   details.
 
-**ts** reserves all function names starting with 'ts_' for internal use. When
-**ts** is sourced, a 'ts' function is defined to allow `ts .` to run the
-tests.
+**ts** reserves all function names starting with 'ts_' for internal use.
 
 ## VARIABLES
 
@@ -163,7 +160,6 @@ Basic usage:
 
     [./example]
     #!/bin/sh
-    . ts
 
     test_pass () {
       true
@@ -187,7 +183,7 @@ Basic usage:
       printf "hello world" | assert_output "hello world"
     }
 
-    ts .
+    . ts
 
 Run like:
 

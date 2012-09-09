@@ -279,13 +279,19 @@ ts_run_test_files () {
 ############################################################################
 # public functions
 
+if ! type setup > /dev/null 2>&1
+then
 setup () {
   true
 }
+fi
 
+if ! type teardown > /dev/null 2>&1
+then
 teardown () {
   true
 }
+fi
 
 # Runs a command and asserts it's exit status is 0.
 assert () {
@@ -341,18 +347,8 @@ assert_output () {
 
 ############################################################################
 
-# Run the test files if this script is executed directly. Otherwise, override
-# ts so that 'ts .' will run the test suite.  Allow non-dot inputs to execute
-# the ts command.
+# Run the test files if this script is executed directly.
 if [ xts = x"$ts_progname" ]
 then ts_run_test_files "$@"
-else
-  ts_test_names="$*"
-
-  ts () {
-    if [ x. = x"$*" ]
-    then ts_run_test_suite $ts_test_names
-    else $(which ts) "$@"
-    fi
-  }
+else ts_run_test_suite "$@"
 fi

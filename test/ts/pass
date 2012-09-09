@@ -1,5 +1,4 @@
 #!/bin/sh
-. ts
 
 setup () {
 set -x
@@ -9,4 +8,4 @@ test_pass () {
 true
 }
 
-ts .
+. ts

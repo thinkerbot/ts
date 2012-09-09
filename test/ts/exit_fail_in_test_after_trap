@@ -1,5 +1,4 @@
 #!/bin/sh
-. ts
 
 setup () {
   printf "in setup\n"
@@ -15,4 +14,4 @@ test_would_pass () {
   exit 1
 }
 
-ts .
+. ts

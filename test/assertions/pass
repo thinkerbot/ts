@@ -1,5 +1,4 @@
 #!/bin/sh
-. ts
 
 setup () {
 set -x
@@ -60,4 +59,4 @@ assert_output 0 0
 assert_output "0" "0"
 }
 
-ts .
+. ts

@@ -1,5 +1,4 @@
 #!/bin/sh
-. ts
 
 setup () {
 set -x
@@ -13,4 +12,4 @@ test_z () {
 true
 }
 
-ts .
+. ts

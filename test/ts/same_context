@@ -1,0 +1,15 @@
+#!/bin/sh
+
+setup () {
+  a=A
+}
+
+teardown () {
+  [ 'xAB' = x"$b" ]
+}
+
+test_share_context_with_setup_and_teardown () {
+  b="${a}B"
+}
+
+. ts

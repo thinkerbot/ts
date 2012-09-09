@@ -1,5 +1,4 @@
 #!/bin/sh               # pick a shell, any (POSIX) shell
-. ts                    # source ts to add test functions
 
 setup () {              # optional setup
   mkdir -p "$test_dir"
@@ -13,4 +12,4 @@ test_a_thing () {       # write tests named like "test_"
   [ -d "$test_dir" ]    # return 0 to pass.
 }
 
-ts .
+. ts
