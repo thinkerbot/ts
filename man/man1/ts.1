@@ -118,19 +118,12 @@ A teardown function run after each test\.
 Note \fBts\fR ensures teardown runs by setting a trap for EXIT signals during setup and the actual test\. As a result, EXIT traps in tests can prevent teardown\.
 .
 .TP
-\fBassert COMMAND\.\.\.\fR
-Runs a command and asserts exit status 0\.
-.
-.TP
 \fBassert_status EXPECTED ACTUAL\fR
 Exit 1 unless the numbers EXPECTED and ACTUAL are the same\.
 .
 .TP
 \fBassert_output EXPECTED ACTUAL\fR
-Exit 1 unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin for \'\-\'\.
-.
-.IP
-Using assert_output in a pipeline is often convenient, but be careful you don\'t expect a failing assert_output to exit your test case as, in that case, it will only exit the pipeline\. See the GOTCHAS section for more details\.
+Exit 1 unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin for \'\-\'\. Also reads ACTUAL from stdin if ACTUAL is not specified\.
 .
 .P
 \fBts\fR reserves all function names starting with \'ts_\' for internal use\.
@@ -177,12 +170,12 @@ The base tmp dir\.
 Set to "true" to enable color\.
 .
 .TP
-\fBTS_DEBUG\fR (false)
-Set to "true" to enable debug mode\.
-.
-.TP
 \fBTS_REMOVE_TMP_DIR\fR (false)
 Set to "true" to remove tmp dir\.
+.
+.TP
+\fBTS_SET_OPTIONS\fR (\-e)
+Specifies shell options set (via \fBset\fR) before each test\. Debug adds \'\-x\'\.
 .
 .P
 In addition these variables adjust the color output\.
@@ -233,10 +226,6 @@ test_pass () {
   true
 }
 
-test_assert_pass () {
-  assert true
-}
-
 test_assert_status_pass () {
   true
   assert_status 0 $?
@@ -266,54 +255,6 @@ Run like:
 
 chmod +x example
 ts example
-.
-.fi
-.
-.IP "" 0
-.
-.SH "GOTCHAS"
-The assert methods will literally exit the function, so multiple assertions are ok\.
-.
-.IP "" 4
-.
-.nf
-
-test_fails_as_expected () {
-  assert_output "1" "0"
-  assert true
-}
-.
-.fi
-.
-.IP "" 0
-.
-.P
-\fBBeware\fR doing this as you may accidentally use them in pipelines where a failure will exit the pipeline and not the test function\.
-.
-.IP "" 4
-.
-.nf
-
-test_this_has_a_bug_and_does_not_fail () {
-  printf "0" | assert_output "1"
-  assert true
-}
-.
-.fi
-.
-.IP "" 0
-.
-.P
-A safer approach is to always rely on the return status of the function, instead of the exits from the assert methods\.
-.
-.IP "" 4
-.
-.nf
-
-test_now_fails_as_expected () {
-  printf "0" | assert_output "1" &&
-  assert true
-}
 .
 .fi
 .

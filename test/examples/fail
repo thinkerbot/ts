@@ -9,14 +9,6 @@ false
 }
 
 #
-# assert test
-#
-
-test_assert_fail () {
-assert false
-}
-
-#
 # assert_status tests
 #
 

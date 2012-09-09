@@ -8,10 +8,6 @@ test_pass () {
   true
 }
 
-test_assert_pass () {
-  assert true
-}
-
 test_assert_status_pass () {
   true
   assert_status 0 $?

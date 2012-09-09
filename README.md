@@ -84,9 +84,7 @@ Functions provided by **ts**.
   Note **ts** ensures teardown runs by setting a trap for EXIT signals during
   setup and the actual test. As a result, EXIT traps in tests can prevent
   teardown.
-  
-* `assert COMMAND...`:
-  Runs a command and asserts exit status 0.
+
 * `assert_status EXPECTED ACTUAL`:
   Exit 1 unless the numbers EXPECTED and ACTUAL are the same.
 * `assert_output EXPECTED ACTUAL`:
@@ -163,10 +161,6 @@ Basic usage:
 
     test_pass () {
       true
-    }
-
-    test_assert_pass () {
-      assert true
     }
 
     test_assert_status_pass () {
