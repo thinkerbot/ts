@@ -1,9 +1,5 @@
 #!/bin/sh
 
-setup () {
-set -x
-}
-
 test_exit_pass () {
 exit
 }
@@ -48,15 +44,13 @@ test_assert_output_with_implicit_stdin_pass () {
 printf "hello world" | assert_output "hello world"
 }
 
-test_assert_output_with_newline_pass () {
-printf "hello world\n" | assert_output "\
-hello world
-" -
-}
+#
+# combinations
+#
 
-test_assert_output_with_numbers_pass () {
-assert_output 0 0
-assert_output "0" "0"
+test_multiple_asserts_pass () {
+  assert_status 0 0
+  assert_output "0" "0"
 }
 
 . ts

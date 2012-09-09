@@ -1,9 +1,5 @@
 #!/bin/sh
 
-setup () {
-set -x
-}
-
 test_exit_fail () {
 exit 8
 }
@@ -44,19 +40,23 @@ test_assert_output_actual_from_stdin_fail () {
 printf "hello w0rld" | assert_output "hello world" -
 }
 
-test_assert_output_with_newline_fail () {
-printf "hello w0rld\n" | assert_output "\
-hello world
-" -
+test_assert_output_with_implicit_stdin_fail () {
+printf "hello w0rld" | assert_output "hello world"
 }
 
-test_assert_output_with_numbers_fail () {
-assert_output 0 1
-assert_output "0" "1"
+
+#
+# combinations
+#
+
+test_multiple_asserts_fail_early () {
+  assert_status 0 1
+  assert_output "0" "0"
 }
 
-test_assert_output_with_pattern_fail () {
-assert_output "hello.+rld" "hello world"
+test_multiple_asserts_fail_late () {
+  assert_status 0 0
+  assert_output "0" "1"
 }
 
 . ts

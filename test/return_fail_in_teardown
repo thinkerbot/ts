@@ -6,10 +6,10 @@ setup () {
 
 teardown () {
   printf "in teardown\n"
-  exit 1
+  false
 }
 
-test_would_pass () {
+test_return_fail_in_teardown () {
   printf "in test\n"
 }
 

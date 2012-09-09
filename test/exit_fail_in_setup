@@ -2,16 +2,15 @@
 
 setup () {
   printf "in setup\n"
+  exit 1
 }
 
 teardown () {
   printf "in teardown\n"
 }
 
-test_would_pass () {
+test_exit_fail_in_setup () {
   printf "in test\n"
-  trap - EXIT
-  exit 1
 }
 
 . ts

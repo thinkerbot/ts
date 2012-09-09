@@ -20,28 +20,61 @@ export TS_TMP_DIR="$test_dir"
 # ts test
 #
 
-test_ts_runs_files () {
-ts -as test/ts/pass test/ts/fail 2>/dev/null |
-assert_output "\
-P [test/ts/pass:7] test_pass
+test_ts_runs_file () {
+ts -as test/abc | assert_output "\
+P [test/abc:3] test_a
+  a
 
-F [test/ts/fail:7] test_fail
+P [test/abc:9] test_b
+  b
 
-" -
-}
-
-test_script_runs_named_tests () {
-./test/ts/pattern -as test_a | assert_output "\
-P [./test/ts/pattern:7] test_a
+F [test/abc:15] test_c
+  c
 
 "
 }
 
-test_script_runs_all_tests_by_default () {
-./test/ts/pattern -as | assert_output "\
-P [./test/ts/pattern:7] test_a
+test_ts_runs_multiple_files () {
+ts -as test/pass test/fail | assert_output "\
+P [test/pass:3] test_pass
 
-P [./test/ts/pattern:11] test_z
+F [test/fail:3] test_fail
+
+"
+}
+
+test_script_runs_tests () {
+./test/abc -as | assert_output "\
+P [./test/abc:3] test_a
+  a
+
+P [./test/abc:9] test_b
+  b
+
+F [./test/abc:15] test_c
+  c
+
+"
+}
+
+test_script_runs_named_tests () {
+./test/abc -as test_a test_c | assert_output "\
+P [./test/abc:3] test_a
+  a
+
+F [./test/abc:15] test_c
+  c
+
+"
+}
+
+test_script_runs_tests_matching_patterns () {
+./test/abc -as 'test_[ac]' | assert_output "\
+P [./test/abc:3] test_a
+  a
+
+F [./test/abc:15] test_c
+  c
 
 "
 }
@@ -50,14 +83,25 @@ P [./test/ts/pattern:11] test_z
 # options test
 #
 
-test_ts_accepts_interleaved_options () {
-ts test/ts/pass -a test/ts/fail -s 2>/dev/null |
+test_ts_accepts_options_anywhere () {
+ts test/pass -a test/fail -s 2>/dev/null |
 assert_output "\
-P [test/ts/pass:7] test_pass
+P [test/pass:3] test_pass
 
-F [test/ts/fail:7] test_fail
+F [test/fail:3] test_fail
 
-" -
+"
+}
+
+test_script_accepts_options_anywhere () {
+./test/abc test_a -a test_c -s | assert_output "\
+P [./test/abc:3] test_a
+  a
+
+F [./test/abc:15] test_c
+  c
+
+"
 }
 
 #
@@ -65,70 +109,74 @@ F [test/ts/fail:7] test_fail
 #
 
 test_ts_does_not_print_passing_tests_by_default () {
-ts -s test/ts/pass test/ts/fail | assert_output "\
-F [test/ts/fail:7] test_fail
+ts -s test/pass test/fail | assert_output "\
+F [test/fail:3] test_fail
 
-" -
+"
 }
 
-test_ts_a_options_prints_all_tests () {
-ts -as test/ts/pass test/ts/fail | assert_output "\
-P [test/ts/pass:7] test_pass
+test_ts_a_option_prints_all_tests () {
+ts -as test/pass test/fail | assert_output "\
+P [test/pass:3] test_pass
 
-F [test/ts/fail:7] test_fail
+F [test/fail:3] test_fail
 
-" -
+"
 }
 
 test_script_does_not_print_passing_tests_by_default () {
-./test/ts/pass -s | assert_output "" -
+./test/pass -s | assert_output ""
 }
 
-test_script_a_options_prints_all_tests () {
-./test/ts/pass -as | assert_output "\
-P [./test/ts/pass:7] test_pass
+test_script_a_option_prints_all_tests () {
+./test/pass -as | assert_output "\
+P [./test/pass:3] test_pass
 
-" -
+"
 }
 
 #
 # -c option
 #
 
-test_ts_c_option_prints_color_output () {
-ts -asc test/ts/output 2>&1 |
-assert_output "\
-[[32mtest/ts/output:3[0m] test_output_a
-  out
+test_ts_c_option_prints_green_red_color_output () {
+ts -asc test/abc | assert_output "\
+[[32mtest/abc:3[0m] test_a
+  a
 
-[[32mtest/ts/output:9[0m] test_output_b
-  oot
+[[32mtest/abc:9[0m] test_b
+  b
 
-" -
+[[1;31mtest/abc:15[0m] test_c
+  c
+
+"
 }
 
 test_script_c_option_prints_color_output () {
-./test/ts/output -asc 2>&1 |
-assert_output "\
-[[32m./test/ts/output:3[0m] test_output_a
-  out
+./test/abc -asc | assert_output "\
+[[32m./test/abc:3[0m] test_a
+  a
 
-[[32m./test/ts/output:9[0m] test_output_b
-  oot
+[[32m./test/abc:9[0m] test_b
+  b
 
-" -
+[[1;31m./test/abc:15[0m] test_c
+  c
+
+"
 }
 
 #
 # -d option
 #
 
-test_ts_d_options_turns_on_xtrace_and_verbose () {
-ts -dsa test/ts/pass | assert_output "\
-P [test/ts/pass:7] test_pass
+test_ts_d_option_turns_on_xtrace_and_verbose () {
+ts -dsa test/pass | assert_output "\
+P [test/pass:3] test_pass
   +++ trap teardown EXIT
   +++ setup
-  +++ set -x
+  +++ true
   +++ test_pass
   +++ true
   +++ ts_exitstatus=0
@@ -137,15 +185,15 @@ P [test/ts/pass:7] test_pass
   +++ true
   +++ return 0
 
-" -
+"
 }
 
-test_script_d_options_turns_on_xtrace_and_verbose () {
-./test/ts/pass -dsa | assert_output "\
-P [./test/ts/pass:7] test_pass
+test_script_d_option_turns_on_xtrace_and_verbose () {
+./test/pass -dsa | assert_output "\
+P [./test/pass:3] test_pass
   +++ trap teardown EXIT
   +++ setup
-  +++ set -x
+  +++ true
   +++ test_pass
   +++ true
   +++ ts_exitstatus=0
@@ -154,7 +202,7 @@ P [./test/ts/pass:7] test_pass
   +++ true
   +++ return 0
 
-" -
+"
 }
 
 #
@@ -162,39 +210,47 @@ P [./test/ts/pass:7] test_pass
 #
 
 test_ts_m_option_monitors_output () {
-ts -am test/ts/output 2>&1 |
-sed -e "s/[0-9] s/# s/" |
+ts -am test/abc 2>&1 |
+sed -e '$ s/[0-9] s/# s/' |
 assert_output "\
-..
+..F
 
-[test/ts/output:3] test_output_a
-  out
+[test/abc:3] test_a
+  a
 P
 
-[test/ts/output:9] test_output_b
-  oot
+[test/abc:9] test_b
+  b
 P
 
-2 pass 0 fail # s
-" -
+[test/abc:15] test_c
+  c
+F
+
+2 pass 1 fail # s
+"
 }
 
 test_script_m_option_monitors_output () {
-./test/ts/output -am 2>&1 |
+./test/abc -am 2>&1 |
 sed -e "s/[0-9] s/# s/" |
 assert_output "\
-..
+..F
 
-[./test/ts/output:3] test_output_a
-  out
+[./test/abc:3] test_a
+  a
 P
 
-[./test/ts/output:9] test_output_b
-  oot
+[./test/abc:9] test_b
+  b
 P
 
-2 pass 0 fail # s
-" -
+[./test/abc:15] test_c
+  c
+F
+
+2 pass 1 fail # s
+"
 }
 
 #
@@ -203,12 +259,10 @@ P
 
 test_ts_h_prints_help () {
 ts -h | grep -q "usage:"
-assert_status 0 $?
 }
 
 test_script_h_prints_help () {
-./test/ts/output -h | grep -q "usage:"
-assert_status 0 $?
+./test/abc -h | grep -q "usage:"
 }
 
 #
@@ -217,14 +271,14 @@ assert_status 0 $?
 
 test_ts_r_option_removes_tmp_dir () {
 tmpdir="$test_dir/tmp"
-ts -r -t "$tmpdir" test/ts/pass
-assert [ ! -e "$tmpdir" ]
+ts -r -t "$tmpdir" test/pass
+[ ! -e "$tmpdir" ]
 }
 
 test_script_r_option_removes_tmp_dir () {
 tmpdir="$test_dir/tmp"
-./test/ts/pass -r -t "$tmpdir"
-assert [ ! -e "$tmpdir" ]
+./test/pass -r -t "$tmpdir"
+[ ! -e "$tmpdir" ]
 }
 
 #
@@ -232,25 +286,31 @@ assert [ ! -e "$tmpdir" ]
 #
 
 test_ts_s_option_prints_structured_output () {
-ts -as test/ts/output | assert_output "\
-P [test/ts/output:3] test_output_a
-  out
+ts -as test/abc | assert_output "\
+P [test/abc:3] test_a
+  a
 
-P [test/ts/output:9] test_output_b
-  oot
+P [test/abc:9] test_b
+  b
 
-" -
+F [test/abc:15] test_c
+  c
+
+"
 }
 
 test_script_s_option_prints_structured_output () {
-./test/ts/output -as | assert_output "\
-P [./test/ts/output:3] test_output_a
-  out
+./test/abc -as | assert_output "\
+P [./test/abc:3] test_a
+  a
 
-P [./test/ts/output:9] test_output_b
-  oot
+P [./test/abc:9] test_b
+  b
 
-" -
+F [./test/abc:15] test_c
+  c
+
+"
 }
 
 #
@@ -258,60 +318,72 @@ P [./test/ts/output:9] test_output_b
 #
 
 test_ts_displays_stdout () {
-ts -as test/ts/output | assert_output "\
-P [test/ts/output:3] test_output_a
-  out
+ts -as test/abc | assert_output "\
+P [test/abc:3] test_a
+  a
 
-P [test/ts/output:9] test_output_b
-  oot
+P [test/abc:9] test_b
+  b
 
-" -
+F [test/abc:15] test_c
+  c
+
+"
 }
 
 test_ts_v_opton_displays_stderr () {
-ts -asv test/ts/output | assert_output "\
-P [test/ts/output:3] test_output_a
-  outerr
+ts -asv test/abc | assert_output "\
+P [test/abc:3] test_a
+  aA
 
-P [test/ts/output:9] test_output_b
-  ootear
+P [test/abc:9] test_b
+  bB
 
-" -
+F [test/abc:15] test_c
+  cC
+
+"
 }
 
 test_script_displays_stdout () {
-./test/ts/output -as | assert_output "\
-P [./test/ts/output:3] test_output_a
-  out
+./test/abc -as | assert_output "\
+P [./test/abc:3] test_a
+  a
 
-P [./test/ts/output:9] test_output_b
-  oot
+P [./test/abc:9] test_b
+  b
 
-" -
+F [./test/abc:15] test_c
+  c
+
+"
 }
 
 test_script_v_opton_displays_stderr () {
-./test/ts/output -asv | assert_output "\
-P [./test/ts/output:3] test_output_a
-  outerr
+./test/abc -asv | assert_output "\
+P [./test/abc:3] test_a
+  aA
 
-P [./test/ts/output:9] test_output_b
-  ootear
+P [./test/abc:9] test_b
+  bB
 
-" -
+F [./test/abc:15] test_c
+  cC
+
+"
 }
 
 #
-# assertions test
+# examples test
 #
 
-test_ts_assertions_pass () {
-nfails=$(ts -a test/assertions/pass | grep -c '^F')
+test_ts_pass_examples () {
+nfails=$(ts -as test/examples/pass | grep -c '^F')
 assert_output "0" "$nfails"
 }
 
-test_ts_assertions_fail () {
-npass=$(ts -a test/assertions/fail | grep -c '^P')
+test_ts_fail_examples () {
+npass=$(ts -as test/examples/fail | grep -c '^P')
 assert_output "0" "$npass"
 }
 
@@ -320,22 +392,22 @@ assert_output "0" "$npass"
 #
 
 test_ts_exits_0_for_passing_test () {
-ts test/ts/pass
+ts test/pass
 assert_status 0 $?
 }
 
 test_ts_exits_1_for_failing_test () {
-ts test/ts/fail >&2
+ts test/fail >&2
 assert_status 1 $?
 }
 
 test_script_exits_0_for_passing_test () {
-./test/ts/pass
+./test/pass
 assert_status 0 $?
 }
 
 test_script_exits_1_for_failing_test () {
-./test/ts/fail >&2
+./test/fail >&2
 assert_status 1 $?
 }
 
@@ -344,56 +416,56 @@ assert_status 1 $?
 #
 
 test_ts_prevents_hang_by_stdin () {
-  # cat will hang if stdin is waiting
-  cat | assert_output "" -
+# cat hangs if stdin is waiting
+cat | assert_output ""
 }
 
 test_ts_return_fail_in_setup () {
-ts -s test/ts/return_fail_in_setup | assert_output "\
-F [test/ts/return_fail_in_setup:12] test_would_pass
+ts -s test/return_fail_in_setup | assert_output "\
+F [test/return_fail_in_setup:12] test_return_fail_in_setup
   in setup
   in teardown
 
-" -
+"
 }
 
 test_ts_return_fail_in_teardown () {
-ts -s test/ts/return_fail_in_teardown | assert_output "\
-F [test/ts/return_fail_in_teardown:12] test_would_pass
+ts -s test/return_fail_in_teardown | assert_output "\
+F [test/return_fail_in_teardown:12] test_return_fail_in_teardown
   in setup
   in test
   in teardown
 
-" -
+"
 }
 
 test_ts_exit_fail_in_setup () {
-ts -s test/ts/exit_fail_in_setup | assert_output "\
-F [test/ts/exit_fail_in_setup:12] test_would_pass
+ts -s test/exit_fail_in_setup | assert_output "\
+F [test/exit_fail_in_setup:12] test_exit_fail_in_setup
   in setup
   in teardown
 
-" -
+"
 }
 
 test_ts_exit_fail_in_test () {
-ts -s test/ts/exit_fail_in_test | assert_output "\
-F [test/ts/exit_fail_in_test:11] test_would_pass
+ts -s test/exit_fail_in_test | assert_output "\
+F [test/exit_fail_in_test:11] test_exit_fail_in_test
   in setup
   in test
   in teardown
 
-" -
+"
 }
 
 test_ts_exit_fail_in_teardown () {
-ts -s test/ts/exit_fail_in_teardown | assert_output "\
-F [test/ts/exit_fail_in_teardown:12] test_would_pass
+ts -s test/exit_fail_in_teardown | assert_output "\
+F [test/exit_fail_in_teardown:12] test_exit_fail_in_teardown
   in setup
   in test
   in teardown
 
-" -
+"
 }
 
 test_ts_allows_exit_trap () {
@@ -401,31 +473,31 @@ trap "exit 0" EXIT
 exit 1
 }
 
-test_ts_exit_fail_after_trap_EXIT_in_test () {
-ts -s test/ts/exit_fail_in_test_after_trap | assert_output "\
-F [test/ts/exit_fail_in_test_after_trap:11] test_would_pass
+test_ts_exit_fail_after_untrap_EXIT_in_test () {
+ts -s test/exit_fail_in_test_after_untrap | assert_output "\
+F [test/exit_fail_in_test_after_untrap:11] test_exit_fail_in_test_after_untrap
   in setup
   in test
 
-" -
+"
 }
 
 #
 # readme test
 #
 
-test_ts_readme_pass () {
-nfails=$(ts -a test/ts/readme_pass | grep -c '^F')
-assert_output "0" "$nfails"
-}
-
-test_ts_readme_fail () {
-npass=$(ts -a test/ts/readme_fail | grep -c '^P')
-assert_output "0" "$npass"
-}
-
-test_ts_readme_example () {
-assert ts test/ts/readme_example
-}
+# test_ts_readme_pass () {
+# nfails=$(ts -a test/readme_pass | grep -c '^F')
+# assert_output "0" "$nfails"
+# }
+# 
+# test_ts_readme_fail () {
+# npass=$(ts -a test/readme_fail | grep -c '^P')
+# assert_output "0" "$npass"
+# }
+# 
+# test_ts_readme_example () {
+# assert ts test/readme_example
+# }
 
 . ts

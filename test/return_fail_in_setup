@@ -2,14 +2,14 @@
 
 setup () {
   printf "in setup\n"
+  false
 }
 
 teardown () {
   printf "in teardown\n"
-  false
 }
 
-test_would_pass () {
+test_return_fail_in_setup () {
   printf "in test\n"
 }
 

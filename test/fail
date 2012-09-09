@@ -1,9 +1,5 @@
 #!/bin/sh
 
-setup () {
-set -x
-}
-
 test_fail () {
 false
 }

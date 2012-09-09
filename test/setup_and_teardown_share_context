@@ -8,7 +8,7 @@ teardown () {
   [ 'xAB' = x"$b" ]
 }
 
-test_share_context_with_setup_and_teardown () {
+test_setup_and_teardown_share_context () {
   b="${a}B"
 }
 
