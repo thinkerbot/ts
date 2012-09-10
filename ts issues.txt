@@ -1,7 +1,0 @@
-# show all kinds of extra failures :(
-./test/suite -vfmd
-
-# leaves leftovers
-./test/suite -c
-
-# update defaults
