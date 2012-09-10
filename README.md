@@ -219,7 +219,7 @@ Run like:
 
 **My tests aren't running**
 
-Be sure you added `ts .` at the end of your script.
+Be sure you added `. ts` at the end of your script.
 
 **My tests are failing**
 
