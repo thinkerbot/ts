@@ -1,0 +1,22 @@
+#!/bin/sh
+
+test_newline_is_now_accounted_for () {
+out=$(echo abc; printf x)
+
+assert_output "\
+abc
+" "${out%x}"
+}
+
+test_another_newline_strategy () {
+echo abc | assert_output "\
+abc
+"
+}
+
+test_this_has_a_bug_and_does_not_fail () {
+  printf "0" | assert_output "1"
+  assert_output "0" "0"
+}
+
+. ts

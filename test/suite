@@ -486,18 +486,11 @@ F [test/exit_fail_in_test_after_untrap:11] test_exit_fail_in_test_after_untrap
 # readme test
 #
 
-# test_ts_readme_pass () {
-# nfails=$(ts -a test/readme_pass | grep -c '^F')
-# assert_output "0" "$nfails"
-# }
-# 
-# test_ts_readme_fail () {
-# npass=$(ts -a test/readme_fail | grep -c '^P')
-# assert_output "0" "$npass"
-# }
-# 
-# test_ts_readme_example () {
-# assert ts test/readme_example
-# }
+test_ts_readme () {
+! ts -as test/readme/example | grep -q '^F' &&
+! ts -as test/readme/troubleshoot_fail | grep -q '^P' &&
+! ts -as test/readme/troubleshoot_pass | grep -q '^F' &&
+! ts -as test/readme/usage | grep -q '^F'
+}
 
 . ts

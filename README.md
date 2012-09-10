@@ -32,8 +32,8 @@ have the following form:
       rm -r "$test_dir"
     }
 
-    test_a_thing () {       # write tests named like "test_"
-      [ -d "$test_dir" ]    # return 0 to pass.
+    test_true () {          # write tests named like "test_"
+      true                  # return 0 to pass.
     }
 
     . ts                    # source ts to run the tests
@@ -44,7 +44,7 @@ To run, use any of:
     ./example               # run a single test script
     ./example test_a_thing  # run a single test
 
-See the FUNCTIONS section for all functions available in tests.
+See the FUNCTIONS, EXAMPLES, and TROUBLESHOOT sections for more details.
 
 ## OPTIONS
 
@@ -52,23 +52,31 @@ These options control how `ts` operates:
 
 * `-a`:
   Show passing outputs, which are normally filtered.
+
 * `-c`:
   Colorize output. (green/red/yellow - pass/fail/not-executable)
-* `-d`: 
+
+* `-d`:
   Debug mode. Turns on xtrace (set -x) for the tests and enables -v.
-* `-h`: 
+
+* `-h`:
   Prints help.
-* `-m`: 
-  Monitor output. Provide a ticker indicating the progress of tests and 
+
+* `-m`:
+  Monitor output. Provide a ticker indicating the progress of tests and
   print a summary. Monitor is the default.
-* `-r`: 
+
+* `-r`:
   Remove the tmp dir on complete. Removal is done using `rm -r`.
-* `-s`: 
+
+* `-s`:
   Stream output. Show test progress as it happens. No summary is printed.
-* `-t`: 
+
+* `-t`:
   Set the test tmp dir (default tmp).  The test-specific directories are
   be located under this directory.
-* `-v`: 
+
+* `-v`:
   Verbose output. Enables **ts** to display stderr for the tests (normally
   only stdout is shown).
 
@@ -78,22 +86,26 @@ Functions provided by **ts**.
 
 * `setup`:
   A setup function run before each test.
+
 * `teardown`:
   A teardown function run after each test.
-  
+
   Note **ts** ensures teardown runs by setting a trap for EXIT signals during
   setup and the actual test. As a result, EXIT traps in tests can prevent
   teardown.
 
 * `assert_status EXPECTED ACTUAL`:
   Exit 1 unless the numbers EXPECTED and ACTUAL are the same.
+
+  This assertion is almost never necessary.
+
 * `assert_output EXPECTED ACTUAL`:
   Exit 1 unless the variables EXPECTED and ACTUAL are the same. Reads from
-  stdin for '-'.
-  
+  stdin for '-'.  Also reads ACTUAL from stdin if ACTUAL is unspecified.
+
   Using assert_output in a pipeline is often convenient, but be careful you
   don't expect a failing assert_output to exit your test case as, in that
-  case, it will only exit the pipeline.  See the GOTCHAS section for more
+  case, it will only exit the pipeline.  See the EXAMPLES section for more
   details.
 
 **ts** reserves all function names starting with 'ts_' for internal use.
@@ -105,13 +117,17 @@ treat them as read-only.
 
 * `test_file`:
   The name of the current test script being run.
+
 * `test_case`:
   The basename of the test file, minus the extname.  Example:
   'test/test\_stuff.sh' => 'test\_stuff'
+
 * `test_lineno`:
   The line number where the current test is defined.
+
 * `test_name`:
   The name of the current test.
+
 * `test_dir`:
   The test-specific directory.  The test dir is 'tmp\_dir/test\_case'.  **ts**
   does not create this directory automatically.  Add that functionality in
@@ -126,12 +142,16 @@ to `ts` override these defaults.
 
 * `TS_USR_DIR` (pwd):
   The user dir. Used to determine the ts tmp dir.
+
 * `TS_TMP_DIR` (`$TS_USR_DIR/tmp`):
   The base tmp dir.
+
 * `TS_COLOR` (false):
   Set to "true" to enable color.
+
 * `TS_DEBUG` (false):
   Set to "true" to enable debug mode.
+
 * `TS_REMOVE_TMP_DIR` (false):
   Set to "true" to remove tmp dir.
 
@@ -139,10 +159,13 @@ In addition these variables adjust the color output.
 
 * `TS_PASS` (green):
   Passing tests.
+
 * `TS_FAIL` (red):
   Failing tests.
+
 * `TS_NOEX` (yellow):
   Non-executable test files.
+
 * `TS_NORM` (normal):
   The normal output color.
 
@@ -159,13 +182,13 @@ Basic usage:
     [./example]
     #!/bin/sh
 
-    test_pass () {
-      true
+    test_arbitrary_function () {
+      echo abc | grep -q b
     }
 
-    test_assert_status_pass () {
-      true
-      assert_status 0 $?
+    test_assert_status () {
+      false
+      assert_status 1 $?
     }
 
     test_assert_output_style_one () {
@@ -177,6 +200,12 @@ Basic usage:
       printf "hello world" | assert_output "hello world"
     }
 
+    test_assert_output_style_three () {
+    printf "hello world\n" | assert_output "\
+    hello world
+    "
+    }
+
     . ts
 
 Run like:
@@ -184,30 +213,90 @@ Run like:
     chmod +x example
     ts example
 
-## GOTCHAS
+## TROUBLESHOOT
 
-The assert methods will literally exit the function, so multiple assertions
-are ok.
+**My tests aren't running**
 
-    test_fails_as_expected () {
-      assert_output "1" "0"
-      assert true
+Be sure you added `ts .` at the end of your script.
+
+**My tests are failing**
+
+1) Are you incrementing a variable in a loop in a pipeline? See
+http://mywiki.wooledge.org/BashFAQ/024.
+
+2) Is a newline missing from a variable? Subshells chomp the last newline off of
+a command.
+
+    test_newline_is_missing_so_this_fails () {
+    out=$(echo abc)
+
+    assert_output "\
+    abc
+    " "$out"
     }
 
-**Beware** doing this as you may accidentally use them in pipelines where a
-failure will exit the pipeline and not the test function.
+One way around this is to print a sacrificial non-newline character.
+
+    test_newline_is_now_accounted_for () {
+    out=$(echo abc; printf x)
+
+    assert_output "\
+    abc
+    " "${out%x}"
+    }
+
+Another way is to pipe into assert_output.
+
+    test_another_newline_strategy () {
+    echo abc | assert_output "\
+    abc
+    "
+    }
+
+**My tests aren't failing**
+
+1) Are you using asserts in a pipeline? **ts** assert methods exit failure
+(rather than return) so this will fail.
+
+    test_multiple_asserts_failing_as_intended () {
+      assert_output "1" "0"
+      assert_output "0" "0"
+    }
+
+However the assert methods in a pipeline will exit the pipeline instead of the
+test method so this will not fail.
 
     test_this_has_a_bug_and_does_not_fail () {
       printf "0" | assert_output "1"
-      assert true
+      assert_output "0" "0"
     }
 
-A safer approach is to always rely on the return status of the function,
-instead of the exits from the assert methods.
+One way around this is to `set -e` in your setup or at the start of the test
+so that any failing command (including a pipeline) will cause the function to
+exit in failure.
 
-    test_now_fails_as_expected () {
+    test_this_now_fails_as_expected () {
+      set -e
+      printf "0" | assert_output "1"
+      assert_output "0" "0"
+    }
+
+Another way is to && all the asserts at the end of the test.
+
+    test_this_also_fails_as_expected () {
       printf "0" | assert_output "1" &&
-      assert true
+      assert_output "0" "0"
+    }
+
+**Teardown isn't running**
+
+Are you setting an EXIT trap? **ts** uses an EXIT trap to ensure that teardown
+runs even when setup or a test exits. Resetting an EXIT trap can prevent
+teardown from running.
+
+    test_teardown_will_not_run () {
+      trap - EXIT
+      exit 1
     }
 
 ## INSTALLATION
@@ -228,6 +317,8 @@ Clone the repo as above.  To run the tests (written in `ts`):
 To generate the manpages:
 
     make manpages
+
+Report bugs here: http://github.com/thinkerbot/ts/issues.
 
 ## COPYRIGHT
 

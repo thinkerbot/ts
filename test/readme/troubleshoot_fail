@@ -1,0 +1,27 @@
+#!/bin/sh
+
+test_newline_is_missing_so_this_fails () {
+out=$(echo abc)
+
+assert_output "\
+abc
+" "$out"
+}
+
+test_multiple_asserts_failing_as_intended () {
+  assert_output "1" "0"
+  assert_output "0" "0"
+}
+
+test_this_now_fails_as_expected () {
+  set -e
+  printf "0" | assert_output "1"
+  assert_output "0" "0"
+}
+
+test_this_also_fails_as_expected () {
+  printf "0" | assert_output "1" &&
+  assert_output "0" "0"
+}
+
+. ts

@@ -1,16 +1,13 @@
+[./example]
 #!/bin/sh
 
-#
-# EXAMPLES
-#
-
-test_pass () {
-  true
+test_arbitrary_function () {
+  echo abc | grep -q b
 }
 
-test_assert_status_pass () {
-  true
-  assert_status 0 $?
+test_assert_status () {
+  false
+  assert_status 1 $?
 }
 
 test_assert_output_style_one () {
@@ -22,14 +19,10 @@ test_assert_output_style_two () {
   printf "hello world" | assert_output "hello world"
 }
 
-#
-# GOTCHAS
-#
-
-test_this_has_a_bug_and_does_not_fail () {
-  printf "0" | assert_output "1"
-  assert true
+test_assert_output_style_three () {
+printf "hello world\n" | assert_output "\
+hello world
+"
 }
 
 . ts
-

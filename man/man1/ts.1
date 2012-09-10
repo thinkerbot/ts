@@ -36,8 +36,8 @@ teardown () {           # optional teardown
   rm \-r "$test_dir"
 }
 
-test_a_thing () {       # write tests named like "test_"
-  [ \-d "$test_dir" ]    # return 0 to pass\.
+test_true () {          # write tests named like "test_"
+  true                  # return 0 to pass\.
 }
 
 \[char46] ts                    # source ts to run the tests
@@ -62,7 +62,7 @@ ts example              # run multiple test scripts
 .IP "" 0
 .
 .P
-See the FUNCTIONS section for all functions available in tests\.
+See the FUNCTIONS, EXAMPLES, and TROUBLESHOOT sections for more details\.
 .
 .SH "OPTIONS"
 These options control how \fBts\fR operates:
@@ -121,9 +121,15 @@ Note \fBts\fR ensures teardown runs by setting a trap for EXIT signals during se
 \fBassert_status EXPECTED ACTUAL\fR
 Exit 1 unless the numbers EXPECTED and ACTUAL are the same\.
 .
+.IP
+This assertion is almost never necessary\.
+.
 .TP
 \fBassert_output EXPECTED ACTUAL\fR
-Exit 1 unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin for \'\-\'\. Also reads ACTUAL from stdin if ACTUAL is not specified\.
+Exit 1 unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin for \'\-\'\. Also reads ACTUAL from stdin if ACTUAL is unspecified\.
+.
+.IP
+Using assert_output in a pipeline is often convenient, but be careful you don\'t expect a failing assert_output to exit your test case as, in that case, it will only exit the pipeline\. See the EXAMPLES section for more details\.
 .
 .P
 \fBts\fR reserves all function names starting with \'ts_\' for internal use\.
@@ -170,12 +176,12 @@ The base tmp dir\.
 Set to "true" to enable color\.
 .
 .TP
-\fBTS_REMOVE_TMP_DIR\fR (false)
-Set to "true" to remove tmp dir\.
+\fBTS_DEBUG\fR (false)
+Set to "true" to enable debug mode\.
 .
 .TP
-\fBTS_SET_OPTIONS\fR (\-e)
-Specifies shell options set (via \fBset\fR) before each test\. Debug adds \'\-x\'\.
+\fBTS_REMOVE_TMP_DIR\fR (false)
+Set to "true" to remove tmp dir\.
 .
 .P
 In addition these variables adjust the color output\.
@@ -222,13 +228,13 @@ Basic usage:
 [\./example]
 #!/bin/sh
 
-test_pass () {
-  true
+test_arbitrary_function () {
+  echo abc | grep \-q b
 }
 
-test_assert_status_pass () {
-  true
-  assert_status 0 $?
+test_assert_status () {
+  false
+  assert_status 1 $?
 }
 
 test_assert_output_style_one () {
@@ -238,6 +244,12 @@ test_assert_output_style_one () {
 
 test_assert_output_style_two () {
   printf "hello world" | assert_output "hello world"
+}
+
+test_assert_output_style_three () {
+printf "hello world\en" | assert_output "\e
+hello world
+"
 }
 
 \[char46] ts
@@ -255,6 +267,160 @@ Run like:
 
 chmod +x example
 ts example
+.
+.fi
+.
+.IP "" 0
+.
+.SH "TROUBLESHOOT"
+\fBMy tests aren\'t running\fR
+.
+.P
+Be sure you added \fBts \.\fR at the end of your script\.
+.
+.P
+\fBMy tests are failing\fR
+.
+.P
+1) Are you incrementing a variable in a loop in a pipeline? See http://mywiki\.wooledge\.org/BashFAQ/024\.
+.
+.P
+2) Is a newline missing from a variable? Subshells chomp the last newline off of a command\.
+.
+.IP "" 4
+.
+.nf
+
+test_newline_is_missing_so_this_fails () {
+out=$(echo abc)
+
+assert_output "\e
+abc
+" "$out"
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+One way around this is to print a sacrificial non\-newline character\.
+.
+.IP "" 4
+.
+.nf
+
+test_newline_is_now_accounted_for () {
+out=$(echo abc; printf x)
+
+assert_output "\e
+abc
+" "${out%x}"
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Another way is to pipe into assert_output\.
+.
+.IP "" 4
+.
+.nf
+
+test_another_newline_strategy () {
+echo abc | assert_output "\e
+abc
+"
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+\fBMy tests aren\'t failing\fR
+.
+.P
+1) Are you using asserts in a pipeline? \fBts\fR assert methods exit failure (rather than return) so this will fail\.
+.
+.IP "" 4
+.
+.nf
+
+test_multiple_asserts_failing_as_intended () {
+  assert_output "1" "0"
+  assert_output "0" "0"
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+However the assert methods in a pipeline will exit the pipeline instead of the test method so this will not fail\.
+.
+.IP "" 4
+.
+.nf
+
+test_this_has_a_bug_and_does_not_fail () {
+  printf "0" | assert_output "1"
+  assert_output "0" "0"
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+One way around this is to \fBset \-e\fR in your setup or at the start of the test so that any failing command (including a pipeline) will cause the function to exit in failure\.
+.
+.IP "" 4
+.
+.nf
+
+test_this_now_fails_as_expected () {
+  set \-e
+  printf "0" | assert_output "1"
+  assert_output "0" "0"
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Another way is to && all the asserts at the end of the test\.
+.
+.IP "" 4
+.
+.nf
+
+test_this_also_fails_as_expected () {
+  printf "0" | assert_output "1" &&
+  assert_output "0" "0"
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+\fBTeardown isn\'t running\fR
+.
+.P
+Are you setting an EXIT trap? \fBts\fR uses an EXIT trap to ensure that teardown runs even when setup or a test exits\. Resetting an EXIT trap can prevent teardown from running\.
+.
+.IP "" 4
+.
+.nf
+
+test_teardown_will_not_run () {
+  trap \- EXIT
+  exit 1
+}
 .
 .fi
 .
@@ -299,6 +465,9 @@ make manpages
 .fi
 .
 .IP "" 0
+.
+.P
+Report bugs here: http://github\.com/thinkerbot/ts/issues\.
 .
 .SH "COPYRIGHT"
 TS is Copyright (C) 2011 Simon Chiang \fIhttp://github\.com/thinkerbot\fR

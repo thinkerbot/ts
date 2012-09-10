@@ -8,8 +8,8 @@ teardown () {           # optional teardown
   rm -r "$test_dir"
 }
 
-test_a_thing () {       # write tests named like "test_"
-  [ -d "$test_dir" ]    # return 0 to pass.
+test_pass () {          # write tests named like "test_"
+  true                  # return 0 to pass.
 }
 
 . ts
