@@ -107,25 +107,30 @@ Verbose output\. Enables \fBts\fR to display stderr for the tests (normally only
 Functions provided by \fBts\fR\.
 .
 .TP
-\fBsetup\fR
+\fBsetup\fR:
+.
+.IP
 A setup function run before each test\.
 .
 .TP
-\fBteardown\fR
+\fBteardown\fR:
+.
+.IP
 A teardown function run after each test\.
 .
 .IP
-Note \fBts\fR ensures teardown runs by setting a trap for EXIT signals during setup and the actual test\. As a result, EXIT traps in tests can prevent teardown\.
+\fBts\fR ensures teardown runs by setting a trap for EXIT signals during setup and the actual test\. As a result, EXIT traps in tests can prevent teardown\.
 .
 .TP
-\fBassert_status EXPECTED ACTUAL\fR
-Exit 1 unless the numbers EXPECTED and ACTUAL are the same\.
+\fBassert_status EXPECTED ACTUAL\fR:
 .
 .IP
-This assertion is almost never necessary\.
+Exit 1 unless the numbers EXPECTED and ACTUAL are the same\. This assertion is almost never necessary\.
 .
 .TP
-\fBassert_output EXPECTED ACTUAL\fR
+\fBassert_output EXPECTED ACTUAL\fR:
+.
+.IP
 Exit 1 unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin for \'\-\'\. Also reads ACTUAL from stdin if ACTUAL is unspecified\.
 .
 .IP
@@ -143,7 +148,7 @@ The name of the current test script being run\.
 .
 .TP
 \fBtest_case\fR
-The basename of the test file, minus the extname\. Example: \'test/test_stuff\.sh\' => \'test_stuff\'
+The basename of the test file, minus the extname\.
 .
 .TP
 \fBtest_lineno\fR
@@ -155,7 +160,10 @@ The name of the current test\.
 .
 .TP
 \fBtest_dir\fR
-The test\-specific directory\. The test dir is \'tmp_dir/test_case\'\. \fBts\fR does not create this directory automatically\. Add that functionality in the setup function as needed\.
+The test\-specific directory\.
+.
+.IP
+The test dir is \'tmp_dir/test_case\'\. \fBts\fR does not create this directory automatically\. Add that functionality in the setup function as needed\.
 .
 .P
 \fBts\fR reserves all variables starting with \'ts_\' for internal use\.
@@ -168,7 +176,7 @@ Default \fBts\fR behavior can be set via environment variables\. Options provide
 The user dir\. Used to determine the ts tmp dir\.
 .
 .TP
-\fBTS_TMP_DIR\fR (\fB$TS_USR_DIR/tmp\fR)
+\fBTS_TMP_DIR\fR ($TS_USR_DIR/tmp)
 The base tmp dir\.
 .
 .TP
@@ -282,10 +290,16 @@ Be sure you added \fBts \.\fR at the end of your script\.
 \fBMy tests are failing\fR
 .
 .P
-1) Are you incrementing a variable in a loop in a pipeline? See http://mywiki\.wooledge\.org/BashFAQ/024\.
+\fB1)\fR Are you incrementing a variable in a loop in a pipeline?
 .
 .P
-2) Is a newline missing from a variable? Subshells chomp the last newline off of a command\.
+See http://mywiki\.wooledge\.org/BashFAQ/024\.
+.
+.P
+\fB2)\fR Is a newline missing from a variable?
+.
+.P
+Subshells chomp the last newline off of a command\.
 .
 .IP "" 4
 .
@@ -343,7 +357,10 @@ abc
 \fBMy tests aren\'t failing\fR
 .
 .P
-1) Are you using asserts in a pipeline? \fBts\fR assert methods exit failure (rather than return) so this will fail\.
+\fB1)\fR Are you using asserts in a pipeline?
+.
+.P
+\fBts\fR assert methods exit failure (rather than return) so this will fail\.
 .
 .IP "" 4
 .

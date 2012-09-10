@@ -85,21 +85,23 @@ These options control how `ts` operates:
 Functions provided by **ts**.
 
 * `setup`:
+
   A setup function run before each test.
 
 * `teardown`:
+
   A teardown function run after each test.
 
-  Note **ts** ensures teardown runs by setting a trap for EXIT signals during
-  setup and the actual test. As a result, EXIT traps in tests can prevent
-  teardown.
+  **ts** ensures teardown runs by setting a trap for EXIT signals during setup
+  and the actual test. As a result, EXIT traps in tests can prevent teardown.
 
 * `assert_status EXPECTED ACTUAL`:
-  Exit 1 unless the numbers EXPECTED and ACTUAL are the same.
 
-  This assertion is almost never necessary.
+  Exit 1 unless the numbers EXPECTED and ACTUAL are the same. This assertion
+  is almost never necessary.
 
 * `assert_output EXPECTED ACTUAL`:
+
   Exit 1 unless the variables EXPECTED and ACTUAL are the same. Reads from
   stdin for '-'.  Also reads ACTUAL from stdin if ACTUAL is unspecified.
 
@@ -119,8 +121,7 @@ treat them as read-only.
   The name of the current test script being run.
 
 * `test_case`:
-  The basename of the test file, minus the extname.  Example:
-  'test/test\_stuff.sh' => 'test\_stuff'
+  The basename of the test file, minus the extname.
 
 * `test_lineno`:
   The line number where the current test is defined.
@@ -129,9 +130,10 @@ treat them as read-only.
   The name of the current test.
 
 * `test_dir`:
-  The test-specific directory.  The test dir is 'tmp\_dir/test\_case'.  **ts**
-  does not create this directory automatically.  Add that functionality in
-  the setup function as needed.
+  The test-specific directory.
+
+  The test dir is 'tmp\_dir/test\_case'. **ts** does not create this directory
+  automatically. Add that functionality in the setup function as needed.
 
 **ts** reserves all variables starting with 'ts\_' for internal use.
 
@@ -143,7 +145,7 @@ to `ts` override these defaults.
 * `TS_USR_DIR` (pwd):
   The user dir. Used to determine the ts tmp dir.
 
-* `TS_TMP_DIR` (`$TS_USR_DIR/tmp`):
+* `TS_TMP_DIR` ($TS\_USR\_DIR/tmp):
   The base tmp dir.
 
 * `TS_COLOR` (false):
@@ -221,11 +223,13 @@ Be sure you added `ts .` at the end of your script.
 
 **My tests are failing**
 
-1) Are you incrementing a variable in a loop in a pipeline? See
-http://mywiki.wooledge.org/BashFAQ/024.
+**1)** Are you incrementing a variable in a loop in a pipeline?
 
-2) Is a newline missing from a variable? Subshells chomp the last newline off of
-a command.
+See http://mywiki.wooledge.org/BashFAQ/024.
+
+**2)** Is a newline missing from a variable?
+
+Subshells chomp the last newline off of a command.
 
     test_newline_is_missing_so_this_fails () {
     out=$(echo abc)
@@ -255,8 +259,9 @@ Another way is to pipe into assert_output.
 
 **My tests aren't failing**
 
-1) Are you using asserts in a pipeline? **ts** assert methods exit failure
-(rather than return) so this will fail.
+**1)** Are you using asserts in a pipeline?
+
+**ts** assert methods exit failure (rather than return) so this will fail.
 
     test_multiple_asserts_failing_as_intended () {
       assert_output "1" "0"
