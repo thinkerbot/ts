@@ -74,7 +74,10 @@ ts_list () {
   for test_pattern in "${@:-test_\w+}"
   do grep -onE "^ *$test_pattern +\(\)" "$0"
   done |
-  tr ":" " "
+  awk -v test_file="$0" '{
+split($1, args, ":");
+printf("%s %s:%s\n", args[2], test_file, args[1]);
+}'
 }
 
 ts_structure () {
@@ -230,10 +233,10 @@ ts_run_test_suite () {
   test_case="${test_case%\.*}"
 
   ts_list "$@" |
-  while read test_lineno test_name junk
+  while read test_name desc
   do
     test_dir="$TS_TMP_DIR/$test_case/$test_name"
-    printf "[%s:%s] %s\n" "$test_file" "$test_lineno" "$test_name"
+    printf "[%s] %s\n" "$desc" "$test_name"
 
     # run the test by calling back into the test file
     # * use stdout for progress, stderr for debug information
