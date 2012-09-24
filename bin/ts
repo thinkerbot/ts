@@ -79,16 +79,22 @@ ts_pattern () {
   fi
 }
 
+ts_sources () {
+  grep -E '^(.|source)[[:space:]]' "$1" |
+  awk '{ $1=""; if($2 != "ts") print }'
+}
+
 ts_list () {
   grep -onE "^[[:space:]]*(${test_pattern:-test_\w+})[[:space:]]+\(\)" /dev/null "$@" |
   sed -e 's/^\([^:]*\):\([^:]*\):\([^ ]*\) .*/\3 \1:\2/'
 
   if [ xtrue = x"$TS_TESTS_IN_SOURCE" ] && [ $# -ne 0 ]
   then
-    eval ts_list $(
-      grep -E '^(.|source)[[:space:]]' "$@" |
-      awk '{ $1=""; if($2 != "ts") print }'
-    )
+    for file in "$@"
+    do
+      eval ts_list $(ts_sources "$file") |
+      awk -v file="$file" '{ $2=file " -> " $2; print }'
+    done
   fi
 }
 
