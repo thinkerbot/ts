@@ -70,13 +70,23 @@ ts_monitor_file="$TS_TMP_DIR/monitor"
 ############################################################################
 # private functions
 
+ts_pattern () {
+  printf "%s" "${1:-test_\w+}"
+  shift 1
+
+  if [ $# -ne 0 ]
+  then printf "|%s" "$@"
+  fi
+}
+
 ts_list () {
-  for test_pattern in "${@:-test_\w+}"
-  do grep -onE "^ *$test_pattern +\(\)" "$0"
-  done |
-  awk -v test_file="$0" '{
+  test_pattern="$1"
+  shift 1
+
+  grep -onE "^[[:space:]]*($test_pattern)[[:space:]]+\(\)" /dev/null "$@" |
+  awk '{
 split($1, args, ":");
-printf("%s %s:%s\n", args[2], test_file, args[1]);
+printf("%s %s:%s\n", args[3], args[1], args[2]);
 }'
 }
 
@@ -232,7 +242,7 @@ ts_run_test_suite () {
   test_case="${test_file##*/}"
   test_case="${test_case%\.*}"
 
-  ts_list "$@" |
+  ts_list "$(ts_pattern "$@")" "$test_file" |
   while read test_name desc
   do
     test_dir="$TS_TMP_DIR/$test_case/$test_name"
