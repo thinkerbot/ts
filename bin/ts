@@ -80,8 +80,15 @@ ts_pattern () {
 }
 
 ts_sources () {
-  grep -E '^(.|source)[[:space:]]' "$1" |
-  awk '{ $1=""; if($2 != "ts") print }'
+  sed -ne '
+s/^[[:space:]]*\.[[:space:]]/source /
+/^[[:space:]]*source[[:space:]]/!d
+
+s/^[[:space:]]*source[[:space:]]//
+/^ts[[:space:]]*$/d
+s/#.*//
+p
+' "$1"
 }
 
 ts_list () {

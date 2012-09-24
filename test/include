@@ -5,6 +5,6 @@ true
 }
 
 TS_TESTS_IN_SOURCE=true
-. "test/include a"
-. test/include\ b
+  . "test/include a"      # an indented source with comments
+source test/include\ b
 . ts
