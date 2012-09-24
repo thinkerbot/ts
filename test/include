@@ -1,0 +1,11 @@
+#!/bin/sh
+
+test_include () {
+true
+}
+
+TS_TESTS_IN_SOURCE=true
+. "test/include a"
+. test/include\ b
+. test/include_c
+. ts

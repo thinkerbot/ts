@@ -483,6 +483,14 @@ F [test/exit_fail_in_test_after_untrap:11] test_exit_fail_in_test_after_untrap
 }
 
 #
+# include test
+#
+
+test_include () {
+ts test/include 2>&1 | grep -q '4 pass 0 fail'
+}
+
+#
 # readme test
 #
 
