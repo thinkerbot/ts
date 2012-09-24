@@ -157,6 +157,10 @@ to `ts` override these defaults.
 * `TS_REMOVE_TMP_DIR` (false):
   Set to "true" to remove tmp dir.
 
+* `TS_TESTS_IN_SOURCE` (false):
+  Set to "true" to look in source files (ie `. file` or `source file`) for
+  tests.  Typically set per-file before the source lines.
+
 In addition these variables adjust the color output.
 
 * `TS_PASS` (green):
@@ -292,6 +296,30 @@ Another way is to && all the asserts at the end of the test.
       printf "0" | assert_output "1" &&
       assert_output "0" "0"
     }
+
+**Weirdness with TS\_TESTS\_IN\_SOURCE**
+
+Looking for tests in source'd files does not work if you add additional
+arguments after the file name. This undesirable limitation occurs because the
+lookup algorithm can't distinguish when a file with a space ends and the
+arguments begin.
+
+This would cause **ts** to look for tests in these files: "file one", "a",
+"b", "c" (and likely show up as error noise in the output).
+
+    TS_TESTS_IN_SOURCE=true
+    source "file one" a b c
+
+If you must do something like this, then try using set with source:
+
+    TS_TESTS_IN_SOURCE=true
+    set a b c
+    source "file one"
+
+Incidentally this weirdness is why TS\_TESTS\_IN\_SOURCE is not enabled by
+default -- advanced users knowing this limitation can easily opt-in to use it.
+Also note that shells typically do not check for circular sources and neither
+does **ts**, so check that for a hanging script.
 
 **Teardown isn't running**
 

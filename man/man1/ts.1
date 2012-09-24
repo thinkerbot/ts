@@ -191,6 +191,10 @@ Set to "true" to enable debug mode\.
 \fBTS_REMOVE_TMP_DIR\fR (false)
 Set to "true" to remove tmp dir\.
 .
+.TP
+\fBTS_TESTS_IN_SOURCE\fR (false)
+Set to "true" to look in source files (ie \fB\. file\fR or \fBsource file\fR) for tests\. Typically set per\-file before the source lines\.
+.
 .P
 In addition these variables adjust the color output\.
 .
@@ -423,6 +427,44 @@ test_this_also_fails_as_expected () {
 .fi
 .
 .IP "" 0
+.
+.P
+\fBWeirdness with TS_TESTS_IN_SOURCE\fR
+.
+.P
+Looking for tests in source\'d files does not work if you add additional arguments after the file name\. This undesirable limitation occurs because the lookup algorithm can\'t distinguish when a file with a space ends and the arguments begin\.
+.
+.P
+This would cause \fBts\fR to look for tests in these files: "file one", "a", "b", "c" (and likely show up as error noise in the output)\.
+.
+.IP "" 4
+.
+.nf
+
+TS_TESTS_IN_SOURCE=true
+source "file one" a b c
+.
+.fi
+.
+.IP "" 0
+.
+.P
+If you must do something like this, then try using set with source:
+.
+.IP "" 4
+.
+.nf
+
+TS_TESTS_IN_SOURCE=true
+set a b c
+source "file one"
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Incidentally this weirdness is why TS_TESTS_IN_SOURCE is not enabled by default \-\- advanced users knowing this limitation can easily opt\-in to use it\. Also note that shells typically do not check for circular sources and neither does \fBts\fR, so check that for a hanging script\.
 .
 .P
 \fBTeardown isn\'t running\fR
