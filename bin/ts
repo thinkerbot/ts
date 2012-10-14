@@ -7,7 +7,7 @@ ts_release_date="2012-09-07"
 ts_url="http://github.com/thinkerbot/ts"
 
 ts_usage="usage: %s [-achmrsv] [-t TS_TMP_DIR]"
-if [ xts = x"$ts_progname" ]
+if [ ts = "$ts_progname" ]
 then ts_usage="$ts_usage [TEST_FILES...]\n"
 else ts_usage="$ts_usage [TEST_NAMES...]\n"
 fi
@@ -74,7 +74,7 @@ ts_pattern () {
   printf "%s" "$1"
   shift 1
 
-  if [ $# -ne 0 ]
+  if [ 0 -ne $# ]
   then printf "|%s" "$@"
   fi
 }
@@ -92,12 +92,12 @@ p
 }
 
 ts_list () {
-  if [ $# -ne 0 ]
+  if [ 0 -ne $# ]
   then
     grep -onE "^[[:space:]]*(${test_pattern:-test_\w+})[[:space:]]+\(\)" /dev/null "$@" |
     sed -e 's/^\([^:]*\):\([^:]*\):\([^ ]*\) .*/\3 \1:\2/'
 
-    if [ xtrue = x"$TS_TESTS_IN_SOURCE" ]
+    if [ true = "$TS_TESTS_IN_SOURCE" ]
     then
       for file in "$@"
       do
@@ -157,7 +157,7 @@ F
 }
 
 ts_filter () {
-  if [ "true" = "$TS_FILTER" ]
+  if [ true = "$TS_FILTER" ]
   then sed -lne "
 H
 /^$/ {
@@ -170,7 +170,7 @@ s/^\n\([FX]\)/\1/p
 }
 
 ts_color () {
-  if [ "true" = "$TS_COLOR" ]
+  if [ true = "$TS_COLOR" ]
   then sed -lne "
 s/^P \[\([^]]*\)/[$TS_PASS\1$TS_NORM/
 s/^F \[\([^]]*\)/[$TS_FAIL\1$TS_NORM/
@@ -182,7 +182,7 @@ p
 }
 
 ts_color_or_format () {
-  if [ "true" = "$TS_COLOR" ]
+  if [ true = "$TS_COLOR" ]
   then ts_color
   else sed -le '
 /^[PFX]/ {
@@ -244,7 +244,7 @@ ts_run_test () {
   # input /dev/null so that tests which read from stdin will not hang
   exec </dev/null
 
-  if [ "true" = "$TS_DEBUG" ]
+  if [ true = "$TS_DEBUG" ]
   then set -x
   fi
 
@@ -274,7 +274,7 @@ ts_run_test_suite () {
     # * use a subprocess to prevent leakage (ex set -x)
     # * append x to preserve trailing newline
     if ts_stdout=$(
-      if [ "verbose" = "$TS_MODE" ]
+      if [ verbose = "$TS_MODE" ]
       then (ts_run_test 2>&1)
       else (ts_run_test 2>/dev/null)
       fi
@@ -341,14 +341,13 @@ assert_status () {
 assert_output () {
   expected="$1"; actual="${2:--}"
 
-  # use x to protect against '-' on ancient systems
-  if [ x"$expected" = x"-" ]
+  if [ x- = x"$expected" ]
   then
     expected=$(cat; printf x)
     expected=${expected%x}
   fi
 
-  if [ x"$actual" = x"-" ]
+  if [ x- = x"$actual" ]
   then
     actual=$(cat; printf x)
     actual=${actual%x}
@@ -368,7 +367,7 @@ assert_output () {
 ############################################################################
 
 # Run the test files if this script is executed directly.
-if [ xts = x"$ts_progname" ]
+if [ ts = "$ts_progname" ]
 then ts_run_test_files "$@"
 else ts_run_test_suite "$@"
 fi
