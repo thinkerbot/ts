@@ -1,0 +1,32 @@
+#!/bin/sh
+
+escape () {
+printf "%s" "$@" | sed -e '
+s/\([]&;`'\''"|*?~<>^()[{}$\]\)/\\\1/g
+'
+}
+
+PS1='$ '
+PS2='> '
+EPS1=$(escape "$PS1")
+EPS2=$(escape "$PS2")
+
+# printf "%s\n" "set timeout 1"
+printf "%s\n" "spawn env \"PS1=$EPS1\" \"PS2=$EPS2\" bash"
+
+sed -ne "
+s/$PS1\(.*\)$/1 \1/
+s/$PS2\(.*\)$/2 \1/
+t escape
+s/^/3 /
+
+:escape
+s/\\([]&;\`'|*?~<>^()[{}$\\]\\)/\\\\\1/g
+s/^1 \(.*\)/expect \"$EPS1\" { send \"\1\\\\r\" }/
+s/^2 \(.*\)/expect \"$EPS2\" { send \"\1\\\\r\" }/
+s/^3 \(.*\)/expect -timeout 1 \"\1\" \"\" timeout \"exit 1\"/
+p
+"
+
+printf "%s\n" "expect \"$EPS1\" { send \"exit\\r\" }"
+printf "%s\n" "expect eof"

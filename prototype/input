@@ -1,0 +1,5 @@
+$ for n in one two; do
+>   echo $n
+> done
+one
+two
