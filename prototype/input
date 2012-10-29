@@ -3,3 +3,6 @@ $ for n in one two; do
 > done
 one
 two
+$ print abc
+abc$ print "xyz\n"
+xyz

@@ -1,32 +1,33 @@
 #!/bin/sh
 
-escape () {
-printf "%s" "$@" | sed -e '
-s/\([]&;`'\''"|*?~<>^()[{}$\]\)/\\\1/g
-'
-}
-
 PS1='$ '
 PS2='> '
-EPS1=$(escape "$PS1")
-EPS2=$(escape "$PS2")
 
 # printf "%s\n" "set timeout 1"
-printf "%s\n" "spawn env \"PS1=$EPS1\" \"PS2=$EPS2\" bash"
-
-sed -ne "
-s/$PS1\(.*\)$/1 \1/
-s/$PS2\(.*\)$/2 \1/
-t escape
-s/^/3 /
-
-:escape
-s/\\([]&;\`'|*?~<>^()[{}$\\]\\)/\\\\\1/g
-s/^1 \(.*\)/expect \"$EPS1\" { send \"\1\\\\r\" }/
-s/^2 \(.*\)/expect \"$EPS2\" { send \"\1\\\\r\" }/
-s/^3 \(.*\)/expect -timeout 1 \"\1\" \"\" timeout \"exit 1\"/
-p
+printf "%s" "\
+set env(PS1) \"\\$ \"
+set env(PS2) \"\\> \"
+spawn env \"PS1=\\$ \" \"PS2=\\> \" bash
 "
 
-printf "%s\n" "expect \"$EPS1\" { send \"exit\\r\" }"
+# * escape
+# * handle all escaped PS1/PS2 -- assumes only one per line but does
+#   not require prompt at the start of the line.  Add back
+#   PS1 as a delimiter to determine start of line.
+# * add expect statements for results that do not start at the
+#   start of a line (do not add \n at end of expect)
+# * add expect statements for results that do start at start of
+#   line (in this case add \n as end of expect)
+# * remove PS1 delimiters
+sed -e "
+s/\\([]&;\`'|*?~<>^()[{}$\\]\\)/\\\\\1/g
+s/\\\\$ \(.*\)/\\\\$ expect env(PS1) { send \"\1\\\\r\" }/
+s/\\\\> \(.*\)/\\\\$ expect env(PS2) { send \"\1\\\\r\" }/
+s/^\(.\{1,\}\)\(\\\\$ .*\)/\\\\$ expect \"\1\" {}\\
+\2/
+/^\\\\$ /! s/.*/\\\\$ expect \"&\\\\r\" {}/
+s/\\\\$ //g
+"
+
+printf "%s\n" "expect env(PS1) { send \"exit\\r\" }"
 printf "%s\n" "expect eof"
