@@ -129,7 +129,7 @@ ts_structure () {
   rm "$ts_status_file" 2>/dev/null
   awk -v status_file="$ts_status_file" '
 function readbytes (bytes) {
-  # account for trailing 'x'
+  # account for trailing x
   bytes -= 1
 
   # read bytes
