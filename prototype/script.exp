@@ -1,5 +1,6 @@
 #!/usr/bin/env expect --
 
+# http://stackoverflow.com/questions/5302120/general-string-quoting-for-tcl
 proc escape {str} {
   subst -nocommands -novariables $str
 }
@@ -14,9 +15,17 @@ proc command {prompt str} {
 
 proc response {str} {
   set str [escape $str]
-  set timeout 1
   expect {
     -ex $str { }
+    timeout  { exit 1 }
+  }
+}
+
+# http://stackoverflow.com/questions/4346750/regular-expression-literal-text-span
+proc re_response {str} {
+  set str [regsub -all {\W} [escape $str] {\\&}]
+  expect {
+    -re .*$str { }
     timeout  { exit 1 }
   }
 }
@@ -35,6 +44,7 @@ proc script {shell ps1 ps2 script} {
     switch -- $arg {
       $       { incr i; command $ps1 [lindex $script $i] }
       >       { incr i; command $ps2 [lindex $script $i] }
+      ...     { incr i; re_response  [lindex $script $i] }
       default { response $arg }
     }
   
@@ -47,8 +57,8 @@ proc script {shell ps1 ps2 script} {
 
 script /bin/sh {$ } {> } {
   $ {for n in one two; do\u000A}
-  > {  echo \{$n\}\u000A}
+  > {  echo $n\u000A}
   > {done\u000A}
-  {\{one\}\u000A}
-  {\{two\}\u000A}
+  {o} ... {e\u000A}
+  {two\u000A}
 }
