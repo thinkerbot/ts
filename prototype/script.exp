@@ -1,0 +1,54 @@
+#!/usr/bin/env expect --
+
+proc escape {str} {
+  subst -nocommands -novariables $str
+}
+
+proc command {prompt str} {
+  set str [escape $str]
+  expect $prompt { 
+    send $str
+    send_user $str
+  }
+}
+
+proc response {str} {
+  set str [escape $str]
+  set timeout 1
+  expect {
+    -ex $str { }
+    timeout  { exit 1 }
+  }
+}
+
+proc script {shell ps1 ps2 script} {
+  global spawn_id
+
+  set stty_init raw
+  spawn -noecho /usr/bin/env "PS1=$ps1" "PS2=$ps2" $shell
+
+  set i 0
+  set max [llength $script]
+  while { $i < $max } {
+    set arg [lindex $script $i]
+  
+    switch -- $arg {
+      $       { incr i; command $ps1 [lindex $script $i] }
+      >       { incr i; command $ps2 [lindex $script $i] }
+      default { response $arg }
+    }
+  
+    incr i
+  }
+
+  command $ps1 "exit\n"
+  wait
+}
+
+script /bin/sh {$ } {> } {
+  $ {for n in one two; do\u000A}
+  > {  echo \{$n\}\u000A}
+  > {done\u000A}
+  {\{one\}\u000A}
+  {\{two\}\u000A}
+}
