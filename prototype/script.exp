@@ -5,27 +5,32 @@ proc escape {str} {
   subst -nocommands -novariables $str
 }
 
-proc command {prompt str} {
-  set str [escape $str]
-  expect $prompt { 
-    send $str
-    send_user $str
+# http://stackoverflow.com/questions/4346750/regular-expression-literal-text-span
+proc re_escape {str} {
+  regsub -all {\W} [escape $str] {\\&}
+}
+
+proc prompt {prompt str} {
+  expect -re ^[re_escape $prompt] { 
+    type $str
+    observe $str
   }
 }
 
-proc response {str} {
-  set str [escape $str]
+proc type {str} {
+  send [escape $str]
+}
+
+proc observe {str} {
   expect {
-    -ex $str { }
+    -re ^[regsub "\n" [re_escape $str] "\r\n"] { }
     timeout  { exit 1 }
   }
 }
 
-# http://stackoverflow.com/questions/4346750/regular-expression-literal-text-span
-proc re_response {str} {
-  set str [regsub -all {\W} [escape $str] {\\&}]
+proc skip_to {str} {
   expect {
-    -re .*$str { }
+    -re ^.*[regsub "\n" [re_escape $str] "\r\n"] { }
     timeout  { exit 1 }
   }
 }
@@ -33,7 +38,7 @@ proc re_response {str} {
 proc script {shell ps1 ps2 script} {
   global spawn_id
 
-  set stty_init raw
+  # set stty_init raw
   stty rows 25
   stty columns 80
   spawn -noecho /usr/bin/env "PS1=$ps1" "PS2=$ps2" $shell
@@ -44,20 +49,31 @@ proc script {shell ps1 ps2 script} {
     set arg [lindex $script $i]
   
     switch -- $arg {
-      $       { incr i; command $ps1 [lindex $script $i] }
-      >       { incr i; command $ps2 [lindex $script $i] }
-      ...     { incr i; re_response  [lindex $script $i] }
-      -       { incr i; command ""   [lindex $script $i] }
-      default { response $arg }
+      $       {
+                incr i;
+                # throw away escape text prior to prompt
+                # ex "\u001b[?1034h" (first prompt)
+                # ex "\r\u001b[K\r" (reprompt)
+                expect -notransfer -re "^(.*)[re_escape $ps1]" {
+                  expect -ex $expect_out(1,string)
+                }
+                
+                prompt $ps1 [lindex $script $i] 
+              }
+      >       { incr i; prompt $ps2 [lindex $script $i] }
+      ...     { incr i; skip_to [lindex $script $i] }
+      -       { incr i; type [lindex $script $i] }
+      default { observe $arg }
     }
   
     incr i
   }
 
   # wait
+  send_user "\n"
 }
 
-# exp_internal 1
+exp_internal 1
 
 # assert_script "\
 # $ for n in one two; do
@@ -72,7 +88,6 @@ script /bin/sh {$ } {> } {
   > {done\u000A}
   {o} ... {e\u000A}
   {two\u000A}
-  $ {exit\u000A}
 }
 
 # assert_script '\
@@ -84,9 +99,12 @@ script /bin/sh {$ } {> } {
   $ {printf "%s\\n" one two\u000A}
   {one\u000A}
   {two\u000A}
-  $ {exit\u000A}
 }
 
+# $ gi{{<tab>}}<bel>t
+script /bin/sh {$ } {> } {
+  $ {gi} - {	} {\u0007t}
+}
 
 # Makes me think that one-off simple stuff should be tested this
 # way -- and what is the place for that?  If it's complex then
@@ -96,22 +114,28 @@ script /bin/sh {$ } {> } {
 # the output from the expect script can be used by ts?
 
 # set timeout 1
+
+# at prompt - scan to typing OR end of line and prompt
+# at line - scan to typing OR end of line and expect
+# at typing - type, expect rest of line (so if you want \n, add it yourself)
+
 # assert_script "\
-# $ c{{   }}
+# $ c{<tab>}{<tab>}\u0007
 # Display all 123 possibilities? (y or n){{y}}
 # ...
 # --More--{{q}}
 # $ c
 # "
 script /bin/sh {$ } {> } {
-  $ {c		} {\u000A}
+  $ {c} - {		} {\u0007\u000A}
   {Display all 123 possibilities? (y or n)} - {y}
   ... 
-  {--More--} - {\u0003}
-  $ {exit\u000A}
+  {--More--} - {q}
+  $ {c}
 }
 
-script /bin/sh {$ } {> } {
-  $ {gi	\u000A}
-  $ {exit\u000A}
-}
+# assert_script "\
+# $ gi{<tab>}t{<return>}
+# $ yes/no: {{yes}}{<return>}
+# ...
+# "
