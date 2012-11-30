@@ -117,7 +117,7 @@ script /bin/sh {$ } {> } {
 
 # at prompt - scan to typing OR end of line and prompt
 # at line - scan to typing OR end of line and expect
-# at typing - type, expect rest of line (so if you want \n, add it yourself)
+# at typing - type, resume scanning (so if you want \n, add it yourself)
 
 # assert_script "\
 # $ c{<tab>}{<tab>}\u0007
@@ -135,7 +135,12 @@ script /bin/sh {$ } {> } {
 }
 
 # assert_script "\
-# $ gi{<tab>}t{<return>}
-# $ yes/no: {{yes}}{<return>}
+# $ gi{<tab>}\u0007t{<return>}
 # ...
 # "
+
+script /bin/sh {$ } {> } {
+  $ {gi} - {	} {\u0007t} - {\u000A} {\u000A}
+  ... 
+}
+
