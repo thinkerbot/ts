@@ -145,17 +145,9 @@ ts_stream () {
   rm "$ts_status_file" 2>/dev/null
   awk -v status_file="$ts_status_file" '
 function readbytes (bytes) {
-  # account for trailing x
-  bytes -= 1
-
   # read bytes
   while(getline == 1 && (bytes -= length + 1) > 0) {
     print "  " $0
-  }
-
-  # manually remove trailing x if needed
-  if(bytes < 0) {
-    $0 = substr($0, 1, length + bytes + 1)
   }
 
   if(length > 0) {
@@ -310,15 +302,11 @@ ts_run_test_suite () {
     # * a zero exit status is considered a pass, otherwise fail
     # * capture as a variable to calculate length
     # * use a subprocess to prevent leakage (ex set -x)
-    # * append x to preserve trailing newline
     if ts_stdout=$(
       if [ verbose = "$TS_MODE" ]
       then (ts_run_test 2>&1)
       else (ts_run_test 2>/dev/null)
       fi
-      ts_exitstatus=$?
-      printf x
-      exit $ts_exitstatus
       )
     then ts_status=P
     else ts_status=F
@@ -341,7 +329,7 @@ ts_run_test_files () {
   do
     if [ -x "$ts_test_file" ]
     then TS_REPORT="raw" "$ts_test_file"
-    else printf "[%s] not executable\nX 1\nx\n" "$ts_test_file"
+    else printf "[%s] not executable\nX 0\n" "$ts_test_file"
     fi
   done | ts_report
 }
