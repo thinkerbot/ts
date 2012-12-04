@@ -129,20 +129,17 @@ ts_structure () {
   rm "$ts_status_file" 2>/dev/null
   awk -v status_file="$ts_status_file" '
 function readbytes (bytes) {
-  # account for trailing x
-  bytes -= 1
+  if(bytes > 0) {
+    # read bytes
+    while(getline == 1 && (bytes -= length + 1) > 0) {
+      print "  " $0
+    }
 
-  # read bytes
-  while(getline == 1 && (bytes -= length + 1) > 0) {
-    print "  " $0
-  }
+    # manually remove trailing x if needed
+    if(bytes < 0) {
+      $0 = substr($0, 1, length + bytes + 1) "\n  \\ No newline at end of file"
+    }
 
-  # manually remove trailing x if needed
-  if(bytes < 0) {
-    $0 = substr($0, 1, length + bytes + 1)
-  }
-
-  if(length > 0) {
     print "  " $0
     $0=""
   }
@@ -303,7 +300,7 @@ ts_run_test_suite () {
     else ts_status=F
     fi
 
-    printf "%s %d\n%s\n" "$ts_status" "${#ts_stdout}" "$ts_stdout"
+    printf "%s %d\n%s\n" "$ts_status" "$((${#ts_stdout} - 1))" "$ts_stdout"
   done | ts_report
 }
 
@@ -320,7 +317,7 @@ ts_run_test_files () {
   do
     if [ -x "$test_file" ]
     then TS_REPORT="raw" "$test_file"
-    else printf "[%s] not executable\nX 1\nx\n" "$test_file"
+    else printf "[%s] not executable\nX 0\n\n" "$test_file"
     fi
   done | ts_report
 }
