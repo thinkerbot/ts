@@ -1,0 +1,10 @@
+#!/bin/sh
+
+test_include () {
+true
+}
+
+TS_TESTS_IN_SOURCE=true
+  . "test/testcases/include a"      # an indented source with comments
+source test/testcases/include\ b
+. ts

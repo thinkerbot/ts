@@ -1,18 +1,13 @@
 #!/bin/sh
 ############################################################################
-if ! which ts > /dev/null
-then
-  printf "%s\n\n%s\n\n" \
-  'Could not find ts.  Try adding the ts bin dir to your PATH.' \
-  '  export PATH="$(pwd)/bin:$PATH"'
-  exit 1
+if [ -e bin/ts ]
+then export PATH="$PATH:$PWD/bin"
+else printf "Tests must be run from ts project root\n"
+     exit 1
 fi
 
 setup () {
-# clear out all ts variables
 unset $(set | grep -i '^TS_' | sed -e 's/=.*//' | tr "\n" " ")
-
-# ensure ts called in the tests will not collide with the suite itself
 export TS_TMP_DIR="$test_dir"
 }
 
@@ -21,15 +16,8 @@ export TS_TMP_DIR="$test_dir"
 #
 
 test_ts_runs_file () {
-ts -as test/abc | assert_output "\
-P [test/abc:3] test_a
-  a
-
-P [test/abc:9] test_b
-  b
-
-F [test/abc:15] test_c
-  c
+ts -as test/pass | assert_output "\
+P [test/pass:3] test_pass
 
 "
 }
@@ -44,36 +32,36 @@ F [test/fail:3] test_fail
 }
 
 test_script_runs_tests () {
-./test/abc -as | assert_output "\
-P [./test/abc:3] test_a
+./test/testcases/abc -as | assert_output "\
+P [./test/testcases/abc:3] test_a
   a
 
-P [./test/abc:9] test_b
+P [./test/testcases/abc:9] test_b
   b
 
-F [./test/abc:15] test_c
+F [./test/testcases/abc:15] test_c
   c
 
 "
 }
 
 test_script_runs_named_tests () {
-./test/abc -as test_a test_c | assert_output "\
-P [./test/abc:3] test_a
+./test/testcases/abc -as test_a test_c | assert_output "\
+P [./test/testcases/abc:3] test_a
   a
 
-F [./test/abc:15] test_c
+F [./test/testcases/abc:15] test_c
   c
 
 "
 }
 
 test_script_runs_tests_matching_patterns () {
-./test/abc -as 'test_[ac]' | assert_output "\
-P [./test/abc:3] test_a
+./test/testcases/abc -as 'test_[ac]' | assert_output "\
+P [./test/testcases/abc:3] test_a
   a
 
-F [./test/abc:15] test_c
+F [./test/testcases/abc:15] test_c
   c
 
 "
@@ -94,11 +82,11 @@ F [test/fail:3] test_fail
 }
 
 test_script_accepts_options_anywhere () {
-./test/abc test_a -a test_c -s | assert_output "\
-P [./test/abc:3] test_a
+./test/testcases/abc test_a -a test_c -s | assert_output "\
+P [./test/testcases/abc:3] test_a
   a
 
-F [./test/abc:15] test_c
+F [./test/testcases/abc:15] test_c
   c
 
 "
@@ -140,28 +128,28 @@ P [./test/pass:3] test_pass
 #
 
 test_ts_c_option_prints_green_red_color_output () {
-ts -asc test/abc | assert_output "\
-[[32mtest/abc:3[0m] test_a
+ts -asc test/testcases/abc | assert_output "\
+[[32mtest/testcases/abc:3[0m] test_a
   a
 
-[[32mtest/abc:9[0m] test_b
+[[32mtest/testcases/abc:9[0m] test_b
   b
 
-[[1;31mtest/abc:15[0m] test_c
+[[1;31mtest/testcases/abc:15[0m] test_c
   c
 
 "
 }
 
 test_script_c_option_prints_color_output () {
-./test/abc -asc | assert_output "\
-[[32m./test/abc:3[0m] test_a
+./test/testcases/abc -asc | assert_output "\
+[[32m./test/testcases/abc:3[0m] test_a
   a
 
-[[32m./test/abc:9[0m] test_b
+[[32m./test/testcases/abc:9[0m] test_b
   b
 
-[[1;31m./test/abc:15[0m] test_c
+[[1;31m./test/testcases/abc:15[0m] test_c
   c
 
 "
@@ -210,20 +198,20 @@ P [./test/pass:3] test_pass
 #
 
 test_ts_m_option_monitors_output () {
-ts -am test/abc 2>&1 |
+ts -am test/testcases/abc 2>&1 |
 sed -e '$ s/[0-9] s/# s/' |
 assert_output "\
 ..F
 
-[test/abc:3] test_a
+[test/testcases/abc:3] test_a
   a
 P
 
-[test/abc:9] test_b
+[test/testcases/abc:9] test_b
   b
 P
 
-[test/abc:15] test_c
+[test/testcases/abc:15] test_c
   c
 F
 
@@ -232,20 +220,20 @@ F
 }
 
 test_script_m_option_monitors_output () {
-./test/abc -am 2>&1 |
+./test/testcases/abc -am 2>&1 |
 sed -e "s/[0-9] s/# s/" |
 assert_output "\
 ..F
 
-[./test/abc:3] test_a
+[./test/testcases/abc:3] test_a
   a
 P
 
-[./test/abc:9] test_b
+[./test/testcases/abc:9] test_b
   b
 P
 
-[./test/abc:15] test_c
+[./test/testcases/abc:15] test_c
   c
 F
 
@@ -262,7 +250,7 @@ ts -h | grep -q "usage:"
 }
 
 test_script_h_prints_help () {
-./test/abc -h | grep -q "usage:"
+./test/pass -h | grep -q "usage:"
 }
 
 #
@@ -286,28 +274,28 @@ tmpdir="$test_dir/tmp"
 #
 
 test_ts_s_option_prints_structured_output () {
-ts -as test/abc | assert_output "\
-P [test/abc:3] test_a
+ts -as test/testcases/abc | assert_output "\
+P [test/testcases/abc:3] test_a
   a
 
-P [test/abc:9] test_b
+P [test/testcases/abc:9] test_b
   b
 
-F [test/abc:15] test_c
+F [test/testcases/abc:15] test_c
   c
 
 "
 }
 
 test_script_s_option_prints_structured_output () {
-./test/abc -as | assert_output "\
-P [./test/abc:3] test_a
+./test/testcases/abc -as | assert_output "\
+P [./test/testcases/abc:3] test_a
   a
 
-P [./test/abc:9] test_b
+P [./test/testcases/abc:9] test_b
   b
 
-F [./test/abc:15] test_c
+F [./test/testcases/abc:15] test_c
   c
 
 "
@@ -318,56 +306,56 @@ F [./test/abc:15] test_c
 #
 
 test_ts_displays_stdout () {
-ts -as test/abc | assert_output "\
-P [test/abc:3] test_a
+ts -as test/testcases/abc | assert_output "\
+P [test/testcases/abc:3] test_a
   a
 
-P [test/abc:9] test_b
+P [test/testcases/abc:9] test_b
   b
 
-F [test/abc:15] test_c
+F [test/testcases/abc:15] test_c
   c
 
 "
 }
 
 test_ts_v_opton_displays_stderr () {
-ts -asv test/abc | assert_output "\
-P [test/abc:3] test_a
+ts -asv test/testcases/abc | assert_output "\
+P [test/testcases/abc:3] test_a
   aA
 
-P [test/abc:9] test_b
+P [test/testcases/abc:9] test_b
   bB
 
-F [test/abc:15] test_c
+F [test/testcases/abc:15] test_c
   cC
 
 "
 }
 
 test_script_displays_stdout () {
-./test/abc -as | assert_output "\
-P [./test/abc:3] test_a
+./test/testcases/abc -as | assert_output "\
+P [./test/testcases/abc:3] test_a
   a
 
-P [./test/abc:9] test_b
+P [./test/testcases/abc:9] test_b
   b
 
-F [./test/abc:15] test_c
+F [./test/testcases/abc:15] test_c
   c
 
 "
 }
 
 test_script_v_opton_displays_stderr () {
-./test/abc -asv | assert_output "\
-P [./test/abc:3] test_a
+./test/testcases/abc -asv | assert_output "\
+P [./test/testcases/abc:3] test_a
   aA
 
-P [./test/abc:9] test_b
+P [./test/testcases/abc:9] test_b
   bB
 
-F [./test/abc:15] test_c
+F [./test/testcases/abc:15] test_c
   cC
 
 "
@@ -412,7 +400,7 @@ assert_status 1 $?
 }
 
 #
-# misc
+# testcases
 #
 
 test_ts_prevents_hang_by_stdin () {
@@ -421,8 +409,8 @@ cat | assert_output ""
 }
 
 test_ts_return_fail_in_setup () {
-ts -s test/return_fail_in_setup | assert_output "\
-F [test/return_fail_in_setup:12] test_return_fail_in_setup
+ts -s test/testcases/return_fail_in_setup | assert_output "\
+F [test/testcases/return_fail_in_setup:12] test_return_fail_in_setup
   in setup
   in teardown
 
@@ -430,8 +418,8 @@ F [test/return_fail_in_setup:12] test_return_fail_in_setup
 }
 
 test_ts_return_fail_in_teardown () {
-ts -s test/return_fail_in_teardown | assert_output "\
-F [test/return_fail_in_teardown:12] test_return_fail_in_teardown
+ts -s test/testcases/return_fail_in_teardown | assert_output "\
+F [test/testcases/return_fail_in_teardown:12] test_return_fail_in_teardown
   in setup
   in test
   in teardown
@@ -440,8 +428,8 @@ F [test/return_fail_in_teardown:12] test_return_fail_in_teardown
 }
 
 test_ts_exit_fail_in_setup () {
-ts -s test/exit_fail_in_setup | assert_output "\
-F [test/exit_fail_in_setup:12] test_exit_fail_in_setup
+ts -s test/testcases/exit_fail_in_setup | assert_output "\
+F [test/testcases/exit_fail_in_setup:12] test_exit_fail_in_setup
   in setup
   in teardown
 
@@ -449,8 +437,8 @@ F [test/exit_fail_in_setup:12] test_exit_fail_in_setup
 }
 
 test_ts_exit_fail_in_test () {
-ts -s test/exit_fail_in_test | assert_output "\
-F [test/exit_fail_in_test:11] test_exit_fail_in_test
+ts -s test/testcases/exit_fail_in_test | assert_output "\
+F [test/testcases/exit_fail_in_test:11] test_exit_fail_in_test
   in setup
   in test
   in teardown
@@ -459,8 +447,8 @@ F [test/exit_fail_in_test:11] test_exit_fail_in_test
 }
 
 test_ts_exit_fail_in_teardown () {
-ts -s test/exit_fail_in_teardown | assert_output "\
-F [test/exit_fail_in_teardown:12] test_exit_fail_in_teardown
+ts -s test/testcases/exit_fail_in_teardown | assert_output "\
+F [test/testcases/exit_fail_in_teardown:12] test_exit_fail_in_teardown
   in setup
   in test
   in teardown
@@ -474,20 +462,16 @@ exit 1
 }
 
 test_ts_exit_fail_after_untrap_EXIT_in_test () {
-ts -s test/exit_fail_in_test_after_untrap | assert_output "\
-F [test/exit_fail_in_test_after_untrap:11] test_exit_fail_in_test_after_untrap
+ts -s test/testcases/exit_fail_in_test_after_untrap | assert_output "\
+F [test/testcases/exit_fail_in_test_after_untrap:11] test_exit_fail_in_test_after_untrap
   in setup
   in test
 
 "
 }
 
-#
-# include test
-#
-
 test_include () {
-ts test/include 2>&1 | grep -q '4 pass 0 fail'
+ts test/testcases/include 2>&1 | grep -q '4 pass 0 fail'
 }
 
 #
