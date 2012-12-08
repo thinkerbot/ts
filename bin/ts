@@ -234,9 +234,9 @@ END   { printf("%d pass %d fail %d s\n", npass, nfail, nsec); if(nfail > 0) exit
 ts_report () {
   case "$TS_REPORT" in
     (monitor)
-      ts_start_time=$SECONDS
+      ts_start_time=${SECONDS:-1}
       ts_structure | ts_monitor | ts_filter | ts_color_or_format
-      ts_end_time=$SECONDS
+      ts_end_time=${SECONDS:-0}
       ts_check_status "$(($ts_end_time - $ts_start_time))" >&2
       ;;
     (stream)
