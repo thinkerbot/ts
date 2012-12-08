@@ -161,8 +161,12 @@ test_script_c_option_prints_color_output () {
 
 # bash does '+++'
 # dash does '+'
+# zsh adds trailing whitespace to ts_exitstatus
 normalize_debug_output () {
-  sed -e 's/+\{1,\}/+++/' 
+sed -e '
+  s/+\{1,\}/+++/
+  s/ts_exitstatus=0 /ts_exitstatus=0/
+'
 }
 
 test_ts_d_option_turns_on_xtrace_and_verbose () {
