@@ -88,8 +88,11 @@ ts_monitor_file="$TS_TMP_DIR/monitor"
 # private functions
 
 ts_pattern () {
-  printf "%s" "$1"
-  shift 1
+  if [ 0 -ne $# ]
+  then
+    printf "%s" "$1"
+    shift 1
+  fi
 
   if [ 0 -ne $# ]
   then printf "|%s" "$@"
