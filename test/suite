@@ -159,8 +159,14 @@ test_script_c_option_prints_color_output () {
 # -d option
 #
 
+# bash does '+++'
+# dash does '+'
+normalize_debug_output () {
+  sed -e 's/+\{1,\}/+++/' 
+}
+
 test_ts_d_option_turns_on_xtrace_and_verbose () {
-ts -dsa test/pass | assert_output "\
+ts -dsa test/pass | normalize_debug_output | assert_output "\
 P [test/pass:3] test_pass
   +++ trap teardown EXIT
   +++ setup
@@ -177,7 +183,7 @@ P [test/pass:3] test_pass
 }
 
 test_script_d_option_turns_on_xtrace_and_verbose () {
-./test/pass -dsa | assert_output "\
+./test/pass -dsa | normalize_debug_output | assert_output "\
 P [./test/pass:3] test_pass
   +++ trap teardown EXIT
   +++ setup
@@ -199,7 +205,7 @@ P [./test/pass:3] test_pass
 
 test_ts_m_option_monitors_output () {
 ts -am test/testcases/abc 2>&1 |
-sed -e '$ s/[0-9] s/# s/' |
+sed -e '$ s/[-0-9]\{1,\} s/# s/' |
 assert_output "\
 ..F
 
@@ -221,7 +227,7 @@ F
 
 test_script_m_option_monitors_output () {
 ./test/testcases/abc -am 2>&1 |
-sed -e "s/[0-9] s/# s/" |
+sed -e "s/[-0-9]\{1,\} s/# s/" |
 assert_output "\
 ..F
 
