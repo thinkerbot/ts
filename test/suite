@@ -624,6 +624,10 @@ test_include () {
 ts test/testcases/include 2>&1 | grep -q '4 pass 0 fail'
 }
 
+test_ts_returns_to_TS_USR_DIR_for_each_test () {
+ts test/testcases/change_dirs 2>&1 | grep -q '2 pass 0 fail'
+}
+
 #
 # readme test
 #

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+test_a () {
+cd "$TS_USR_DIR/bin"
+assert_output "$TS_USR_DIR/bin" "$(pwd)"
+}
+
+test_b () {
+assert_output "$TS_USR_DIR" "$(pwd)"
+}
+
+. ts
