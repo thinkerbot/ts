@@ -90,6 +90,10 @@ ts_monitor_file="$TS_TMP_DIR/monitor"
 ############################################################################
 # private functions
 
+# Creates a pattern for use by ts_list.  Example:
+#
+#   ts_pattern a b c     # => "a|b|c"
+#
 ts_pattern () {
   if [ 0 -ne $# ]
   then
@@ -102,6 +106,8 @@ ts_pattern () {
   fi
 }
 
+# Prints the filename for 'source' and '.' in a given test file.  Ignores
+# leading whitespace, and removes trailing comments.
 ts_sources () {
   sed -ne '
 s/^[[:space:]]*\.[[:space:]]/source /
@@ -114,6 +120,9 @@ p
 ' "$1"
 }
 
+# Prints all functions in a test file starting with 'test_' or the pattern
+# given by ts_test_pattern.  Recurses into sourced files if TS_TESTS_IN_SOURCE
+# is set to true.
 ts_list () {
   if [ 0 -ne $# ]
   then
@@ -131,7 +140,8 @@ ts_list () {
   fi
 }
 
-ts_structure () {
+# Converts the ts raw format into the ts stream format.
+ts_stream () {
   rm "$ts_status_file" 2>/dev/null
   awk -v status_file="$ts_status_file" '
 function readbytes (bytes) {
@@ -163,6 +173,7 @@ END   { printf("%d %d\n", npass, nfail) >> status_file }
 '
 }
 
+# Converts the ts stream format into the monitor format.
 ts_monitor () {
   rm "$ts_monitor_file" 2> /dev/null
   sed -lne "
@@ -179,6 +190,7 @@ F
   cat "$ts_monitor_file"
 }
 
+# Filters passing tests from the ts stream format.
 ts_filter () {
   if [ true = "$TS_FILTER" ]
   then sed -lne "
@@ -192,6 +204,7 @@ s/^\n\([FX]\)/\1/p
   fi
 }
 
+# Adds color to the ts stream format.
 ts_color () {
   if [ true = "$TS_COLOR" ]
   then sed -lne "
@@ -204,7 +217,8 @@ p
   fi
 }
 
-ts_color_or_format () {
+# Converts ts stream to color (if specified) or to the report format.
+ts_format () {
   if [ true = "$TS_COLOR" ]
   then ts_color
   else sed -le '
@@ -221,7 +235,8 @@ ts_color_or_format () {
   fi
 }
 
-ts_check_status () {
+# Prints the summary for the tests and returns with the correct status.
+ts_print_status () {
   awk -v nsec="$1" '
 BEGIN { npass=nfail=0 }
       { npass += $1; nfail += $2; }
@@ -241,13 +256,13 @@ ts_report () {
   case "$TS_REPORT" in
     (monitor)
       ts_start_time=${SECONDS:-1}
-      ts_structure | ts_monitor | ts_filter | ts_color_or_format
+      ts_stream | ts_monitor | ts_filter | ts_format
       ts_end_time=${SECONDS:-0}
-      ts_check_status "$(($ts_end_time - $ts_start_time))" >&2
+      ts_print_status "$(($ts_end_time - $ts_start_time))" >&2
       ;;
     (stream)
-      ts_structure | ts_filter | ts_color
-      ts_check_status > /dev/null
+      ts_stream | ts_filter | ts_color
+      ts_print_status > /dev/null
       ;;
     (raw)
       cat
