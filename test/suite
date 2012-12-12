@@ -31,6 +31,17 @@ F [test/fail:3] test_fail
 "
 }
 
+test_ts_reads_raw_input_for_dash () {
+( ts test/pass -ar
+  ts test/fail -ar
+) | ts - -as  | assert_output "\
+P [test/pass:3] test_pass
+
+F [test/fail:3] test_fail
+
+"
+}
+
 test_script_runs_tests () {
 ./test/testcases/abc -as | assert_output "\
 P [./test/testcases/abc:3] test_a

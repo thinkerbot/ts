@@ -329,6 +329,8 @@ ts_run_test_files () {
   do
     if [ -x "$ts_test_file" ]
     then TS_REPORT="raw" "$ts_test_file"
+    elif [ x- = x"$ts_test_file" ]
+    then cat
     else printf "[%s] not executable\nX 0\n" "$ts_test_file"
     fi
   done | ts_report
