@@ -145,6 +145,9 @@ ts_stream () {
   rm "$ts_status_file" 2>/dev/null
   awk -v status_file="$ts_status_file" '
 function readbytes (bytes) {
+  # ignore initial line
+  $0=""
+
   # read bytes
   while(getline == 1 && (bytes -= length + 1) > 0) {
     print "  " $0
