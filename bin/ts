@@ -95,10 +95,10 @@ ts_pattern () {
   then
     printf "%s" "$1"
     shift 1
-  fi
 
-  if [ 0 -ne $# ]
-  then printf "|%s" "$@"
+    if [ 0 -ne $# ]
+    then printf "|%s" "$@"
+    fi
   fi
 }
 
