@@ -34,6 +34,7 @@ options:
     -s   stream output
     -t   set the tmp dir (default tmp)
     -v   verbose output (show stderr)
+    -w   raw output
 
 version: %s - %s
 " "$ts_argstr" "$ts_version" "$ts_url"
@@ -42,7 +43,7 @@ version: %s - %s
 ts_args=""
 while [ $OPTIND -le $# ]
 do
-  while getopts "acdhmrst:v" ts_option
+  while getopts "acdhmrst:vw" ts_option
   do
     case $ts_option in
       a  )  TS_FILTER=false ;;
@@ -55,6 +56,7 @@ do
       s  )  TS_REPORT=stream ;;
       t  )  TS_TMP_DIR=$OPTARG ;;
       v  )  TS_MODE=verbose ;;
+      w  )  TS_REPORT=raw ;;
       \? )  ts_usage | head -n 1
             exit 2 ;;
     esac
@@ -335,8 +337,8 @@ ts_run_test_files () {
       if [ -x "$ts_test_file" ]
       then
         if [ x"${ts_test_file}" = x"${ts_test_file#*/}" ]
-        then TS_REPORT="raw" ./"$ts_test_file"
-        else TS_REPORT="raw" "$ts_test_file"
+        then ./"$ts_test_file" -w
+        else "$ts_test_file" -w
         fi
       else printf "[%s] not executable\nX 0\n\n" "$ts_test_file"
       fi

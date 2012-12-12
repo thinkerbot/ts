@@ -407,6 +407,38 @@ F [./test/testcases/abc:15] test_c
 }
 
 #
+# -w option
+#
+
+test_ts_w_option_prints_raw_output () {
+ts -w test/testcases/abc | assert_output "\
+[test/testcases/abc:3] test_a
+P 1
+a
+[test/testcases/abc:9] test_b
+P 1
+b
+[test/testcases/abc:15] test_c
+F 1
+c
+"
+}
+
+test_script_w_option_prints_raw_output () {
+./test/testcases/abc -w | assert_output "\
+[./test/testcases/abc:3] test_a
+P 1
+a
+[./test/testcases/abc:9] test_b
+P 1
+b
+[./test/testcases/abc:15] test_c
+F 1
+c
+"
+}
+
+#
 # examples test
 #
 
