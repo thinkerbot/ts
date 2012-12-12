@@ -50,6 +50,22 @@ F [test/fail:3] test_fail
 "
 }
 
+test_ts_reports_non_executable_files () {
+ts -as test/nox | assert_output "\
+X [test/nox] not executable
+
+"
+}
+
+test_ts_reports_non_files () {
+ts -as test test/miss | assert_output "\
+X [test] not a file
+
+X [test/miss] not a file
+
+"
+}
+
 test_script_runs_tests () {
 ./test/testcases/abc -as | assert_output "\
 P [./test/testcases/abc:3] test_a

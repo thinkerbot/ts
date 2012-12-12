@@ -330,15 +330,19 @@ ts_run_test_files () {
 
   for ts_test_file in "$@"
   do
-    if [ -x "$ts_test_file" ]
+    if [ -f "$ts_test_file" ]
     then
-      if [ x"${ts_test_file}" = x"${ts_test_file#*/}" ]
-      then TS_REPORT="raw" ./"$ts_test_file"
-      else TS_REPORT="raw" "$ts_test_file"
+      if [ -x "$ts_test_file" ]
+      then
+        if [ x"${ts_test_file}" = x"${ts_test_file#*/}" ]
+        then TS_REPORT="raw" ./"$ts_test_file"
+        else TS_REPORT="raw" "$ts_test_file"
+        fi
+      else printf "[%s] not executable\nX 0\n\n" "$ts_test_file"
       fi
     elif [ x- = x"$ts_test_file" ]
     then cat
-    else printf "[%s] not executable\nX 0\n" "$ts_test_file"
+    else printf "[%s] not a file\nX 0\n\n" "$ts_test_file"
     fi
   done | ts_report
 }
