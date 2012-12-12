@@ -25,11 +25,11 @@ have the following form:
     #!/bin/sh               # pick a shell, any (POSIX) shell
 
     setup () {              # optional setup
-      mkdir -p "$test_dir"
+      mkdir -p "$ts_test_dir"
     }
 
     teardown () {           # optional teardown
-      rm -r "$test_dir"
+      rm -r "$ts_test_dir"
     }
 
     test_true () {          # write tests named like "test_"
@@ -117,19 +117,19 @@ Functions provided by **ts**.
 Variables provided by **ts** at runtime. Feel free to use any of them but
 treat them as read-only.
 
-* `test_file`:
+* `ts_test_file`:
   The name of the current test script being run.
 
-* `test_case`:
+* `ts_test_case`:
   The basename of the test file, minus the extname.
 
-* `test_lineno`:
+* `ts_test_lineno`:
   The line number where the current test is defined.
 
-* `test_name`:
+* `ts_test_name`:
   The name of the current test.
 
-* `test_dir`:
+* `ts_test_dir`:
   The test-specific directory.
 
   The test dir is 'tmp\_dir/test\_case'. **ts** does not create this directory

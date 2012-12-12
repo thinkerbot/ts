@@ -117,15 +117,15 @@ p
 ts_list () {
   if [ 0 -ne $# ]
   then
-    grep -onE "^[[:space:]]*(${test_pattern:-test_\w+})[[:space:]]+\(\)" /dev/null "$@" |
+    grep -onE "^[[:space:]]*(${ts_test_pattern:-test_\w+})[[:space:]]+\(\)" /dev/null "$@" |
     sed -e 's/^\([^:]*\):\([^:]*\):\([^ ]*\) .*/\3 \1:\2/'
 
     if [ true = "$TS_TESTS_IN_SOURCE" ]
     then
-      for file in "$@"
+      for ts_source_file in "$@"
       do
-        eval ts_list $(ts_sources "$file") |
-        awk -v file="$file" '{ $2=file " -> " $2; print }'
+        eval ts_list $(ts_sources "$ts_source_file") |
+        awk -v file="$ts_source_file" '{ $2=file " -> " $2; print }'
       done
     fi
   fi
@@ -258,9 +258,9 @@ ts_report () {
 # Runs a specific test.  In that case the test output is not filtered or
 # changed. the exit status is the exit status of the specific test.
 ts_run_test () {
-  if [ -e "$test_dir" ] && ! rm -r "$test_dir"
+  if [ -e "$ts_test_dir" ] && ! rm -r "$ts_test_dir"
   then
-    printf "could not remove existing test dir: %s\n" "$test_dir"
+    printf "could not remove existing test dir: %s\n" "$ts_test_dir"
     exit 1
   fi
 
@@ -272,23 +272,23 @@ ts_run_test () {
   fi
 
   trap 'teardown' EXIT
-  setup && "$test_name"
+  setup && "$ts_test_name"
   ts_exitstatus=$?
   trap - EXIT
   teardown && return $ts_exitstatus
 }
 
 ts_run_test_suite () {
-  test_file="$0"
-  test_case="${test_file##*/}"
-  test_case="${test_case%\.*}"
-  test_pattern="$(ts_pattern "$@")"
+  ts_test_file="$0"
+  ts_test_case="${ts_test_file##*/}"
+  ts_test_case="${ts_test_case%\.*}"
+  ts_test_pattern="$(ts_pattern "$@")"
 
-  ts_list "$test_file" |
-  while read test_name desc
+  ts_list "$ts_test_file" |
+  while read ts_test_name ts_test_desc
   do
-    test_dir="$TS_TMP_DIR/$test_case/$test_name"
-    printf "[%s] %s\n" "$desc" "$test_name"
+    ts_test_dir="$TS_TMP_DIR/$ts_test_case/$ts_test_name"
+    printf "[%s] %s\n" "$ts_test_desc" "$ts_test_name"
 
     # run the test by calling back into the test file
     # * use stdout for progress, stderr for debug information
@@ -322,11 +322,11 @@ ts_run_test_files () {
   export TS_MODE
   export TS_DEBUG
 
-  for test_file in "$@"
+  for ts_test_file in "$@"
   do
-    if [ -x "$test_file" ]
-    then TS_REPORT="raw" "$test_file"
-    else printf "[%s] not executable\nX 1\nx\n" "$test_file"
+    if [ -x "$ts_test_file" ]
+    then TS_REPORT="raw" "$ts_test_file"
+    else printf "[%s] not executable\nX 1\nx\n" "$ts_test_file"
     fi
   done | ts_report
 }
@@ -350,11 +350,11 @@ fi
 
 # Flunks unless the numbers $1 (expected) and $2 (actual) are the same.
 assert_status () {
-  expected=$1; actual=$2
+  ts_expected=$1; ts_actual=$2
 
-  if ! [ $actual -eq $expected ]
+  if ! [ $ts_actual -eq $ts_expected ]
   then 
-    printf "expected status %s but was %s\n" "$expected" "$actual"
+    printf "expected status %s but was %s\n" "$ts_expected" "$ts_actual"
     exit 1
   fi
 }
@@ -362,27 +362,27 @@ assert_status () {
 # Flunks unless the variables $1 (expected) and $2 (actual) are the same. 
 # Reads from stdin for '-'.  '-' is assumed if $2 is not specified.
 assert_output () {
-  expected="$1"; actual="${2:--}"
+  ts_expected="$1"; ts_actual="${2:--}"
 
-  if [ x- = x"$expected" ]
+  if [ x- = x"$ts_expected" ]
   then
-    expected=$(cat; printf x)
-    expected=${expected%x}
+    ts_expected=$(cat; printf x)
+    ts_expected=${ts_expected%x}
   fi
 
-  if [ x- = x"$actual" ]
+  if [ x- = x"$ts_actual" ]
   then
-    actual=$(cat; printf x)
-    actual=${actual%x}
+    ts_actual=$(cat; printf x)
+    ts_actual=${ts_actual%x}
   fi
 
-  if [ x"$actual" != x"$expected" ]
+  if [ x"$ts_actual" != x"$ts_expected" ]
   then
-    mkdir -p "$(dirname "$test_dir")"
-    printf "%s" "$expected" > "$test_dir.e.txt"
-    printf "%s" "$actual"   > "$test_dir.a.txt"
+    mkdir -p "$(dirname "$ts_test_dir")"
+    printf "%s" "$ts_expected" > "$ts_test_dir.e.txt"
+    printf "%s" "$ts_actual"   > "$ts_test_dir.a.txt"
     printf "unequal output:\n"
-    diff "$test_dir.e.txt" "$test_dir.a.txt"
+    diff "$ts_test_dir.e.txt" "$ts_test_dir.a.txt"
     exit 1
   fi
 }

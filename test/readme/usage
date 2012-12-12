@@ -1,11 +1,11 @@
 #!/bin/sh               # pick a shell, any (POSIX) shell
 
 setup () {              # optional setup
-  mkdir -p "$test_dir"
+  mkdir -p "$ts_test_dir"
 }
 
 teardown () {           # optional teardown
-  rm -r "$test_dir"
+  rm -r "$ts_test_dir"
 }
 
 test_pass () {          # write tests named like "test_"

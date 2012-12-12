@@ -7,8 +7,8 @@ else printf "Tests must be run from ts project root\n"
 fi
 
 setup () {
-unset $(set | grep -i '^TS_' | sed -e 's/=.*//' | tr "\n" " ")
-export TS_TMP_DIR="$test_dir"
+unset $(set | grep '^TS_' | sed -e 's/=.*//' | tr "\n" " ")
+export TS_TMP_DIR="$ts_test_dir"
 }
 
 #
@@ -268,13 +268,13 @@ test_script_h_prints_help () {
 #
 
 test_ts_r_option_removes_tmp_dir () {
-tmpdir="$test_dir/tmp"
+tmpdir="$ts_test_dir/tmp"
 ts -r -t "$tmpdir" test/pass
 [ ! -e "$tmpdir" ]
 }
 
 test_script_r_option_removes_tmp_dir () {
-tmpdir="$test_dir/tmp"
+tmpdir="$ts_test_dir/tmp"
 ./test/pass -r -t "$tmpdir"
 [ ! -e "$tmpdir" ]
 }
