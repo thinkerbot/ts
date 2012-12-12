@@ -16,7 +16,7 @@ export TS_TMP_DIR="$ts_test_dir"
 #
 
 test_ts_runs_file () {
-ts -as test/pass | assert_output "\
+ts -s test/pass | assert_output "\
 P [test/pass:3] test_pass
 
 "
@@ -24,14 +24,14 @@ P [test/pass:3] test_pass
 
 test_ts_runs_file_in_pwd () {
 cd test
-ts -as pass | assert_output "\
+ts -s pass | assert_output "\
 P [./pass:3] test_pass
 
 "
 }
 
 test_ts_runs_multiple_files () {
-ts -as test/pass test/fail | assert_output "\
+ts -s test/pass test/fail | assert_output "\
 P [test/pass:3] test_pass
 
 F [test/fail:3] test_fail
@@ -42,7 +42,7 @@ F [test/fail:3] test_fail
 test_ts_reads_raw_input_for_dash () {
 ( ts test/pass -ar
   ts test/fail -ar
-) | ts - -as  | assert_output "\
+) | ts - -s  | assert_output "\
 P [test/pass:3] test_pass
 
 F [test/fail:3] test_fail
@@ -65,7 +65,7 @@ b
 F 1
 c
 
-" | ts -as - | assert_output "\
+" | ts -s - | assert_output "\
 P [test/testcases/abc:3] test_a
   a
 
@@ -79,14 +79,14 @@ F [test/testcases/abc:15] test_c
 }
 
 test_ts_reports_non_executable_files () {
-ts -as test/nox | assert_output "\
+ts -s test/nox | assert_output "\
 X [test/nox] not executable
 
 "
 }
 
 test_ts_reports_non_files () {
-ts -as test test/miss | assert_output "\
+ts -s test test/miss | assert_output "\
 X [test] not a file
 
 X [test/miss] not a file
@@ -95,7 +95,7 @@ X [test/miss] not a file
 }
 
 test_script_runs_tests () {
-./test/testcases/abc -as | assert_output "\
+./test/testcases/abc -s | assert_output "\
 P [./test/testcases/abc:3] test_a
   a
 
@@ -109,7 +109,7 @@ F [./test/testcases/abc:15] test_c
 }
 
 test_script_runs_named_tests () {
-./test/testcases/abc -as test_a test_c | assert_output "\
+./test/testcases/abc -s test_a test_c | assert_output "\
 P [./test/testcases/abc:3] test_a
   a
 
@@ -120,7 +120,7 @@ F [./test/testcases/abc:15] test_c
 }
 
 test_script_runs_tests_matching_patterns () {
-./test/testcases/abc -as 'test_[ac]' | assert_output "\
+./test/testcases/abc -s 'test_[ac]' | assert_output "\
 P [./test/testcases/abc:3] test_a
   a
 
@@ -160,29 +160,74 @@ F [./test/testcases/abc:15] test_c
 #
 
 test_ts_does_not_print_passing_tests_by_default () {
-ts -s test/pass test/fail | assert_output "\
-F [test/fail:3] test_fail
+ts test/testcases/abc 2>&1 |
+sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+assert_output "\
+..F
 
+[test/testcases/abc:15] test_c
+  c
+F
+
+2 pass 1 fail # s
 "
 }
 
 test_ts_a_option_prints_all_tests () {
-ts -as test/pass test/fail | assert_output "\
-P [test/pass:3] test_pass
+ts -a test/testcases/abc 2>&1 |
+sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+assert_output "\
+..F
 
-F [test/fail:3] test_fail
+[test/testcases/abc:3] test_a
+  a
+P
 
+[test/testcases/abc:9] test_b
+  b
+P
+
+[test/testcases/abc:15] test_c
+  c
+F
+
+2 pass 1 fail # s
 "
 }
 
 test_script_does_not_print_passing_tests_by_default () {
-./test/pass -s | assert_output ""
+./test/testcases/abc 2>&1 |
+sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+assert_output "\
+..F
+
+[./test/testcases/abc:15] test_c
+  c
+F
+
+2 pass 1 fail # s
+"
 }
 
 test_script_a_option_prints_all_tests () {
-./test/pass -as | assert_output "\
-P [./test/pass:3] test_pass
+./test/testcases/abc -a 2>&1 |
+sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+assert_output "\
+..F
 
+[./test/testcases/abc:3] test_a
+  a
+P
+
+[./test/testcases/abc:9] test_b
+  b
+P
+
+[./test/testcases/abc:15] test_c
+  c
+F
+
+2 pass 1 fail # s
 "
 }
 
@@ -191,7 +236,7 @@ P [./test/pass:3] test_pass
 #
 
 test_ts_c_option_prints_green_red_color_output () {
-ts -asc test/testcases/abc | assert_output "\
+ts -sc test/testcases/abc | assert_output "\
 [[32mtest/testcases/abc:3[0m] test_a
   a
 
@@ -205,7 +250,7 @@ ts -asc test/testcases/abc | assert_output "\
 }
 
 test_script_c_option_prints_color_output () {
-./test/testcases/abc -asc | assert_output "\
+./test/testcases/abc -sc | assert_output "\
 [[32m./test/testcases/abc:3[0m] test_a
   a
 
@@ -233,7 +278,7 @@ sed -e '
 }
 
 test_ts_d_option_turns_on_xtrace_and_verbose () {
-ts -dsa test/pass | normalize_debug_output | assert_output "\
+ts -ds test/pass | normalize_debug_output | assert_output "\
 P [test/pass:3] test_pass
   +++ trap teardown EXIT
   +++ setup
@@ -250,7 +295,7 @@ P [test/pass:3] test_pass
 }
 
 test_script_d_option_turns_on_xtrace_and_verbose () {
-./test/pass -dsa | normalize_debug_output | assert_output "\
+./test/pass -ds | normalize_debug_output | assert_output "\
 P [./test/pass:3] test_pass
   +++ trap teardown EXIT
   +++ setup
@@ -347,7 +392,7 @@ tmpdir="$ts_test_dir/tmp"
 #
 
 test_ts_s_option_prints_structured_output () {
-ts -as test/testcases/abc | assert_output "\
+ts -s test/testcases/abc | assert_output "\
 P [test/testcases/abc:3] test_a
   a
 
@@ -361,7 +406,7 @@ F [test/testcases/abc:15] test_c
 }
 
 test_script_s_option_prints_structured_output () {
-./test/testcases/abc -as | assert_output "\
+./test/testcases/abc -s | assert_output "\
 P [./test/testcases/abc:3] test_a
   a
 
@@ -379,7 +424,7 @@ F [./test/testcases/abc:15] test_c
 #
 
 test_ts_displays_stdout () {
-ts -as test/testcases/abc | assert_output "\
+ts -s test/testcases/abc | assert_output "\
 P [test/testcases/abc:3] test_a
   a
 
@@ -393,7 +438,7 @@ F [test/testcases/abc:15] test_c
 }
 
 test_ts_v_option_displays_stderr () {
-ts -asv test/testcases/abc | assert_output "\
+ts -sv test/testcases/abc | assert_output "\
 P [test/testcases/abc:3] test_a
   aA
 
@@ -407,7 +452,7 @@ F [test/testcases/abc:15] test_c
 }
 
 test_script_displays_stdout () {
-./test/testcases/abc -as | assert_output "\
+./test/testcases/abc -s | assert_output "\
 P [./test/testcases/abc:3] test_a
   a
 
@@ -421,7 +466,7 @@ F [./test/testcases/abc:15] test_c
 }
 
 test_script_v_option_displays_stderr () {
-./test/testcases/abc -asv | assert_output "\
+./test/testcases/abc -sv | assert_output "\
 P [./test/testcases/abc:3] test_a
   aA
 
@@ -471,12 +516,12 @@ c
 #
 
 test_ts_pass_examples () {
-nfails=$(ts -as test/examples/pass | grep -c '^F')
+nfails=$(ts -s test/examples/pass | grep -c '^F')
 assert_output "0" "$nfails"
 }
 
 test_ts_fail_examples () {
-npass=$(ts -as test/examples/fail | grep -c '^P')
+npass=$(ts -s test/examples/fail | grep -c '^P')
 assert_output "0" "$npass"
 }
 
@@ -584,10 +629,10 @@ ts test/testcases/include 2>&1 | grep -q '4 pass 0 fail'
 #
 
 test_ts_readme () {
-! ts -as test/readme/example | grep -q '^F' &&
-! ts -as test/readme/troubleshoot_fail | grep -q '^P' &&
-! ts -as test/readme/troubleshoot_pass | grep -q '^F' &&
-! ts -as test/readme/usage | grep -q '^F'
+! ts -s test/readme/example | grep -q '^F' &&
+! ts -s test/readme/troubleshoot_fail | grep -q '^P' &&
+! ts -s test/readme/troubleshoot_pass | grep -q '^F' &&
+! ts -s test/readme/usage | grep -q '^F'
 }
 
 . ts

@@ -31,7 +31,7 @@ options:
     -h   prints this help
     -m   monitor output
     -r   remove tmp dir (rm -r)
-    -s   stream output
+    -s   stream output (implies -a)
     -t   set the tmp dir (default tmp)
     -v   verbose output (show stderr)
     -w   raw output
@@ -53,7 +53,7 @@ do
             exit 0 ;;
       m  )  TS_REPORT=monitor ;;
       r  )  TS_REMOVE_TMP_DIR=true ;;
-      s  )  TS_REPORT=stream ;;
+      s  )  TS_REPORT=stream; TS_FILTER=false ;;
       t  )  TS_TMP_DIR=$OPTARG ;;
       v  )  TS_MODE=verbose ;;
       w  )  TS_REPORT=raw ;;
