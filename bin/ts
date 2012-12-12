@@ -147,7 +147,7 @@ ts_stream () {
   rm "$ts_status_file" 2>/dev/null
   awk -v status_file="$ts_status_file" '
 function readbytes (bytes) {
-  # ignore initial line
+  # ignore current line
   $0=""
 
   # read bytes
@@ -156,16 +156,20 @@ function readbytes (bytes) {
   }
 
   if(length > 0) {
-    print "  " $0
+    print "  " substr($0, 1, bytes + length + 1)
     $0=""
   }
 }
-
+function format (status, descr, bytes) {
+  printf("%s %s\n", status, descr)
+  readbytes(bytes)
+  printf("\n")
+}
 BEGIN { npass=nfail=0 }
 /^\[/ { descr=$0 }
-/^P/  { printf("P %s\n", descr); readbytes($2); npass++; printf("\n") }
-/^F/  { printf("F %s\n", descr); readbytes($2); nfail++; printf("\n") }
-/^X/  { printf("X %s\n", descr); readbytes($2); nfail++; printf("\n") }
+/^P/  { format("P", descr, $2); npass++; }
+/^F/  { format("F", descr, $2); nfail++; }
+/^X/  { format("X", descr, $2); nfail++; }
 END   { printf("%d %d\n", npass, nfail) >> status_file }
 '
 }

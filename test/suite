@@ -50,6 +50,34 @@ F [test/fail:3] test_fail
 "
 }
 
+test_ts_allows_whitespace_between_raw_inputs () {
+printf "%s" "\
+[test/testcases/abc:3] test_a
+P 1
+a  
+
+[test/testcases/abc:9] test_b
+P 1
+b
+
+
+[test/testcases/abc:15] test_c
+F 1
+c
+
+" | ts -as - | assert_output "\
+P [test/testcases/abc:3] test_a
+  a
+
+P [test/testcases/abc:9] test_b
+  b
+
+F [test/testcases/abc:15] test_c
+  c
+
+"
+}
+
 test_ts_reports_non_executable_files () {
 ts -as test/nox | assert_output "\
 X [test/nox] not executable
