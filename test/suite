@@ -364,7 +364,7 @@ F [test/testcases/abc:15] test_c
 "
 }
 
-test_ts_v_opton_displays_stderr () {
+test_ts_v_option_displays_stderr () {
 ts -asv test/testcases/abc | assert_output "\
 P [test/testcases/abc:3] test_a
   aA
@@ -392,7 +392,7 @@ F [./test/testcases/abc:15] test_c
 "
 }
 
-test_script_v_opton_displays_stderr () {
+test_script_v_option_displays_stderr () {
 ./test/testcases/abc -asv | assert_output "\
 P [./test/testcases/abc:3] test_a
   aA
