@@ -22,6 +22,14 @@ P [test/pass:3] test_pass
 "
 }
 
+test_ts_runs_file_in_pwd () {
+cd test
+ts -as pass | assert_output "\
+P [$PWD/pass:3] test_pass
+
+"
+}
+
 test_ts_runs_multiple_files () {
 ts -as test/pass test/fail | assert_output "\
 P [test/pass:3] test_pass
