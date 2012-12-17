@@ -628,6 +628,10 @@ test_ts_returns_to_TS_USR_DIR_for_each_test () {
 ts test/testcases/change_dirs 2>&1 | grep -q '2 pass 0 fail'
 }
 
+test_undeclared_variable () {
+ts test/testcases/undeclared_variable 2>&1 | grep -q '1 pass 1 fail'
+}
+
 #
 # readme test
 #

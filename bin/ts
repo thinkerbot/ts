@@ -284,7 +284,8 @@ ts_run_test () {
   exec </dev/null
 
   if [ true = "$TS_DEBUG" ]
-  then set -x
+  then set -ux
+  else set -u
   fi
 
   trap 'teardown' EXIT

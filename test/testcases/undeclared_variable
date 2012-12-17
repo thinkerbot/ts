@@ -1,0 +1,14 @@
+#!/bin/sh
+
+test_ts_fails_for_use_of_undeclared_variable () {
+unset var
+assert_output "" "$var"
+}
+
+test_ts_can_use_undeclared_variables_with_set_u () {
+set +u
+unset var
+assert_output "" "$var"
+}
+
+. ts
