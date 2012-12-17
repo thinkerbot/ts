@@ -515,85 +515,31 @@ c
 # examples test
 #
 
-test_ts_pass_examples () {
-ts -s test/examples/pass | assert_output "\
-P [test/examples/pass:3] test_exit_pass
+assert_example () {
+example_file="$1"
 
-P [test/examples/pass:7] test_return_pass
-
-P [test/examples/pass:15] test_assert_status_pass
-
-P [test/examples/pass:23] test_assert_output_pass
-
-P [test/examples/pass:27] test_assert_output_from_stdin_pass
-
-P [test/examples/pass:31] test_assert_output_actual_from_stdin_pass
-
-P [test/examples/pass:35] test_assert_output_with_implicit_stdin_pass
-
-P [test/examples/pass:43] test_multiple_asserts_pass
-
+ts -s "$example_file" | 
+normalize_stream |
+assert_output "$(
+sed -ne '/^# [PFX]/,/^[^#]/s/# //p' "$example_file" | 
+normalize_stream
+)
 "
 }
 
+normalize_stream () {
+sed -e '
+/^[PFX]/s/\[.*\]/[...]/
+/^$/d
+' 
+}
+
+test_ts_pass_examples () {
+assert_example test/examples/pass
+}
+
 test_ts_fail_examples () {
-ts -s test/examples/fail | assert_output "\
-F [test/examples/fail:3] test_exit_fail
-
-F [test/examples/fail:7] test_return_fail
-
-F [test/examples/fail:15] test_assert_status_fail
-  expected status 0 but was 1
-
-F [test/examples/fail:23] test_assert_output_fail
-  unequal output:
-  1c1
-  < hello world
-  \ No newline at end of file
-  ---
-  > hell0 world
-  \ No newline at end of file
-
-F [test/examples/fail:27] test_assert_output_expected_from_stdin_fail
-  unequal output:
-  1c1
-  < hello world
-  \ No newline at end of file
-  ---
-  > hell0 world
-  \ No newline at end of file
-
-F [test/examples/fail:31] test_assert_output_actual_from_stdin_fail
-  unequal output:
-  1c1
-  < hello world
-  \ No newline at end of file
-  ---
-  > hello w0rld
-  \ No newline at end of file
-
-F [test/examples/fail:35] test_assert_output_with_implicit_stdin_fail
-  unequal output:
-  1c1
-  < hello world
-  \ No newline at end of file
-  ---
-  > hello w0rld
-  \ No newline at end of file
-
-F [test/examples/fail:44] test_multiple_asserts_fail_early
-  expected status 0 but was 1
-
-F [test/examples/fail:49] test_multiple_asserts_fail_late
-  unequal output:
-  1c1
-  < 0
-  \ No newline at end of file
-  ---
-  > 1
-  \ No newline at end of file
-
-"
+assert_example test/examples/fail
 }
 
 #

@@ -1,51 +1,96 @@
 #!/bin/sh
 
+# F [...] test_exit_fail
 test_exit_fail () {
 exit 8
 }
 
+# F [...] test_return_fail
 test_return_fail () {
 false
 }
 
-#
+#############################################################################
 # assert_status tests
-#
+#############################################################################
 
+# F [...] test_assert_status_fail
+#   expected status 0 but was 1
 test_assert_status_fail () {
 assert_status 0 1
 }
 
-#
+#############################################################################
 # assert_output tests
-#
+#############################################################################
 
+# F [...] test_assert_output_fail
+#   unequal output:
+#   1c1
+#   < hello world
+#   \ No newline at end of file
+#   ---
+#   > hell0 world
+#   \ No newline at end of file
 test_assert_output_fail () {
 assert_output "hello world" "hell0 world"
 }
 
+# F [...] test_assert_output_expected_from_stdin_fail
+#   unequal output:
+#   1c1
+#   < hello world
+#   \ No newline at end of file
+#   ---
+#   > hell0 world
+#   \ No newline at end of file
 test_assert_output_expected_from_stdin_fail () {
 printf "hello world" | assert_output - "hell0 world"
 }
 
+# F [...] test_assert_output_actual_from_stdin_fail
+#   unequal output:
+#   1c1
+#   < hello world
+#   \ No newline at end of file
+#   ---
+#   > hello w0rld
+#   \ No newline at end of file
 test_assert_output_actual_from_stdin_fail () {
 printf "hello w0rld" | assert_output "hello world" -
 }
 
+# F [...] test_assert_output_with_implicit_stdin_fail
+#   unequal output:
+#   1c1
+#   < hello world
+#   \ No newline at end of file
+#   ---
+#   > hello w0rld
+#   \ No newline at end of file
 test_assert_output_with_implicit_stdin_fail () {
 printf "hello w0rld" | assert_output "hello world"
 }
 
-
-#
+#############################################################################
 # combinations
-#
+#############################################################################
 
+# F [...] test_multiple_asserts_fail_early
+#   expected status 0 but was 1
 test_multiple_asserts_fail_early () {
   assert_status 0 1
   assert_output "0" "0"
 }
 
+# F [...] test_multiple_asserts_fail_late
+#   unequal output:
+#   1c1
+#   < 0
+#   \ No newline at end of file
+#   ---
+#   > 1
+#   \ No newline at end of file
 test_multiple_asserts_fail_late () {
   assert_status 0 0
   assert_output "0" "1"

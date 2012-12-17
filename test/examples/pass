@@ -1,45 +1,53 @@
 #!/bin/sh
 
+# P [...] test_exit_pass
 test_exit_pass () {
 exit
 }
 
+# P [...] test_return_pass
 test_return_pass () {
 true
 }
 
-#
+#############################################################################
 # assert_status tests
-#
+#############################################################################
 
+# P [...] test_assert_status_pass
 test_assert_status_pass () {
 assert_status 0 0
 }
 
-#
+#############################################################################
 # assert_output tests
-#
+#############################################################################
 
+# P [...] test_assert_output_pass
 test_assert_output_pass () {
 assert_output "hello world" "hello world"
 }
 
+# P [...] test_assert_output_from_stdin_pass
 test_assert_output_from_stdin_pass () {
 printf "hello world" | assert_output - "hello world"
 }
 
+# P [...] test_assert_output_actual_from_stdin_pass
 test_assert_output_actual_from_stdin_pass () {
 printf "hello world" | assert_output "hello world" -
 }
 
+# P [...] test_assert_output_with_implicit_stdin_pass
 test_assert_output_with_implicit_stdin_pass () {
 printf "hello world" | assert_output "hello world"
 }
 
-#
+#############################################################################
 # combinations
-#
+#############################################################################
 
+# P [...] test_multiple_asserts_pass
 test_multiple_asserts_pass () {
   assert_status 0 0
   assert_output "0" "0"
