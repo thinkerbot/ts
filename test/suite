@@ -516,13 +516,84 @@ c
 #
 
 test_ts_pass_examples () {
-nfails=$(ts -s test/examples/pass | grep -c '^F')
-assert_output "0" "$nfails"
+ts -s test/examples/pass | assert_output "\
+P [test/examples/pass:3] test_exit_pass
+
+P [test/examples/pass:7] test_return_pass
+
+P [test/examples/pass:15] test_assert_status_pass
+
+P [test/examples/pass:23] test_assert_output_pass
+
+P [test/examples/pass:27] test_assert_output_from_stdin_pass
+
+P [test/examples/pass:31] test_assert_output_actual_from_stdin_pass
+
+P [test/examples/pass:35] test_assert_output_with_implicit_stdin_pass
+
+P [test/examples/pass:43] test_multiple_asserts_pass
+
+"
 }
 
 test_ts_fail_examples () {
-npass=$(ts -s test/examples/fail | grep -c '^P')
-assert_output "0" "$npass"
+ts -s test/examples/fail | assert_output "\
+F [test/examples/fail:3] test_exit_fail
+
+F [test/examples/fail:7] test_return_fail
+
+F [test/examples/fail:15] test_assert_status_fail
+  expected status 0 but was 1
+
+F [test/examples/fail:23] test_assert_output_fail
+  unequal output:
+  1c1
+  < hello world
+  \ No newline at end of file
+  ---
+  > hell0 world
+  \ No newline at end of file
+
+F [test/examples/fail:27] test_assert_output_expected_from_stdin_fail
+  unequal output:
+  1c1
+  < hello world
+  \ No newline at end of file
+  ---
+  > hell0 world
+  \ No newline at end of file
+
+F [test/examples/fail:31] test_assert_output_actual_from_stdin_fail
+  unequal output:
+  1c1
+  < hello world
+  \ No newline at end of file
+  ---
+  > hello w0rld
+  \ No newline at end of file
+
+F [test/examples/fail:35] test_assert_output_with_implicit_stdin_fail
+  unequal output:
+  1c1
+  < hello world
+  \ No newline at end of file
+  ---
+  > hello w0rld
+  \ No newline at end of file
+
+F [test/examples/fail:44] test_multiple_asserts_fail_early
+  expected status 0 but was 1
+
+F [test/examples/fail:49] test_multiple_asserts_fail_late
+  unequal output:
+  1c1
+  < 0
+  \ No newline at end of file
+  ---
+  > 1
+  \ No newline at end of file
+
+"
 }
 
 #
@@ -621,26 +692,118 @@ F [test/testcases/exit_fail_in_test_after_untrap:11] test_exit_fail_in_test_afte
 }
 
 test_include () {
-ts test/testcases/include 2>&1 | grep -q '4 pass 0 fail'
+ts -s test/testcases/include | assert_output "\
+P [test/testcases/include:3] test_include
+
+P [test/testcases/include -> test/testcases/include a:3] test_include_a
+
+P [test/testcases/include -> test/testcases/include b:3] test_include_b
+
+P [test/testcases/include -> test/testcases/include b -> test/testcases/include_c:3] test_include_c
+
+"
 }
 
 test_ts_returns_to_TS_USR_DIR_for_each_test () {
-ts test/testcases/change_dirs 2>&1 | grep -q '2 pass 0 fail'
+ts -s test/testcases/change_dirs | assert_output "\
+P [test/testcases/change_dirs:3] test_a
+
+P [test/testcases/change_dirs:8] test_b
+
+"
 }
 
 test_undeclared_variable () {
-ts test/testcases/undeclared_variable 2>&1 | grep -q '1 pass 1 fail'
+ts -s test/testcases/undeclared_variable | assert_output "\
+F [test/testcases/undeclared_variable:3] test_ts_fails_for_use_of_undeclared_variable
+
+P [test/testcases/undeclared_variable:8] test_ts_can_use_undeclared_variables_with_set_u
+
+"
 }
 
 #
 # readme test
 #
 
-test_ts_readme () {
-! ts -s test/readme/example | grep -q '^F' &&
-! ts -s test/readme/troubleshoot_fail | grep -q '^P' &&
-! ts -s test/readme/troubleshoot_pass | grep -q '^F' &&
-! ts -s test/readme/usage | grep -q '^F'
+test_ts_readme_example () {
+ts -s test/readme/example | assert_output "\
+P [test/readme/example:3] test_arbitrary_function
+
+P [test/readme/example:7] test_assert_status
+
+P [test/readme/example:12] test_assert_output_style_one
+
+P [test/readme/example:17] test_assert_output_style_two
+
+P [test/readme/example:21] test_assert_output_style_three
+
+"
+}
+
+test_ts_readme_troubleshoot_fail () {
+ts -s test/readme/troubleshoot_fail | assert_output "\
+F [test/readme/troubleshoot_fail:3] test_newline_is_missing_so_this_fails
+  unequal output:
+  1c1
+  < abc
+  ---
+  > abc
+  \ No newline at end of file
+
+F [test/readme/troubleshoot_fail:11] test_multiple_asserts_failing_as_intended
+  unequal output:
+  1c1
+  < 1
+  \ No newline at end of file
+  ---
+  > 0
+  \ No newline at end of file
+
+F [test/readme/troubleshoot_fail:16] test_this_now_fails_as_expected
+  unequal output:
+  1c1
+  < 1
+  \ No newline at end of file
+  ---
+  > 0
+  \ No newline at end of file
+
+F [test/readme/troubleshoot_fail:22] test_this_also_fails_as_expected
+  unequal output:
+  1c1
+  < 1
+  \ No newline at end of file
+  ---
+  > 0
+  \ No newline at end of file
+
+"
+}
+
+test_ts_readme_troubleshoot_pass () {
+ts -s test/readme/troubleshoot_pass | assert_output "\
+P [test/readme/troubleshoot_pass:3] test_newline_is_now_accounted_for
+
+P [test/readme/troubleshoot_pass:11] test_another_newline_strategy
+
+P [test/readme/troubleshoot_pass:17] test_this_has_a_bug_and_does_not_fail
+  unequal output:
+  1c1
+  < 1
+  \ No newline at end of file
+  ---
+  > 0
+  \ No newline at end of file
+
+"
+}
+
+test_ts_readme_usage () {
+ts -s test/readme/usage | assert_output "\
+P [test/readme/usage:11] test_pass
+
+"
 }
 
 . ts
