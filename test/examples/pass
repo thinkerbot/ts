@@ -10,18 +10,10 @@ test_return_pass () {
 true
 }
 
-#############################################################################
-# assert_status tests
-#############################################################################
-
 # PASS
 test_assert_status_pass () {
 assert_status 0 0
 }
-
-#############################################################################
-# assert_output tests
-#############################################################################
 
 # PASS
 test_assert_output_pass () {
@@ -42,10 +34,6 @@ printf "hello world" | assert_output "hello world" -
 test_assert_output_with_implicit_stdin_pass () {
 printf "hello world" | assert_output "hello world"
 }
-
-#############################################################################
-# combinations
-#############################################################################
 
 # PASS
 test_multiple_asserts_pass () {

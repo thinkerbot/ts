@@ -52,27 +52,27 @@ F [test/fail:3] test_fail
 
 test_ts_allows_whitespace_between_raw_inputs () {
 printf "%s" "\
-[test/testcases/abc:3] test_a
+[test/examples/abc:3] test_a
 P 1
 a  
 
-[test/testcases/abc:9] test_b
+[test/examples/abc:9] test_b
 P 1
 b
 
 
-[test/testcases/abc:15] test_c
+[test/examples/abc:15] test_c
 F 1
 c
 
 " | ts -s - | assert_output "\
-P [test/testcases/abc:3] test_a
+P [test/examples/abc:3] test_a
   a
 
-P [test/testcases/abc:9] test_b
+P [test/examples/abc:9] test_b
   b
 
-F [test/testcases/abc:15] test_c
+F [test/examples/abc:15] test_c
   c
 
 "
@@ -95,36 +95,36 @@ X [test/miss] not a file
 }
 
 test_script_runs_tests () {
-./test/testcases/abc -s | assert_output "\
-P [./test/testcases/abc:3] test_a
+./test/examples/abc -s | assert_output "\
+P [./test/examples/abc:3] test_a
   a
 
-P [./test/testcases/abc:9] test_b
+P [./test/examples/abc:9] test_b
   b
 
-F [./test/testcases/abc:15] test_c
+F [./test/examples/abc:15] test_c
   c
 
 "
 }
 
 test_script_runs_named_tests () {
-./test/testcases/abc -s test_a test_c | assert_output "\
-P [./test/testcases/abc:3] test_a
+./test/examples/abc -s test_a test_c | assert_output "\
+P [./test/examples/abc:3] test_a
   a
 
-F [./test/testcases/abc:15] test_c
+F [./test/examples/abc:15] test_c
   c
 
 "
 }
 
 test_script_runs_tests_matching_patterns () {
-./test/testcases/abc -s 'test_[ac]' | assert_output "\
-P [./test/testcases/abc:3] test_a
+./test/examples/abc -s 'test_[ac]' | assert_output "\
+P [./test/examples/abc:3] test_a
   a
 
-F [./test/testcases/abc:15] test_c
+F [./test/examples/abc:15] test_c
   c
 
 "
@@ -145,11 +145,11 @@ F [test/fail:3] test_fail
 }
 
 test_script_accepts_options_anywhere () {
-./test/testcases/abc test_a -a test_c -s | assert_output "\
-P [./test/testcases/abc:3] test_a
+./test/examples/abc test_a -a test_c -s | assert_output "\
+P [./test/examples/abc:3] test_a
   a
 
-F [./test/testcases/abc:15] test_c
+F [./test/examples/abc:15] test_c
   c
 
 "
@@ -160,12 +160,12 @@ F [./test/testcases/abc:15] test_c
 #
 
 test_ts_does_not_print_passing_tests_by_default () {
-ts test/testcases/abc 2>&1 |
+ts test/examples/abc 2>&1 |
 sed -e '$ s/[-0-9]\{1,\} s/# s/' |
 assert_output "\
 ..F
 
-[test/testcases/abc:15] test_c
+[test/examples/abc:15] test_c
   c
 F
 
@@ -174,20 +174,20 @@ F
 }
 
 test_ts_a_option_prints_all_tests () {
-ts -a test/testcases/abc 2>&1 |
+ts -a test/examples/abc 2>&1 |
 sed -e '$ s/[-0-9]\{1,\} s/# s/' |
 assert_output "\
 ..F
 
-[test/testcases/abc:3] test_a
+[test/examples/abc:3] test_a
   a
 P
 
-[test/testcases/abc:9] test_b
+[test/examples/abc:9] test_b
   b
 P
 
-[test/testcases/abc:15] test_c
+[test/examples/abc:15] test_c
   c
 F
 
@@ -196,12 +196,12 @@ F
 }
 
 test_script_does_not_print_passing_tests_by_default () {
-./test/testcases/abc 2>&1 |
+./test/examples/abc 2>&1 |
 sed -e '$ s/[-0-9]\{1,\} s/# s/' |
 assert_output "\
 ..F
 
-[./test/testcases/abc:15] test_c
+[./test/examples/abc:15] test_c
   c
 F
 
@@ -210,20 +210,20 @@ F
 }
 
 test_script_a_option_prints_all_tests () {
-./test/testcases/abc -a 2>&1 |
+./test/examples/abc -a 2>&1 |
 sed -e '$ s/[-0-9]\{1,\} s/# s/' |
 assert_output "\
 ..F
 
-[./test/testcases/abc:3] test_a
+[./test/examples/abc:3] test_a
   a
 P
 
-[./test/testcases/abc:9] test_b
+[./test/examples/abc:9] test_b
   b
 P
 
-[./test/testcases/abc:15] test_c
+[./test/examples/abc:15] test_c
   c
 F
 
@@ -236,28 +236,28 @@ F
 #
 
 test_ts_c_option_prints_green_red_color_output () {
-ts -sc test/testcases/abc | assert_output "\
-[[32mtest/testcases/abc:3[0m] test_a
+ts -sc test/examples/abc | assert_output "\
+[[32mtest/examples/abc:3[0m] test_a
   a
 
-[[32mtest/testcases/abc:9[0m] test_b
+[[32mtest/examples/abc:9[0m] test_b
   b
 
-[[1;31mtest/testcases/abc:15[0m] test_c
+[[1;31mtest/examples/abc:15[0m] test_c
   c
 
 "
 }
 
 test_script_c_option_prints_color_output () {
-./test/testcases/abc -sc | assert_output "\
-[[32m./test/testcases/abc:3[0m] test_a
+./test/examples/abc -sc | assert_output "\
+[[32m./test/examples/abc:3[0m] test_a
   a
 
-[[32m./test/testcases/abc:9[0m] test_b
+[[32m./test/examples/abc:9[0m] test_b
   b
 
-[[1;31m./test/testcases/abc:15[0m] test_c
+[[1;31m./test/examples/abc:15[0m] test_c
   c
 
 "
@@ -316,20 +316,20 @@ P [./test/pass:3] test_pass
 #
 
 test_ts_m_option_monitors_output () {
-ts -am test/testcases/abc 2>&1 |
+ts -am test/examples/abc 2>&1 |
 sed -e '$ s/[-0-9]\{1,\} s/# s/' |
 assert_output "\
 ..F
 
-[test/testcases/abc:3] test_a
+[test/examples/abc:3] test_a
   a
 P
 
-[test/testcases/abc:9] test_b
+[test/examples/abc:9] test_b
   b
 P
 
-[test/testcases/abc:15] test_c
+[test/examples/abc:15] test_c
   c
 F
 
@@ -338,20 +338,20 @@ F
 }
 
 test_script_m_option_monitors_output () {
-./test/testcases/abc -am 2>&1 |
+./test/examples/abc -am 2>&1 |
 sed -e "s/[-0-9]\{1,\} s/# s/" |
 assert_output "\
 ..F
 
-[./test/testcases/abc:3] test_a
+[./test/examples/abc:3] test_a
   a
 P
 
-[./test/testcases/abc:9] test_b
+[./test/examples/abc:9] test_b
   b
 P
 
-[./test/testcases/abc:15] test_c
+[./test/examples/abc:15] test_c
   c
 F
 
@@ -392,28 +392,28 @@ tmpdir="$ts_test_dir/tmp"
 #
 
 test_ts_s_option_prints_structured_output () {
-ts -s test/testcases/abc | assert_output "\
-P [test/testcases/abc:3] test_a
+ts -s test/examples/abc | assert_output "\
+P [test/examples/abc:3] test_a
   a
 
-P [test/testcases/abc:9] test_b
+P [test/examples/abc:9] test_b
   b
 
-F [test/testcases/abc:15] test_c
+F [test/examples/abc:15] test_c
   c
 
 "
 }
 
 test_script_s_option_prints_structured_output () {
-./test/testcases/abc -s | assert_output "\
-P [./test/testcases/abc:3] test_a
+./test/examples/abc -s | assert_output "\
+P [./test/examples/abc:3] test_a
   a
 
-P [./test/testcases/abc:9] test_b
+P [./test/examples/abc:9] test_b
   b
 
-F [./test/testcases/abc:15] test_c
+F [./test/examples/abc:15] test_c
   c
 
 "
@@ -424,56 +424,56 @@ F [./test/testcases/abc:15] test_c
 #
 
 test_ts_displays_stdout () {
-ts -s test/testcases/abc | assert_output "\
-P [test/testcases/abc:3] test_a
+ts -s test/examples/abc | assert_output "\
+P [test/examples/abc:3] test_a
   a
 
-P [test/testcases/abc:9] test_b
+P [test/examples/abc:9] test_b
   b
 
-F [test/testcases/abc:15] test_c
+F [test/examples/abc:15] test_c
   c
 
 "
 }
 
 test_ts_v_option_displays_stderr () {
-ts -sv test/testcases/abc | assert_output "\
-P [test/testcases/abc:3] test_a
+ts -sv test/examples/abc | assert_output "\
+P [test/examples/abc:3] test_a
   aA
 
-P [test/testcases/abc:9] test_b
+P [test/examples/abc:9] test_b
   bB
 
-F [test/testcases/abc:15] test_c
+F [test/examples/abc:15] test_c
   cC
 
 "
 }
 
 test_script_displays_stdout () {
-./test/testcases/abc -s | assert_output "\
-P [./test/testcases/abc:3] test_a
+./test/examples/abc -s | assert_output "\
+P [./test/examples/abc:3] test_a
   a
 
-P [./test/testcases/abc:9] test_b
+P [./test/examples/abc:9] test_b
   b
 
-F [./test/testcases/abc:15] test_c
+F [./test/examples/abc:15] test_c
   c
 
 "
 }
 
 test_script_v_option_displays_stderr () {
-./test/testcases/abc -sv | assert_output "\
-P [./test/testcases/abc:3] test_a
+./test/examples/abc -sv | assert_output "\
+P [./test/examples/abc:3] test_a
   aA
 
-P [./test/testcases/abc:9] test_b
+P [./test/examples/abc:9] test_b
   bB
 
-F [./test/testcases/abc:15] test_c
+F [./test/examples/abc:15] test_c
   cC
 
 "
@@ -484,66 +484,31 @@ F [./test/testcases/abc:15] test_c
 #
 
 test_ts_w_option_prints_raw_output () {
-ts -w test/testcases/abc | assert_output "\
-[test/testcases/abc:3] test_a
+ts -w test/examples/abc | assert_output "\
+[test/examples/abc:3] test_a
 P 1
 a
-[test/testcases/abc:9] test_b
+[test/examples/abc:9] test_b
 P 1
 b
-[test/testcases/abc:15] test_c
+[test/examples/abc:15] test_c
 F 1
 c
 "
 }
 
 test_script_w_option_prints_raw_output () {
-./test/testcases/abc -w | assert_output "\
-[./test/testcases/abc:3] test_a
+./test/examples/abc -w | assert_output "\
+[./test/examples/abc:3] test_a
 P 1
 a
-[./test/testcases/abc:9] test_b
+[./test/examples/abc:9] test_b
 P 1
 b
-[./test/testcases/abc:15] test_c
+[./test/examples/abc:15] test_c
 F 1
 c
 "
-}
-
-#
-# examples test
-#
-
-assert_example () {
-example_file="$1"
-
-ts -s "$example_file" | 
-normalize_stream |
-assert_output "$(
-sed -ne '
-/^# PASS/,/^[^#]/s/# //p
-/^# FAIL/,/^[^#]/s/# //p
-' "$example_file" | 
-normalize_stream
-)
-"
-}
-
-normalize_stream () {
-sed -e '
-/^P/s/.*/PASS/
-/^F/s/.*/FAIL/
-/^$/d
-' 
-}
-
-test_ts_pass_examples () {
-assert_example test/examples/pass
-}
-
-test_ts_fail_examples () {
-assert_example test/examples/fail
 }
 
 #
@@ -574,57 +539,90 @@ assert_status 1 $?
 # testcases
 #
 
-test_ts_prevents_hang_by_stdin () {
-# cat hangs if stdin is waiting
-cat | assert_output ""
-}
+assert_example () {
+example_file="$1"
 
-test_ts_return_fail_in_setup () {
-ts -s test/testcases/return_fail_in_setup | assert_output "\
-F [test/testcases/return_fail_in_setup:12] test_return_fail_in_setup
-  in setup
-  in teardown
-
+ts -s "$example_file" | 
+normalize_stream |
+assert_output "$(
+sed -ne '
+/^# PASS/,/^[^#]/s/# //p
+/^# FAIL/,/^[^#]/s/# //p
+' "$example_file" | 
+normalize_stream
+)
 "
 }
 
-test_ts_return_fail_in_teardown () {
-ts -s test/testcases/return_fail_in_teardown | assert_output "\
-F [test/testcases/return_fail_in_teardown:12] test_return_fail_in_teardown
-  in setup
-  in test
-  in teardown
+normalize_stream () {
+sed -e '
+/^P/s/.*/PASS/
+/^F/s/.*/FAIL/
+/^$/d
+' 
+}
 
-"
+test_ts_returns_to_TS_USR_DIR_for_each_test () {
+assert_example test/examples/change_dirs
 }
 
 test_ts_exit_fail_in_setup () {
-ts -s test/testcases/exit_fail_in_setup | assert_output "\
-F [test/testcases/exit_fail_in_setup:12] test_exit_fail_in_setup
-  in setup
-  in teardown
-
-"
+assert_example test/examples/exit_fail_in_setup
 }
 
 test_ts_exit_fail_in_test () {
-ts -s test/testcases/exit_fail_in_test | assert_output "\
-F [test/testcases/exit_fail_in_test:11] test_exit_fail_in_test
-  in setup
-  in test
-  in teardown
+assert_example test/examples/exit_fail_in_test
+}
+
+test_ts_exit_fail_in_teardown () {
+assert_example test/examples/exit_fail_in_teardown
+}
+
+test_ts_exit_fail_after_untrap_EXIT () {
+assert_example test/examples/exit_fail_in_test_after_untrap
+}
+
+test_ts_fail_examples () {
+assert_example test/examples/fail
+}
+
+# test this manually to see the nesting
+test_include () {
+ts -s test/examples/include | assert_output "\
+P [test/examples/include:3] test_include
+
+P [test/examples/include -> test/examples/include a:3] test_include_a
+
+P [test/examples/include -> test/examples/include b:3] test_include_b
+
+P [test/examples/include -> test/examples/include b -> test/examples/include_c:3] test_include_c
 
 "
 }
 
-test_ts_exit_fail_in_teardown () {
-ts -s test/testcases/exit_fail_in_teardown | assert_output "\
-F [test/testcases/exit_fail_in_teardown:12] test_exit_fail_in_teardown
-  in setup
-  in test
-  in teardown
+test_ts_pass_examples () {
+assert_example test/examples/pass
+}
 
-"
+test_ts_return_fail_in_setup () {
+assert_example test/examples/return_fail_in_setup
+}
+
+test_ts_return_fail_in_teardown () {
+assert_example test/examples/return_fail_in_teardown
+}
+
+test_undeclared_variable () {
+assert_example test/examples/undeclared_variable
+}
+
+#
+# misc tests
+#
+
+test_ts_prevents_hang_by_stdin () {
+# cat hangs if stdin is waiting
+cat | assert_output ""
 }
 
 test_ts_allows_exit_trap () {
@@ -632,123 +630,23 @@ trap "exit 0" EXIT
 exit 1
 }
 
-test_ts_exit_fail_after_untrap_EXIT_in_test () {
-ts -s test/testcases/exit_fail_in_test_after_untrap | assert_output "\
-F [test/testcases/exit_fail_in_test_after_untrap:11] test_exit_fail_in_test_after_untrap
-  in setup
-  in test
-
-"
-}
-
-test_include () {
-ts -s test/testcases/include | assert_output "\
-P [test/testcases/include:3] test_include
-
-P [test/testcases/include -> test/testcases/include a:3] test_include_a
-
-P [test/testcases/include -> test/testcases/include b:3] test_include_b
-
-P [test/testcases/include -> test/testcases/include b -> test/testcases/include_c:3] test_include_c
-
-"
-}
-
-test_ts_returns_to_TS_USR_DIR_for_each_test () {
-ts -s test/testcases/change_dirs | assert_output "\
-P [test/testcases/change_dirs:3] test_a
-
-P [test/testcases/change_dirs:8] test_b
-
-"
-}
-
-test_undeclared_variable () {
-ts -s test/testcases/undeclared_variable | assert_output "\
-F [test/testcases/undeclared_variable:3] test_ts_fails_for_use_of_undeclared_variable
-
-P [test/testcases/undeclared_variable:8] test_ts_can_use_undeclared_variables_with_set_u
-
-"
-}
-
 #
 # readme test
 #
 
 test_ts_readme_example () {
-ts -s test/readme/example | assert_output "\
-P [test/readme/example:3] test_arbitrary_function
-
-P [test/readme/example:7] test_assert_status
-
-P [test/readme/example:12] test_assert_output_style_one
-
-P [test/readme/example:17] test_assert_output_style_two
-
-P [test/readme/example:21] test_assert_output_style_three
-
-"
+assert_example test/readme/example
 }
 
 test_ts_readme_troubleshoot_fail () {
-ts -s test/readme/troubleshoot_fail | assert_output "\
-F [test/readme/troubleshoot_fail:3] test_newline_is_missing_so_this_fails
-  unequal output:
-  1c1
-  < abc
-  ---
-  > abc
-  \ No newline at end of file
-
-F [test/readme/troubleshoot_fail:11] test_multiple_asserts_failing_as_intended
-  unequal output:
-  1c1
-  < 1
-  \ No newline at end of file
-  ---
-  > 0
-  \ No newline at end of file
-
-F [test/readme/troubleshoot_fail:16] test_this_now_fails_as_expected
-  unequal output:
-  1c1
-  < 1
-  \ No newline at end of file
-  ---
-  > 0
-  \ No newline at end of file
-
-F [test/readme/troubleshoot_fail:22] test_this_also_fails_as_expected
-  unequal output:
-  1c1
-  < 1
-  \ No newline at end of file
-  ---
-  > 0
-  \ No newline at end of file
-
-"
+assert_example test/readme/troubleshoot_fail
 }
 
 test_ts_readme_troubleshoot_pass () {
-ts -s test/readme/troubleshoot_pass | assert_output "\
-P [test/readme/troubleshoot_pass:3] test_newline_is_now_accounted_for
-
-P [test/readme/troubleshoot_pass:11] test_another_newline_strategy
-
-P [test/readme/troubleshoot_pass:17] test_this_has_a_bug_and_does_not_fail
-  unequal output:
-  1c1
-  < 1
-  \ No newline at end of file
-  ---
-  > 0
-  \ No newline at end of file
-
-"
+assert_example test/readme/troubleshoot_pass
 }
 
+# test this one literally to ensure the example is 100% correct
 test_ts_readme_usage () {
 ts -s test/readme/usage | assert_output "\
 P [test/readme/usage:11] test_pass

@@ -1,23 +1,28 @@
 #!/bin/sh
 
+# PASS
 test_arbitrary_function () {
   echo abc | grep -q b
 }
 
+# PASS
 test_assert_status () {
   false
   assert_status 1 $?
 }
 
+# PASS
 test_assert_output_style_one () {
   out=$(printf "hello world")
   assert_output "hello world" "$out"
 }
 
+# PASS
 test_assert_output_style_two () {
   printf "hello world" | assert_output "hello world"
 }
 
+# PASS
 test_assert_output_style_three () {
 printf "hello world\n" | assert_output "\
 hello world

@@ -1,4 +1,9 @@
 #!/bin/sh
+#
+# FAIL
+#   in setup
+#   in test
+#
 
 setup () {
   printf "in setup\n"
@@ -6,11 +11,12 @@ setup () {
 
 teardown () {
   printf "in teardown\n"
-  false
 }
 
-test_return_fail_in_teardown () {
+test_exit_fail_in_test_after_untrap () {
   printf "in test\n"
+  trap - EXIT
+  exit 1
 }
 
 . ts

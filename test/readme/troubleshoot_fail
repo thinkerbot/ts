@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# FAIL
+#   unequal output:
+#   1c1
+#   < abc
+#   ---
+#   > abc
+#   \ No newline at end of file
 test_newline_is_missing_so_this_fails () {
 out=$(echo abc)
 
@@ -8,17 +15,41 @@ abc
 " "$out"
 }
 
+# FAIL
+#   unequal output:
+#   1c1
+#   < 1
+#   \ No newline at end of file
+#   ---
+#   > 0
+#   \ No newline at end of file
 test_multiple_asserts_failing_as_intended () {
   assert_output "1" "0"
   assert_output "0" "0"
 }
 
+# FAIL
+#   unequal output:
+#   1c1
+#   < 1
+#   \ No newline at end of file
+#   ---
+#   > 0
+#   \ No newline at end of file
 test_this_now_fails_as_expected () {
   set -e
   printf "0" | assert_output "1"
   assert_output "0" "0"
 }
 
+# FAIL
+#   unequal output:
+#   1c1
+#   < 1
+#   \ No newline at end of file
+#   ---
+#   > 0
+#   \ No newline at end of file
 test_this_also_fails_as_expected () {
   printf "0" | assert_output "1" &&
   assert_output "0" "0"

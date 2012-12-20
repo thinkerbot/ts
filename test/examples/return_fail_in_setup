@@ -1,15 +1,20 @@
 #!/bin/sh
+#
+# FAIL
+#   in setup
+#   in teardown
+#
 
 setup () {
   printf "in setup\n"
+  false
 }
 
 teardown () {
   printf "in teardown\n"
-  exit 1
 }
 
-test_exit_fail_in_teardown () {
+test_return_fail_in_setup () {
   printf "in test\n"
 }
 

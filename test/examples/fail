@@ -10,19 +10,11 @@ test_return_fail () {
 false
 }
 
-#############################################################################
-# assert_status tests
-#############################################################################
-
 # FAIL
 #   expected status 0 but was 1
 test_assert_status_fail () {
 assert_status 0 1
 }
-
-#############################################################################
-# assert_output tests
-#############################################################################
 
 # FAIL
 #   unequal output:
@@ -71,10 +63,6 @@ printf "hello w0rld" | assert_output "hello world" -
 test_assert_output_with_implicit_stdin_fail () {
 printf "hello w0rld" | assert_output "hello world"
 }
-
-#############################################################################
-# combinations
-#############################################################################
 
 # FAIL
 #   expected status 0 but was 1
