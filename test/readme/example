@@ -29,4 +29,5 @@ hello world
 "
 }
 
+. test/helper
 . ts

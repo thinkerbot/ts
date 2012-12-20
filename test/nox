@@ -4,4 +4,5 @@ test_not_run () {
 false
 }
 
+. test/helper
 . ts

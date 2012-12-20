@@ -55,4 +55,5 @@ test_this_also_fails_as_expected () {
   assert_output "0" "0"
 }
 
+. test/helper
 . ts

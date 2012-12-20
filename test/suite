@@ -1,14 +1,33 @@
 #!/bin/sh
 ############################################################################
-if [ -e bin/ts ]
-then export PATH="$PWD/bin:$PATH"
-else printf "Tests must be run from ts project root\n"
-     exit 1
-fi
+. test/helper
 
 setup () {
 unset $(set | grep '^TS_' | sed -e 's/=.*//' | tr "\n" " ")
 export TS_TMP_DIR="$ts_test_dir"
+}
+
+assert_example () {
+example_file="$1"
+
+ts -s "$example_file" | 
+normalize_stream |
+assert_output "$(
+sed -ne '
+/^# PASS/,/^[^#]/s/# //p
+/^# FAIL/,/^[^#]/s/# //p
+' "$example_file" | 
+normalize_stream
+)
+"
+}
+
+normalize_stream () {
+sed -e '
+/^P/s/.*/PASS/
+/^F/s/.*/FAIL/
+/^$/d
+' 
 }
 
 #
@@ -23,7 +42,11 @@ P [test/pass:3] test_pass
 }
 
 test_ts_runs_file_in_pwd () {
-cd test
+mkdir -p "$ts_test_dir"
+sed -e '/helper/d' test/pass > "$ts_test_dir/pass"
+chmod +x "$ts_test_dir/pass"
+cd "$ts_test_dir"
+
 ts -s pass | assert_output "\
 P [./pass:3] test_pass
 
@@ -538,29 +561,6 @@ assert_status 1 $?
 #
 # testcases
 #
-
-assert_example () {
-example_file="$1"
-
-ts -s "$example_file" | 
-normalize_stream |
-assert_output "$(
-sed -ne '
-/^# PASS/,/^[^#]/s/# //p
-/^# FAIL/,/^[^#]/s/# //p
-' "$example_file" | 
-normalize_stream
-)
-"
-}
-
-normalize_stream () {
-sed -e '
-/^P/s/.*/PASS/
-/^F/s/.*/FAIL/
-/^$/d
-' 
-}
 
 test_ts_returns_to_TS_USR_DIR_for_each_test () {
 assert_example test/examples/change_dirs

@@ -5,6 +5,7 @@
 #   in test
 #   in teardown
 #
+. test/helper
 
 setup () {
   printf "in setup\n"

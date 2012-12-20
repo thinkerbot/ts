@@ -29,4 +29,5 @@ test_this_has_a_bug_and_does_not_fail () {
   assert_output "0" "0"
 }
 
+. test/helper
 . ts

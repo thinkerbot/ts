@@ -299,5 +299,5 @@ true
 test_99 () {
 true
 }
+. test/helper
 . ts
-

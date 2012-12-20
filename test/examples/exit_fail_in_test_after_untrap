@@ -4,6 +4,7 @@
 #   in setup
 #   in test
 #
+. test/helper
 
 setup () {
   printf "in setup\n"

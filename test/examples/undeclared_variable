@@ -1,4 +1,5 @@
 #!/bin/sh
+. test/helper
 
 # FAIL
 test_ts_fails_for_use_of_undeclared_variable () {

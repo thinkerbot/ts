@@ -12,4 +12,5 @@ test_pass () {          # write tests named like "test_"
   true                  # return 0 to pass.
 }
 
+. test/helper
 . ts
