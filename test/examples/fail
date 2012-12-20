@@ -1,11 +1,11 @@
 #!/bin/sh
 
-# F [...] test_exit_fail
+# FAIL
 test_exit_fail () {
 exit 8
 }
 
-# F [...] test_return_fail
+# FAIL
 test_return_fail () {
 false
 }
@@ -14,7 +14,7 @@ false
 # assert_status tests
 #############################################################################
 
-# F [...] test_assert_status_fail
+# FAIL
 #   expected status 0 but was 1
 test_assert_status_fail () {
 assert_status 0 1
@@ -24,7 +24,7 @@ assert_status 0 1
 # assert_output tests
 #############################################################################
 
-# F [...] test_assert_output_fail
+# FAIL
 #   unequal output:
 #   1c1
 #   < hello world
@@ -36,7 +36,7 @@ test_assert_output_fail () {
 assert_output "hello world" "hell0 world"
 }
 
-# F [...] test_assert_output_expected_from_stdin_fail
+# FAIL
 #   unequal output:
 #   1c1
 #   < hello world
@@ -48,7 +48,7 @@ test_assert_output_expected_from_stdin_fail () {
 printf "hello world" | assert_output - "hell0 world"
 }
 
-# F [...] test_assert_output_actual_from_stdin_fail
+# FAIL
 #   unequal output:
 #   1c1
 #   < hello world
@@ -60,7 +60,7 @@ test_assert_output_actual_from_stdin_fail () {
 printf "hello w0rld" | assert_output "hello world" -
 }
 
-# F [...] test_assert_output_with_implicit_stdin_fail
+# FAIL
 #   unequal output:
 #   1c1
 #   < hello world
@@ -76,14 +76,14 @@ printf "hello w0rld" | assert_output "hello world"
 # combinations
 #############################################################################
 
-# F [...] test_multiple_asserts_fail_early
+# FAIL
 #   expected status 0 but was 1
 test_multiple_asserts_fail_early () {
   assert_status 0 1
   assert_output "0" "0"
 }
 
-# F [...] test_multiple_asserts_fail_late
+# FAIL
 #   unequal output:
 #   1c1
 #   < 0

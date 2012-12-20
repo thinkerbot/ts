@@ -521,7 +521,10 @@ example_file="$1"
 ts -s "$example_file" | 
 normalize_stream |
 assert_output "$(
-sed -ne '/^# [PFX]/,/^[^#]/s/# //p' "$example_file" | 
+sed -ne '
+/^# PASS/,/^[^#]/s/# //p
+/^# FAIL/,/^[^#]/s/# //p
+' "$example_file" | 
 normalize_stream
 )
 "
@@ -529,7 +532,8 @@ normalize_stream
 
 normalize_stream () {
 sed -e '
-/^[PFX]/s/\[.*\]/[...]/
+/^P/s/.*/PASS/
+/^F/s/.*/FAIL/
 /^$/d
 ' 
 }
