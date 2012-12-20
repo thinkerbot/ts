@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# PASS
+#   unequal output:
+#   1c1
+#   < 1
+#   \ No newline at end of file
+#   ---
+#   > 0
+#   \ No newline at end of file
+test_this_does_not_fail () {
+  printf "0" | assert_output "1"
+  assert_output "0" "0"
+}
+
+# FAIL
+#   unequal output:
+#   1c1
+#   < 1
+#   \ No newline at end of file
+#   ---
+#   > 0
+#   \ No newline at end of file
+test_fix_by_setting_e () {
+  set -e
+  printf "0" | assert_output "1"
+  assert_output "0" "0"
+}
+
+. test/helper
+. ts

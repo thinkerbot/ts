@@ -654,4 +654,12 @@ P [test/readme/usage:11] test_pass
 "
 }
 
+#
+# edgecase test
+#
+
+test_edgecase_bash_pipeline_fail_without_e () {
+assert_example test/edgecase/bash_pipeline_fail_without_e
+}
+
 . ts
