@@ -128,8 +128,8 @@ p
 ts_list () {
   if [ 0 -ne $# ]
   then
-    grep -onE "^[[:space:]]*(${ts_test_pattern:-test_\w+})[[:space:]]+\(\)" /dev/null "$@" |
-    sed -e 's/^\([^:]*\):\([^:]*\):\([^ ]*\) .*/\3 \1:\2/'
+    grep -onE "^[[:space:]]*(${ts_test_pattern:-test_\w+})[[:space:]]*\(\)" /dev/null "$@" |
+    sed -e 's/^\([^:]*\):\([0-9]\{1,\}\):[[:space:]]*\([^ (]\{1,\}\).*/\3 \1:\2/'
 
     if [ true = "$TS_TESTS_IN_SOURCE" ]
     then

@@ -612,6 +612,10 @@ test_ts_return_fail_in_teardown () {
 assert_example test/examples/return_fail_in_teardown
 }
 
+test_ts_test_detection () {
+assert_example test/examples/test_detection
+}
+
 test_undeclared_variable () {
 assert_example test/examples/undeclared_variable
 }
