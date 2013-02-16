@@ -108,37 +108,19 @@ ts_pattern () {
   fi
 }
 
-# Prints the filename for 'source' and '.' in a given test file.  Ignores
-# leading whitespace, and removes trailing comments.
-ts_sources () {
-  sed -ne '
-s/^[[:space:]]*\.[[:space:]]/source /
-/^[[:space:]]*source[[:space:]]/!d
-
-s/^[[:space:]]*source[[:space:]]//
-/^ts[[:space:]]*$/d
-s/#.*//
-p
-' "$1"
-}
-
 # Prints all functions in a test file starting with 'test_' or the pattern
 # given by ts_test_pattern.  Recurses into sourced files if TS_TESTS_IN_SOURCE
 # is set to true.
 ts_list () {
-  if [ 0 -ne $# ]
-  then
-    grep -onE "^[[:space:]]*(${ts_test_pattern:-test_\w+})[[:space:]]*\(\)" /dev/null "$@" |
-    sed -e 's/^\([^:]*\):\([0-9]\{1,\}\):[[:space:]]*\([^ (]\{1,\}\).*/\3 \1:\2/'
+  ts_file="$1"
+  shift 1
 
-    if [ true = "$TS_TESTS_IN_SOURCE" ]
-    then
-      for ts_source_file in "$@"
-      do
-        eval ts_list $(ts_sources "$ts_source_file") |
-        awk -v file="$ts_source_file" '{ $2=file " -> " $2; print }'
-      done
-    fi
+  if [ $# -eq 0 ]
+  then
+    grep -onE "^[[:space:]]*(${ts_test_pattern:-test_\w+})[[:space:]]*\(\)" /dev/null "$ts_file" |
+    sed -e 's/^\([^:]*\):\([0-9]\{1,\}\):[[:space:]]*\([^ (]\{1,\}\).*/\3 \1:\2/'
+  else
+    ts_list "$@" | awk -v file="$ts_file" '{ $2=file " -> " $2; print }'
   fi
 }
 
@@ -301,7 +283,14 @@ ts_run_test_suite () {
   ts_test_case="${ts_test_case%\.*}"
   ts_test_pattern="$(ts_pattern "$@")"
 
-  ts_list "$ts_test_file" |
+  TS_SOURCE_FILES="$ts_test_file\
+$TS_SOURCE_FILES
+"
+
+  printf "%s" "$TS_SOURCE_FILES" |
+  while read line
+  do (export IFS=:; ts_list $line)
+  done |
   while read ts_test_name ts_test_desc
   do
     ts_test_dir="$TS_TMP_DIR/$ts_test_case/$ts_test_name"

@@ -1,11 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 . test/helper
 test_include () {
 true
 }
 
-TS_TESTS_IN_SOURCE=true
-  . "test/examples/include a"      # an indented source with comments
-source test/examples/include\ b
-. test/helper
+include "test/examples/include a"
+include test/examples/include\ b
 . ts

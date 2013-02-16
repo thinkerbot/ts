@@ -7,3 +7,13 @@ else
   printf "Tests must be run from ts project root\n"
   exit 1
 fi
+
+include () {
+  ts_prev="${ts_curr:-$0}"
+  ts_curr="$ts_prev:$1"
+  TS_SOURCE_FILES="${TS_SOURCE_FILES:-}
+${ts_curr}
+"
+  . "$@"
+  ts_curr="$ts_prev"
+}
