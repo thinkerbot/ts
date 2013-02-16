@@ -64,7 +64,7 @@ do
 
   if [ $OPTIND -le $# ]
   then
-    ts_args="$ts_args \${$OPTIND}" 
+    ts_args="$ts_args \"\${$OPTIND}\"" 
     OPTIND=$(($OPTIND + 1))
   fi
 done
@@ -289,30 +289,17 @@ ts_run_test () {
 
 ts_run_test_suite () {
   ts_test_file="$0"
-
-  if [ "." = "$1" ]
-  then
-    shift 1
-    ts_prev="${ts_curr:-$0}"
-    ts_curr="$ts_prev:$*"
-    ts_source_files="${ts_source_files:-$0}
-$ts_curr
-"
-    . "$*"
-    ts_curr="$ts_prev"
-  else
-
   ts_test_case="${ts_test_file##*/}"
   ts_test_case="${ts_test_case%\.*}"
   ts_test_pattern="$(ts_pattern "$@")"
-  ts_source_files="${ts_source_files:-$0}"
+  ts_test_files="${ts_test_files:-$ts_test_file}"
 
-  printf "%s\n" "$ts_source_files" |
+  printf "%s\n" "$ts_test_files" |
   sed -e '/^[[:space:]]*$/d' |
-  while read ts_source_file
+  while read ts_test_file
   do
     IFS=:
-    ts_list $ts_source_file
+    ts_list $ts_test_file
   done |
   while read ts_test_name ts_test_desc
   do
@@ -336,7 +323,20 @@ $ts_curr
 
     printf "%s %d\n%s\n" "$ts_status" "${#ts_stdout}" "$ts_stdout"
   done | ts_report
-fi
+}
+
+ts_src_test_files () {
+  shift 1
+  for ts_test_file in "$@"
+  do
+    ts_prev="${ts_curr:-$0}"
+    ts_curr="$ts_prev:$ts_test_file"
+    ts_test_files="${ts_test_files:-$0}
+$ts_curr
+"
+    . "$ts_test_file"
+    ts_curr="$ts_prev"
+  done
 }
 
 ts_run_test_files () {
@@ -428,5 +428,7 @@ assert_output () {
 # Run the test files if this script is executed directly.
 if [ ts = "$ts_progname" ]
 then ts_run_test_files "$@"
+elif [ "." = "$1" ]
+then ts_src_test_files "$@"
 else ts_run_test_suite "$@"
 fi
