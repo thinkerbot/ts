@@ -39,7 +39,7 @@ options:
 version: %s - %s
 " "$ts_argstr" "$ts_version" "$ts_url"
 }
-
+OPTIND=0
 ts_args=""
 while [ $OPTIND -le $# ]
 do
@@ -106,6 +106,16 @@ ts_pattern () {
     then printf "|%s" "$@"
     fi
   fi
+}
+
+ts_include () {
+  ts_prev="${ts_curr:-$0}"
+  ts_curr="$ts_prev:$1"
+  ts_source_files="${ts_source_files:-$0}
+$ts_curr
+"
+  . "$@"
+  ts_curr="$ts_prev"
 }
 
 # Prints all functions in a test file starting with 'test_' or the pattern
@@ -279,17 +289,30 @@ ts_run_test () {
 
 ts_run_test_suite () {
   ts_test_file="$0"
+
+  if [ "." = "$1" ]
+  then
+    shift 1
+    ts_prev="${ts_curr:-$0}"
+    ts_curr="$ts_prev:$*"
+    ts_source_files="${ts_source_files:-$0}
+$ts_curr
+"
+    . "$*"
+    ts_curr="$ts_prev"
+  else
+
   ts_test_case="${ts_test_file##*/}"
   ts_test_case="${ts_test_case%\.*}"
   ts_test_pattern="$(ts_pattern "$@")"
+  ts_source_files="${ts_source_files:-$0}"
 
-  TS_SOURCE_FILES="$ts_test_file\
-$TS_SOURCE_FILES
-"
-
-  printf "%s" "$TS_SOURCE_FILES" |
-  while read line
-  do (export IFS=:; ts_list $line)
+  printf "%s\n" "$ts_source_files" |
+  sed -e '/^[[:space:]]*$/d' |
+  while read ts_source_file
+  do
+    IFS=:
+    ts_list $ts_source_file
   done |
   while read ts_test_name ts_test_desc
   do
@@ -313,6 +336,7 @@ $TS_SOURCE_FILES
 
     printf "%s %d\n%s\n" "$ts_status" "${#ts_stdout}" "$ts_stdout"
   done | ts_report
+fi
 }
 
 ts_run_test_files () {

@@ -4,6 +4,6 @@ test_include () {
 true
 }
 
-include "test/examples/include a"
-include test/examples/include\ b
+. ts . "test/examples/include a"
+. ts . test/examples/include\ b
 . ts
