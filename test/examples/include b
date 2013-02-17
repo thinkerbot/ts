@@ -4,4 +4,4 @@ test_include_b () {
 true
 }
 
-. test/examples/include_c
+. ts . test/examples/include_c

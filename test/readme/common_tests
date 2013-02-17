@@ -1,0 +1,7 @@
+test_it_should_pick_lines_with_abc () {
+printf "%s\n" "1 abc" "2 xyz" "3 abc" |
+${picker} | assert_output "\
+1 abc
+3 abc
+"
+}

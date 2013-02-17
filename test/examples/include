@@ -4,8 +4,6 @@ test_include () {
 true
 }
 
-TS_TESTS_IN_SOURCE=true
-  . "test/examples/include a"      # an indented source with comments
-source test/examples/include\ b
-. test/helper
+. ts . "test/examples/include a"
+. ts . test/examples/include\ b
 . ts

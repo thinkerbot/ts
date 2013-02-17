@@ -642,6 +642,16 @@ test_ts_readme_example () {
 assert_example test/readme/example
 }
 
+test_ts_readme_common_tests () {
+cd test/readme
+ts -s test_grep_abc test_sed_abc | assert_output "\
+P [./test_grep_abc -> common_tests:1] test_it_should_pick_lines_with_abc
+
+P [./test_sed_abc -> common_tests:1] test_it_should_pick_lines_with_abc
+
+"
+}
+
 test_ts_readme_troubleshoot_fail () {
 assert_example test/readme/troubleshoot_fail
 }

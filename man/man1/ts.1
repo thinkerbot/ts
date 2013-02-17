@@ -29,11 +29,11 @@ The \fBts\fR command expects script files that define test cases\. Test scripts 
 #!/bin/sh               # pick a shell, any (POSIX) shell
 
 setup () {              # optional setup
-  mkdir \-p "$test_dir"
+  mkdir \-p "$ts_test_dir"
 }
 
 teardown () {           # optional teardown
-  rm \-r "$test_dir"
+  rm \-r "$ts_test_dir"
 }
 
 test_true () {          # write tests named like "test_"
@@ -143,23 +143,23 @@ Using assert_output in a pipeline is often convenient, but be careful you don\'t
 Variables provided by \fBts\fR at runtime\. Feel free to use any of them but treat them as read\-only\.
 .
 .TP
-\fBtest_file\fR
+\fBts_test_file\fR
 The name of the current test script being run\.
 .
 .TP
-\fBtest_case\fR
+\fBts_test_case\fR
 The basename of the test file, minus the extname\.
 .
 .TP
-\fBtest_lineno\fR
+\fBts_test_lineno\fR
 The line number where the current test is defined\.
 .
 .TP
-\fBtest_name\fR
+\fBts_test_name\fR
 The name of the current test\.
 .
 .TP
-\fBtest_dir\fR
+\fBts_test_dir\fR
 The test\-specific directory\.
 .
 .IP
@@ -190,10 +190,6 @@ Set to "true" to enable debug mode\.
 .TP
 \fBTS_REMOVE_TMP_DIR\fR (false)
 Set to "true" to remove tmp dir\.
-.
-.TP
-\fBTS_TESTS_IN_SOURCE\fR (false)
-Set to "true" to look in source files (ie \fB\. file\fR or \fBsource file\fR) for tests\. Typically set per\-file before the source lines\.
 .
 .P
 In addition these variables adjust the color output\.
@@ -279,6 +275,52 @@ Run like:
 
 chmod +x example
 ts example
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Shared examples:
+.
+.IP "" 4
+.
+.nf
+
+[\./common_tests]
+test_it_should_pick_lines_with_abc () {
+printf "%s\en" "1 abc" "2 xyz" "3 abc" |
+${picker} | assert_output "\e
+1 abc
+3 abc
+"
+}
+
+[\./test_grep_abc]
+#!/bin/sh
+picker="grep abc"
+\[char46] ts \. common_tests
+\[char46] ts
+
+[\./test_sed_abc]
+#!/bin/sh
+picker="sed \-ne /abc/p"
+\[char46] ts \. common_tests
+\[char46] ts
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Run like:
+.
+.IP "" 4
+.
+.nf
+
+chmod +x test_grep_abc test_sed_abc
+ts test_grep_abc test_sed_abc
 .
 .fi
 .
@@ -427,44 +469,6 @@ test_this_also_fails_as_expected () {
 .fi
 .
 .IP "" 0
-.
-.P
-\fBWeirdness with TS_TESTS_IN_SOURCE\fR
-.
-.P
-Looking for tests in source\'d files does not work if you add additional arguments after the file name\. This undesirable limitation occurs because the lookup algorithm can\'t distinguish when a file with a space ends and the arguments begin\.
-.
-.P
-This would cause \fBts\fR to look for tests in these files: "file one", "a", "b", "c" (and likely show up as error noise in the output)\.
-.
-.IP "" 4
-.
-.nf
-
-TS_TESTS_IN_SOURCE=true
-source "file one" a b c
-.
-.fi
-.
-.IP "" 0
-.
-.P
-If you must do something like this, then try using set with source:
-.
-.IP "" 4
-.
-.nf
-
-TS_TESTS_IN_SOURCE=true
-set a b c
-source "file one"
-.
-.fi
-.
-.IP "" 0
-.
-.P
-Incidentally this weirdness is why TS_TESTS_IN_SOURCE is not enabled by default \-\- advanced users knowing this limitation can easily opt\-in to use it\. Also note that shells typically do not check for circular sources and neither does \fBts\fR, so check that for a hanging script\.
 .
 .P
 \fBTeardown isn\'t running\fR

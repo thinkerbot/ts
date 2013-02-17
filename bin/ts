@@ -106,37 +106,29 @@ ts_pattern () {
   fi
 }
 
-# Prints the filename for 'source' and '.' in a given test file.  Ignores
-# leading whitespace, and removes trailing comments.
-ts_sources () {
-  sed -ne '
-s/^[[:space:]]*\.[[:space:]]/source /
-/^[[:space:]]*source[[:space:]]/!d
-
-s/^[[:space:]]*source[[:space:]]//
-/^ts[[:space:]]*$/d
-s/#.*//
-p
-' "$1"
+ts_include () {
+  ts_prev="${ts_curr:-$0}"
+  ts_curr="$ts_prev:$1"
+  ts_source_files="${ts_source_files:-$0}
+$ts_curr
+"
+  . "$@"
+  ts_curr="$ts_prev"
 }
 
 # Prints all functions in a test file starting with 'test_' or the pattern
 # given by ts_test_pattern.  Recurses into sourced files if TS_TESTS_IN_SOURCE
 # is set to true.
 ts_list () {
-  if [ 0 -ne $# ]
-  then
-    grep -onE "^[[:space:]]*(${ts_test_pattern:-test_\w+})[[:space:]]*\(\)" /dev/null "$@" |
-    sed -e 's/^\([^:]*\):\([0-9]\{1,\}\):[[:space:]]*\([^ (]\{1,\}\).*/\3 \1:\2/'
+  ts_file="$1"
+  shift 1
 
-    if [ true = "$TS_TESTS_IN_SOURCE" ]
-    then
-      for ts_source_file in "$@"
-      do
-        eval ts_list $(ts_sources "$ts_source_file") |
-        awk -v file="$ts_source_file" '{ $2=file " -> " $2; print }'
-      done
-    fi
+  if [ $# -eq 0 ]
+  then
+    grep -onE "^[[:space:]]*(${ts_test_pattern:-test_\w+})[[:space:]]*\(\)" /dev/null "$ts_file" |
+    sed -e 's/^\([^:]*\):\([0-9]\{1,\}\):[[:space:]]*\([^ (]\{1,\}\).*/\3 \1:\2/'
+  else
+    ts_list "$@" | awk -v file="$ts_file" '{ $2=file " -> " $2; print }'
   fi
 }
 
@@ -298,8 +290,15 @@ ts_run_test_suite () {
   ts_test_case="${ts_test_file##*/}"
   ts_test_case="${ts_test_case%\.*}"
   ts_test_pattern="$(ts_pattern "$@")"
+  ts_test_files="${ts_test_files:-$ts_test_file}"
 
-  ts_list "$ts_test_file" |
+  printf "%s\n" "$ts_test_files" |
+  sed -e '/^[[:space:]]*$/d' |
+  while read ts_test_file
+  do
+    IFS=:
+    ts_list $ts_test_file
+  done |
   while read ts_test_name ts_test_desc
   do
     ts_test_dir="$TS_TMP_DIR/$ts_test_case/$ts_test_name"
@@ -322,6 +321,20 @@ ts_run_test_suite () {
 
     printf "%s %d\n%s\n" "$ts_status" "${#ts_stdout}" "$ts_stdout"
   done | ts_report
+}
+
+ts_src_test_files () {
+  shift 1
+  for ts_test_file in "$@"
+  do
+    ts_prev="${ts_curr:-$0}"
+    ts_curr="$ts_prev:$ts_test_file"
+    ts_test_files="${ts_test_files:-$0}
+$ts_curr
+"
+    . "$ts_test_file"
+    ts_curr="$ts_prev"
+  done
 }
 
 ts_run_test_files () {
@@ -413,5 +426,7 @@ assert_output () {
 # Run the test files if this script is executed directly.
 if [ ts = "$ts_progname" ]
 then ts_run_test_files "$@"
+elif [ "." = "$1" ]
+then ts_src_test_files "$@"
 else ts_run_test_suite "$@"
 fi

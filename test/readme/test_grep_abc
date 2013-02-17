@@ -1,0 +1,4 @@
+#!/bin/sh
+picker="grep abc"
+. ts . common_tests
+. ts
