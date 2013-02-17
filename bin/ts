@@ -40,11 +40,12 @@ version: %s - %s
 " "$ts_argstr" "$ts_version" "$ts_url"
 }
 
+OPTIND=1
 ts_args=""
 while [ $OPTIND -le $# ]
 do
-  while getopts "acdhmrst:vw" ts_option
-  do
+  if getopts "acdhmrst:vw" ts_option
+  then
     case $ts_option in
       a  )  TS_FILTER=false ;;
       c  )  TS_COLOR=true ;;
@@ -60,11 +61,8 @@ do
       \? )  ts_usage | head -n 1
             exit 2 ;;
     esac
-  done
-
-  if [ $OPTIND -le $# ]
-  then
-    ts_args="$ts_args \${$OPTIND}" 
+  else
+    ts_args="$ts_args \"\${$OPTIND}\"" 
     OPTIND=$(($OPTIND + 1))
   fi
 done
