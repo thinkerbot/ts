@@ -1,0 +1,41 @@
+#!/bin/sh
+# Determine the realpath of a file using only POSIX command line utils, when a
+# better utility (like `realpath`) does not exist.  This helper uses recursion
+# to resolve symlinks, and chains arguments to track which symlinks have been
+# visited in order to detect circular symlinks.
+#
+# * prints the realpath to stdout if successful
+# * exits 1 if the file does not exist (broken symlinks included)
+# * exits 2 for circular symlink
+#
+# Note this can produce incorrect results if a visited filename includes ' -> '.
+
+dirname="${1%/*}"
+basename="${1##*/}"
+
+if
+  if [ x"$dirname" != x"$1" ]
+  then cd "$dirname"
+  fi &&
+  link_list="$(ls -l "$basename" 2>/dev/null)"
+then
+  # symlink will follow ' -> ' in ls -l, if present
+  link_target="${link_list#* -> }"
+
+  if [ "x$link_target" != x"$link_list" ]
+  then
+    # check for circular symlinks
+    for visited in "$@"
+    do
+      if [ x"$visited" = x"$link_target" ]
+      then exit 2
+      fi
+    done
+    realpath "$link_target" "$@"
+  else
+    # use -P to expand symlinks in pwd path
+    printf "%s/%s\n" "$(pwd -P)" "$basename"
+  fi
+else
+  exit 1
+fi

@@ -1,0 +1,100 @@
+#!/bin/sh
+. test/helper
+export PATH="$PWD/test/utils/bin:$PATH"
+
+setup () {
+mkdir -p "$ts_test_dir/dir"
+touch "$ts_test_dir/dir/file"
+current_dir="$PWD"
+}
+
+assert_realpath () {
+realpath "$1" | assert_output "\
+$ts_test_dir/dir/file
+"
+}
+
+assert_realpath_dir () {
+realpath "$1" | assert_output "\
+$ts_test_dir/dir
+"
+}
+
+###
+
+test_realpath_returns_absolute_path () {
+assert_realpath "$ts_test_dir/dir/file"
+}
+
+test_realpath_expands_absolute_path_to_dir () {
+assert_realpath_dir "$ts_test_dir/dir"
+}
+
+test_realpath_expands_relative_path () {
+cd "$ts_test_dir/dir"
+assert_realpath "file"
+}
+
+test_realpath_expands_relative_path_with_dots () {
+cd "$ts_test_dir"
+assert_realpath "./dir/../dir/file"
+}
+
+test_realpath_expands_relative_path_to_dir () {
+cd "$ts_test_dir"
+assert_realpath_dir "dir"
+}
+
+test_realpath_expands_absolute_symlink () {
+ln -s "$ts_test_dir/dir/file" "$ts_test_dir/dir/symlink"
+assert_realpath "$ts_test_dir/dir/symlink"
+}
+
+test_realpath_expands_relative_symlink () {
+ln -s file "$ts_test_dir/dir/symlink"
+assert_realpath "$ts_test_dir/dir/symlink"
+}
+
+test_realpath_expands_relative_symlink_with_dots () {
+mkdir -p "$ts_test_dir/dir_b"
+ln -s ../dir/./file "$ts_test_dir/dir_b/symlink"
+assert_realpath "$ts_test_dir/dir_b/symlink"
+}
+
+test_realpath_expands_chained_symlink () {
+ln -s file "$ts_test_dir/dir/symlink_a"
+ln -s symlink_a "$ts_test_dir/dir/symlink_b"
+ln -s ../dir/./symlink_b "$ts_test_dir/dir/symlink_c"
+assert_realpath "$ts_test_dir/dir/symlink_c"
+}
+
+test_realpath_expands_symlink_dir () {
+ln -s dir "$ts_test_dir/dir_b"
+assert_realpath_dir "$ts_test_dir/dir_b"
+}
+
+test_realpath_expands_symlink_dir_in_path () {
+ln -s dir "$ts_test_dir/dir_b"
+assert_realpath "$ts_test_dir/dir_b/file"
+}
+
+test_realpath_fails_if_file_does_not_exist () {
+! realpath "$ts_test_dir/missing"
+}
+
+test_realpath_fails_if_dir_does_not_exist () {
+! realpath "$ts_test_dir/missing/file"
+}
+
+test_realpath_fails_for_broken_symlink () {
+ln -s missing "$ts_test_dir/symlink"
+! realpath "$ts_test_dir/symlink"
+}
+
+test_realpath_fails_for_circular_symlink () {
+ln -s b "$ts_test_dir/a"
+ln -s a "$ts_test_dir/b"
+! realpath "$ts_test_dir/a"
+}
+
+. ts

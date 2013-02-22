@@ -668,4 +668,12 @@ P [test/readme/usage:11] test_pass
 "
 }
 
+#
+# utils test
+#
+
+test_utils () {
+find test/utils -type f | xargs ts -s
+}
+
 . ts
