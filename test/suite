@@ -110,6 +110,19 @@ F [test/examples/abc:15] test_c
 "
 }
 
+test_ts_preserves_whitespace_identified_in_raw_inputs () {
+printf "%s" "\
+[test/examples/abc:3] test_a
+P 3
+ 	 
+
+" | ts -s - | assert_output "\
+P [test/examples/abc:3] test_a
+   	 
+
+"
+}
+
 test_ts_reports_non_executable_files () {
 ts -s test/nox | assert_output "\
 X [test/nox] not executable
