@@ -44,29 +44,36 @@ OPTIND=1
 ts_args=""
 while [ $OPTIND -le $# ]
 do
+  ts_optcur="$OPTIND"
   if getopts "acdhmrst:vw" ts_option
   then
-    case $ts_option in
-      a  )  TS_FILTER=false ;;
-      c  )  TS_COLOR=true ;;
-      d  )  TS_DEBUG=true; TS_MODE=verbose ;;
-      h  )  ts_usage
-            exit 0 ;;
-      m  )  TS_REPORT=monitor ;;
-      r  )  TS_REMOVE_TMP_DIR=true ;;
-      s  )  TS_REPORT=stream; TS_FILTER=false ;;
-      t  )  TS_TMP_DIR=$OPTARG ;;
-      v  )  TS_MODE=verbose ;;
-      w  )  TS_REPORT=raw ;;
-      \? )  ts_usage | head -n 1
-            exit 2 ;;
+    case "$ts_option" in
+      (a) TS_FILTER=false ;;
+      (c) TS_COLOR=true ;;
+      (d) TS_DEBUG=true; TS_MODE=verbose ;;
+      (h) ts_usage
+          exit 0 ;;
+      (m) TS_REPORT=monitor ;;
+      (r) TS_REMOVE_TMP_DIR=true ;;
+      (s) TS_REPORT=stream; TS_FILTER=false ;;
+      (t) TS_TMP_DIR=$OPTARG ;;
+      (v) TS_MODE=verbose ;;
+      (w) TS_REPORT=raw ;;
+      (*) ts_usage | head -n 1
+          exit 2 ;;
     esac
   else
-    ts_args="$ts_args \"\${$OPTIND}\"" 
-    OPTIND=$(($OPTIND + 1))
+    if [ $OPTIND -gt $ts_optcur ]
+    then ts_optcur="$#"
+    fi
+    while [ $OPTIND -le $ts_optcur ]
+    do
+      ts_args="$ts_args \"\${$OPTIND}\""
+      OPTIND=$(($OPTIND + 1))
+    done
   fi
 done
-eval set -- "$ts_args"
+eval set -- $ts_args
 
 TS_USR_DIR="${TS_USR_DIR:-$(pwd)}"
 TS_TMP_DIR="${TS_TMP_DIR:-$TS_USR_DIR/tmp}"
