@@ -114,6 +114,13 @@ y.z z.a.b.c.
 "
 }
 
+# PASS
+test_options_with_sensitive_values () {
+parse_options a -y 'z;z' b c | assert_output "\
+y.z;z.a.b.c.
+"
+}
+
 #
 # special case
 #
