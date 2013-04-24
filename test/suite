@@ -608,6 +608,10 @@ test_ts_fail_examples () {
 assert_example test/examples/fail
 }
 
+test_ts_options () {
+assert_example test/examples/options
+}
+
 # test this manually to see the nesting
 test_include () {
 ts -s test/examples/include | assert_output "\

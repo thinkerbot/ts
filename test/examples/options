@@ -1,0 +1,143 @@
+#!/bin/sh
+. test/helper
+
+parse_options () {
+OPTIND=1
+args=""
+while [ $OPTIND -le $# ]
+do
+  OPTCUR="$OPTIND"
+  if getopts "xy:" OPTNAME
+  then
+    case "$OPTNAME" in
+      (x) printf "x." ;;
+      (y) printf "y.%s." "$OPTARG" ;;
+      (*) exit 1
+    esac
+  else
+    if [ $OPTIND -gt $OPTCUR ]
+    then OPTCUR="$#"
+    fi
+    while [ $OPTIND -le $OPTCUR ]
+    do
+      args="$args \"\${$OPTIND}\""
+      OPTIND=$(($OPTIND + 1))
+    done
+  fi
+done
+eval set -- $args
+unset OPTNAME OPTCUR
+
+printf "%s." "$@"
+printf "\n"
+}
+
+#
+# argument handling
+#
+
+# PASS
+test_options_without_options () {
+parse_options a b c | assert_output "\
+a.b.c.
+"
+}
+
+# PASS
+test_options_with_args_with_sensitive_chars () {
+parse_options "a b c" "x;y;z" | assert_output "\
+a b c.x;y;z.
+"
+}
+
+#
+# option location
+#
+
+# PASS
+test_options_with_leading_options () {
+parse_options -x -y z a b c | assert_output "\
+x.y.z.a.b.c.
+"
+}
+
+# PASS
+test_options_with_leading_options_yx () {
+parse_options -y z -x a b c | assert_output "\
+y.z.x.a.b.c.
+"
+}
+
+# PASS
+test_options_with_trailing_options () {
+parse_options a b c -x -y z | assert_output "\
+x.y.z.a.b.c.
+"
+}
+
+# PASS
+test_options_with_trailing_options_yx () {
+parse_options a b c -y z -x | assert_output "\
+y.z.x.a.b.c.
+"
+}
+
+# PASS
+test_options_with_inside_options () {
+parse_options a -x b -y z c| assert_output "\
+x.y.z.a.b.c.
+"
+}
+
+# PASS
+test_options_with_inside_options_yx () {
+parse_options a -y z b -x c | assert_output "\
+y.z.x.a.b.c.
+"
+}
+
+#
+# option values
+#
+
+# PASS
+test_options_with_option_values () {
+parse_options a -y -z b c | assert_output "\
+y.-z.a.b.c.
+"
+}
+
+# PASS
+test_options_with_whitespace_values () {
+parse_options a -y 'z z' b c | assert_output "\
+y.z z.a.b.c.
+"
+}
+
+#
+# special case
+#
+
+# PASS
+test_options_with_multiple_calls () {
+parse_options a b c >/dev/null
+parse_options d e f | assert_output "\
+d.e.f.
+"
+}
+
+# PASS
+test_options_with_option_break () {
+parse_options a -x b -- c -y z | assert_output "\
+x.a.b.c.-y.z.
+"
+}
+
+# PASS
+test_options_with_option_break_yx () {
+parse_options a -y z b -- c -x | assert_output "\
+y.z.a.b.c.-x.
+"
+}
+
+. ts
