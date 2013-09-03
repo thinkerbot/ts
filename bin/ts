@@ -394,13 +394,13 @@ assert_status () {
   ts_expected=$1; ts_actual=$2
 
   if ! [ $ts_actual -eq $ts_expected ]
-  then 
+  then
     printf "expected status %s but was %s\n" "$ts_expected" "$ts_actual"
     exit 1
   fi
 }
 
-# Flunks unless the variables $1 (expected) and $2 (actual) are the same. 
+# Flunks unless the variables $1 (expected) and $2 (actual) are the same.
 # Reads from stdin for '-'.  '-' is assumed if $2 is not specified.
 assert_output () {
   ts_expected="$1"; ts_actual="${2:--}"
@@ -423,7 +423,9 @@ assert_output () {
     printf "%s" "$ts_expected" > "$ts_test_dir.e.txt"
     printf "%s" "$ts_actual"   > "$ts_test_dir.a.txt"
     printf "unequal output:\n"
-    diff "$ts_test_dir.e.txt" "$ts_test_dir.a.txt"
+
+    ${TS_DIFF:-diff} "$ts_test_dir.e.txt" "$ts_test_dir.a.txt"
+
     exit 1
   fi
 }
