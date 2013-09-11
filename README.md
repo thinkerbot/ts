@@ -139,8 +139,8 @@ treat them as read-only.
 
 ## ENVIRONMENT
 
-Default **ts** behavior can be set via environment variables. Options provided
-to `ts` override these defaults.
+The behavior of **ts** can be modified via environment variables. Many of
+these may be set using options.
 
 * `TS_USR_DIR` (pwd):
   The user dir. Used to determine the ts tmp dir.
@@ -150,6 +150,9 @@ to `ts` override these defaults.
 
 * `TS_COLOR` (false):
   Set to "true" to enable color.
+
+* `TS_DIFF` (diff):
+  The diff command used by assert_output.
 
 * `TS_DEBUG` (false):
   Set to "true" to enable debug mode.
@@ -352,6 +355,12 @@ To generate the manpages:
     make manpages
 
 Report bugs here: http://github.com/thinkerbot/ts/issues.
+
+## CONTRIBUTORS
+
+Thanks for the help!
+
+* Angelo Lakra (github.com/alakra)
 
 ## COPYRIGHT
 

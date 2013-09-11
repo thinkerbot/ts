@@ -557,6 +557,23 @@ c
 }
 
 #
+# TS_DIFF test
+#
+
+test_ts_uses_TS_DIFF_to_diff_outputs () {
+export TS_DIFF="diff -e"
+./test/examples/fail test_assert_output_fail | assert_output "\
+[./test/examples/fail:28] test_assert_output_fail
+  unequal output:
+  1c
+  hell0 world
+  .
+F
+
+"
+}
+
+#
 # exit status test
 #
 
