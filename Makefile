@@ -1,6 +1,6 @@
 # Builds the ts man pages.
 manpages:
-	. ts; make man/man1/ts.1 VERSION=$$ts_version DATE=$$ts_release_date
+	. ./bin/ts; make man/man1/ts.1 VERSION=$$ts_version DATE=$$ts_release_date
 
 ronn/bin/ronn:
 	if ! [ -d ronn ]; then git clone git://github.com/thinkerbot/ronn.git; fi
