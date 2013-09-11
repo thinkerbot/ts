@@ -63,7 +63,7 @@ F [test/fail:3] test_fail
 }
 
 test_ts_runs_tests_with_same_name_in_different_files () {
-ts test/examples/xyz_{one,two} -s | assert_output "\
+ts test/examples/xyz_one test/examples/xyz_two -s | assert_output "\
 P [test/examples/xyz_one:3] test_xyz
 
 F [test/examples/xyz_two:3] test_xyz
