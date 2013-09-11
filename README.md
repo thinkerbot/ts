@@ -356,6 +356,12 @@ To generate the manpages:
 
 Report bugs here: http://github.com/thinkerbot/ts/issues.
 
+## CONTRIBUTORS
+
+Thanks for the help!
+
+* Angelo Lakra (github.com/alakra)
+
 ## COPYRIGHT
 
 TS is Copyright (C) 2011 Simon Chiang <http://github.com/thinkerbot>
