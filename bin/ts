@@ -90,6 +90,8 @@ TS_FAIL="${TS_FAIL:-[1;31m}"
 TS_NORM="${TS_NORM:-[0m}"
 TS_NOEX="${TS_NOEX:-[1;33m}"
 
+TS_DIFF="${TS_DIFF:-diff}"
+
 mkdir -p "$TS_TMP_DIR"
 ts_status_file="$TS_TMP_DIR/status"
 ts_monitor_file="$TS_TMP_DIR/monitor"
@@ -424,7 +426,7 @@ assert_output () {
     printf "%s" "$ts_actual"   > "$ts_test_dir.a.txt"
     printf "unequal output:\n"
 
-    ${TS_DIFF:-diff} "$ts_test_dir.e.txt" "$ts_test_dir.a.txt"
+    $TS_DIFF "$ts_test_dir.e.txt" "$ts_test_dir.a.txt"
 
     exit 1
   fi
