@@ -169,7 +169,7 @@ The test dir is \'tmp_dir/test_case\'\. \fBts\fR does not create this directory 
 \fBts\fR reserves all variables starting with \'ts_\' for internal use\.
 .
 .SH "ENVIRONMENT"
-Default \fBts\fR behavior can be set via environment variables\. Options provided to \fBts\fR override these defaults\.
+The behavior of \fBts\fR can be modified via environment variables\. Many of these may be set using options\.
 .
 .TP
 \fBTS_USR_DIR\fR (pwd)
@@ -182,6 +182,10 @@ The base tmp dir\.
 .TP
 \fBTS_COLOR\fR (false)
 Set to "true" to enable color\.
+.
+.TP
+\fBTS_DIFF\fR (diff)
+The diff command used by assert_output\.
 .
 .TP
 \fBTS_DEBUG\fR (false)
