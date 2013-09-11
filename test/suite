@@ -681,6 +681,10 @@ exit 1
 # readme test
 #
 
+test_ts_background_job_example () {
+assert_example test/readme/background
+}
+
 test_ts_readme_example () {
 assert_example test/readme/example
 }

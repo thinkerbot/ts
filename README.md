@@ -246,6 +246,23 @@ Run like:
     chmod +x test_grep_abc test_sed_abc
     ts test_grep_abc test_sed_abc
 
+Background jobs work fine, just be sure to cleanup:
+
+    [./background]
+    #!/bin/sh
+
+    teardown () {
+      jobs -p | xargs kill -9
+      true
+    }
+
+    test_background_job () {
+      sleep 3 &
+      true
+    }
+
+    . ts
+
 ## TROUBLESHOOT
 
 **My tests aren't running**

@@ -330,6 +330,32 @@ ts test_grep_abc test_sed_abc
 .
 .IP "" 0
 .
+.P
+Background jobs work fine, just be sure to cleanup:
+.
+.IP "" 4
+.
+.nf
+
+[\./background]
+#!/bin/sh
+
+teardown () {
+  jobs \-p | xargs kill \-9
+  true
+}
+
+test_background_job () {
+  sleep 3 &
+  true
+}
+
+\[char46] ts
+.
+.fi
+.
+.IP "" 0
+.
 .SH "TROUBLESHOOT"
 \fBMy tests aren\'t running\fR
 .

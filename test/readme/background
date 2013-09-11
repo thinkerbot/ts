@@ -1,0 +1,15 @@
+[./background]
+#!/bin/sh
+
+teardown () {
+  jobs -p | xargs kill -9
+  true
+}
+
+# PASS
+test_background_job () {
+  sleep 3 &
+  true
+}
+
+. ts
