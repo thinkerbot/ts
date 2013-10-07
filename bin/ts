@@ -318,10 +318,7 @@ ts_run_test_suite () {
 
     if [ execute = "$TS_REPORT" ]
     then
-      if [ verbose = "$TS_MODE" ]
-      then ts_run_test
-      else ts_run_test 2>/dev/null
-      fi
+      ts_run_test
       exit $?
     fi
 
