@@ -28,6 +28,7 @@ options:
 
     -a   show all tests
     -c   color output
+    -e   exec test
     -h   prints this help
     -m   monitor output
     -r   remove tmp dir (rm -r)
@@ -45,12 +46,13 @@ ts_args=""
 while [ $OPTIND -le $# ]
 do
   ts_optcur="$OPTIND"
-  if getopts "acdhmrst:vw" ts_option
+  if getopts "acdehmrst:vw" ts_option
   then
     case "$ts_option" in
       (a) TS_FILTER=false ;;
       (c) TS_COLOR=true ;;
       (d) TS_DEBUG=true; TS_MODE=verbose ;;
+      (e) TS_REPORT=execute ;;
       (h) ts_usage
           exit 0 ;;
       (m) TS_REPORT=monitor ;;
@@ -252,6 +254,9 @@ END   { printf("%d pass %d fail %d s\n", npass, nfail, nsec); if(nfail > 0) exit
 
 ts_report () {
   case "$TS_REPORT" in
+    (execute)
+      cat
+      ;;
     (monitor)
       ts_start_time=${SECONDS:-1}
       ts_stream | ts_monitor | ts_filter | ts_format
@@ -310,6 +315,15 @@ ts_run_test_suite () {
   do
     ts_test_dir="$TS_TMP_DIR/$ts_test_case/$ts_test_name"
     printf "[%s] %s\n" "$ts_test_desc" "$ts_test_name"
+
+    if [ execute = "$TS_REPORT" ]
+    then
+      if [ verbose = "$TS_MODE" ]
+      then ts_run_test
+      else ts_run_test 2>/dev/null
+      fi
+      exit $?
+    fi
 
     # run the test by calling back into the test file
     # * use stdout for progress, stderr for debug information
