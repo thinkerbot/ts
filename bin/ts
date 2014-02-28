@@ -174,15 +174,13 @@ END   { printf("%d %d\n", npass, nfail) >> status_file }
 # Converts the ts stream format into the monitor format.
 ts_monitor () {
   rm "$ts_monitor_file" 2> /dev/null
-  sed -lne "
-w $ts_monitor_file
-/^P/a\\
-.
-/^F/a\\
-F
-/^X/a\\
--
-" | tr -ud "\n" >&2
+  awk -v "monitor_file=$ts_monitor_file" '
+    BEGIN { ORS = "" };
+    { print $0 "\n" >> monitor_file };
+    /^P/ { print "."; fflush() };
+    /^F/ { print "F"; fflush() };
+    /^X/ { print "-"; fflush() };
+  ' >&2
   printf "\n\n" >&2
 
   cat "$ts_monitor_file"
@@ -191,13 +189,7 @@ F
 # Filters passing tests from the ts stream format.
 ts_filter () {
   if [ true = "$TS_FILTER" ]
-  then sed -lne "
-H
-/^$/ {
-x
-s/^\n\([FX]\)/\1/p
-}
-"
+  then awk '/^[FX] /,/^$/ { print $0; fflush(); }'
   else cat
   fi
 }
@@ -205,12 +197,11 @@ s/^\n\([FX]\)/\1/p
 # Adds color to the ts stream format.
 ts_color () {
   if [ true = "$TS_COLOR" ]
-  then sed -lne "
-s/^P \[\([^]]*\)/[$TS_PASS\1$TS_NORM/
-s/^F \[\([^]]*\)/[$TS_FAIL\1$TS_NORM/
-s/^X \[\([^]]*\)/[$TS_NOEX\1$TS_NORM/
-p
-"
+  then awk -v norm="$TS_NORM" -v pass="$TS_PASS" -v fail="$TS_FAIL" -v noex="" '
+    /^P / { sub("P [[]", "[" pass); sub("]", norm "]"); }
+    /^F / { sub("F [[]", "[" fail); sub("]", norm "]"); }
+    /^X / { sub("X [[]", "[" noex); sub("]", norm "]"); }
+    { print $0; fflush(); }'
   else cat
   fi
 }
@@ -219,17 +210,10 @@ p
 ts_format () {
   if [ true = "$TS_COLOR" ]
   then ts_color
-  else sed -le '
-/^[PFX]/ {
-  h
-  s/^[PFX] //
-}
-/^$/ {
-  g
-  s/^\([PFX]\).*$/\1\
-/
-}
-'
+  else awk '
+    /^[PFX] / { status=$1; sub(". ", ""); }
+    /^$/      { print status; }
+    { print $0; fflush(); }'
   fi
 }
 
