@@ -97,6 +97,16 @@ ts_monitor_file="$TS_TMP_DIR/monitor"
 ############################################################################
 # private functions
 
+# On Ubuntu awk is actually mawk, which does not fflush output but will
+# unbuffer with an option. Detect when that option must be used here.
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=593504
+ts_guess_awk_opts () {
+  if awk -Winteractive <&- >/dev/null 2>&1
+  then printf -- "%s\n" -Winteractive
+  fi
+}
+export ts_awk_opts="${ts_awk_opts:-$(ts_guess_awk_opts)}"
+
 # Creates a pattern for use by ts_list.  Example:
 #
 #   ts_pattern a b c     # => "a|b|c"
@@ -142,7 +152,7 @@ ts_list () {
 # Converts the ts raw format into the ts stream format.
 ts_stream () {
   rm "$ts_status_file" 2>/dev/null
-  awk -v status_file="$ts_status_file" '
+  awk $ts_awk_opts -v status_file="$ts_status_file" '
 function readbytes (bytes) {
   # ignore current line
   $0=""
@@ -164,9 +174,9 @@ function format (status, descr, bytes) {
 }
 BEGIN { npass=nfail=0 }
 /^\[/ { descr=$0 }
-/^P/  { format("P", descr, $2); npass++; }
-/^F/  { format("F", descr, $2); nfail++; }
-/^X/  { format("X", descr, $2); nfail++; }
+/^P/  { format("P", descr, $2); fflush(); npass++; }
+/^F/  { format("F", descr, $2); fflush(); nfail++; }
+/^X/  { format("X", descr, $2); fflush(); nfail++; }
 END   { printf("%d %d\n", npass, nfail) >> status_file }
 '
 }
@@ -174,15 +184,13 @@ END   { printf("%d %d\n", npass, nfail) >> status_file }
 # Converts the ts stream format into the monitor format.
 ts_monitor () {
   rm "$ts_monitor_file" 2> /dev/null
-  sed -lne "
-w $ts_monitor_file
-/^P/a\\
-.
-/^F/a\\
-F
-/^X/a\\
--
-" | tr -ud "\n" >&2
+  awk $ts_awk_opts -v "monitor_file=$ts_monitor_file" '
+    BEGIN { ORS = "" };
+    { print $0 "\n" >> monitor_file };
+    /^P/ { print "."; fflush() };
+    /^F/ { print "F"; fflush() };
+    /^X/ { print "-"; fflush() };
+  ' >&2
   printf "\n\n" >&2
 
   cat "$ts_monitor_file"
@@ -191,13 +199,7 @@ F
 # Filters passing tests from the ts stream format.
 ts_filter () {
   if [ true = "$TS_FILTER" ]
-  then sed -lne "
-H
-/^$/ {
-x
-s/^\n\([FX]\)/\1/p
-}
-"
+  then awk $ts_awk_opts '/^[FX] /,/^$/ { print $0; fflush(); }'
   else cat
   fi
 }
@@ -205,12 +207,11 @@ s/^\n\([FX]\)/\1/p
 # Adds color to the ts stream format.
 ts_color () {
   if [ true = "$TS_COLOR" ]
-  then sed -lne "
-s/^P \[\([^]]*\)/[$TS_PASS\1$TS_NORM/
-s/^F \[\([^]]*\)/[$TS_FAIL\1$TS_NORM/
-s/^X \[\([^]]*\)/[$TS_NOEX\1$TS_NORM/
-p
-"
+  then awk $ts_awk_opts -v norm="$TS_NORM" -v pass="$TS_PASS" -v fail="$TS_FAIL" -v noex="" '
+    /^P / { sub("P [[]", "[" pass); sub("]", norm "]"); }
+    /^F / { sub("F [[]", "[" fail); sub("]", norm "]"); }
+    /^X / { sub("X [[]", "[" noex); sub("]", norm "]"); }
+    { print $0; fflush(); }'
   else cat
   fi
 }
@@ -219,17 +220,10 @@ p
 ts_format () {
   if [ true = "$TS_COLOR" ]
   then ts_color
-  else sed -le '
-/^[PFX]/ {
-  h
-  s/^[PFX] //
-}
-/^$/ {
-  g
-  s/^\([PFX]\).*$/\1\
-/
-}
-'
+  else awk $ts_awk_opts '
+    /^[PFX] / { status=$1; sub(". ", ""); }
+    /^$/      { print status; }
+    { print $0; fflush(); }'
   fi
 }
 

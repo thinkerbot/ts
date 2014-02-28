@@ -352,6 +352,15 @@ teardown from running.
       exit 1
     }
 
+**I'm using DASH (maybe you're on ubuntu)**
+
+DASH is quirky. Last I checked you cannot concatenate options like you can in
+other shells, so when launching scripts individually (the only time this
+applies) you must separate options out.
+
+    ./test_script -s -c  # this
+    ./test_script -sc    # not this!
+
 ## INSTALLATION
 
 Add `ts` to your PATH (or execute it directly). A nice way of doing so is to
