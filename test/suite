@@ -295,7 +295,7 @@ ts -sc test/examples/abc | assert_output "\
 }
 
 test_script_c_option_prints_color_output () {
-./test/examples/abc -sc | assert_output "\
+./test/examples/abc -s -c | assert_output "\
 [[32m./test/examples/abc:3[0m] test_a
   a
 
@@ -340,7 +340,7 @@ P [test/pass:3] test_pass
 }
 
 test_script_d_option_turns_on_xtrace_and_verbose () {
-./test/pass -ds | normalize_debug_output | assert_output "\
+./test/pass -d -s | normalize_debug_output | assert_output "\
 P [./test/pass:3] test_pass
   +++ trap teardown EXIT
   +++ setup
@@ -383,7 +383,7 @@ F
 }
 
 test_script_m_option_monitors_output () {
-./test/examples/abc -am 2>&1 |
+./test/examples/abc -a -m 2>&1 |
 sed -e "s/[-0-9]\{1,\} s/# s/" |
 assert_output "\
 ..F
@@ -511,7 +511,7 @@ F [./test/examples/abc:15] test_c
 }
 
 test_script_v_option_displays_stderr () {
-./test/examples/abc -sv | assert_output "\
+./test/examples/abc -s -v | assert_output "\
 P [./test/examples/abc:3] test_a
   aA
 
