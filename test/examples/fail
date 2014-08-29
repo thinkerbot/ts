@@ -18,6 +18,12 @@ assert_status 0 1
 }
 
 # FAIL
+#   expected status 0 but was 1 (message)
+test_assert_status_fail_with_message () {
+assert_status 0 1 "message"
+}
+
+# FAIL
 #   unequal output:
 #   1c1
 #   < hello world

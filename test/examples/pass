@@ -17,6 +17,11 @@ assert_status 0 0
 }
 
 # PASS
+test_assert_status_pass_with_message () {
+assert_status 0 0 "message"
+}
+
+# PASS
 test_assert_output_pass () {
 assert_output "hello world" "hello world"
 }

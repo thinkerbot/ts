@@ -389,7 +389,11 @@ assert_status () {
 
   if ! [ $ts_actual -eq $ts_expected ]
   then
-    printf "expected status %s but was %s\n" "$ts_expected" "$ts_actual"
+    shift 2
+    if [ $# -ne 0 ]
+    then ts_msg=" ($*)"
+    fi
+    printf "expected status %s but was %s%s\n" "$ts_expected" "$ts_actual" "${ts_msg:-}"
     exit 1
   fi
 }
