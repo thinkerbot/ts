@@ -372,6 +372,11 @@ applies) you must separate options out.
     ./test_script -s -c  # this
     ./test_script -sc    # not this!
 
+Shared examples do not work with DASH - the `. ts . files...` syntax relies on
+the dot operator to set arguments which dot in DASH does not do. There isn't
+actually anything in the POSIX spec that says it should, but it's a break in
+the conventions used by other shells.
+
 ## INSTALLATION
 
 Add `ts` to your PATH (or execute it directly). A nice way of doing so is to
