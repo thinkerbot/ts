@@ -233,13 +233,13 @@ Shared examples:
     [./test_grep_abc]
     #!/bin/sh
     picker="grep abc"
-    . ts . common_tests
+    . ts . ./common_tests
     . ts
 
     [./test_sed_abc]
     #!/bin/sh
     picker="sed -ne /abc/p"
-    . ts . common_tests
+    . ts . ./common_tests
     . ts
 
 Run like:
