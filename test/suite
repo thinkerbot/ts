@@ -710,7 +710,7 @@ assert_example test/readme/troubleshoot_pass
 # test this one literally to ensure the example is 100% correct
 test_ts_readme_usage () {
 ts -s test/readme/usage | assert_output "\
-P [test/readme/usage:11] test_pass
+P [test/readme/usage:12] test_pass
 
 "
 }

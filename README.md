@@ -22,7 +22,8 @@ The `ts` command expects script files that define test cases. Test scripts
 have the following form:
 
     [./example]
-    #!/bin/sh               # pick a shell, any (POSIX) shell
+    #!/bin/sh
+    # pick a shell, any (POSIX) shell
 
     setup () {              # optional setup
       mkdir -p "$ts_test_dir"
