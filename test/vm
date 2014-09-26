@@ -3,5 +3,5 @@
 for box in $(vagrant status | awk '/running/ { print $1 }')
 do
   printf "%s\n" "$box"
-  vagrant ssh $box -c 'cd /vagrant; ./test/suite' 2>&1 | sed -e 's/^/  /'
+  vagrant ssh $box -c 'cd /vagrant; ./test/shells' 2>&1 | sed -e 's/^/  /'
 done

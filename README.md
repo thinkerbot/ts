@@ -392,6 +392,11 @@ Clone the repo as above.  To run the tests (written in `ts`):
 
     ts test/suite
 
+To run the tests on various distros:
+
+    vagrant up
+    ./test/vm
+
 To generate the manpages:
 
     make manpages

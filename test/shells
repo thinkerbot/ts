@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]
+then set bash dash zsh csh ksh
+fi
+
+#############################################################################
+target_shell () {
+  ls -la $1 | awk '{ print $NF }'
+}
+
+if ! [ -e /bin/sh.bak ]
+then sudo ln -sf $(target_shell /bin/sh) /bin/sh.bak
+fi
+
+for shell in "$@"
+do
+  echo $shell
+  if [ -e /bin/$shell ]
+  then
+    sudo ln -sf $shell /bin/sh
+    ./test/suite 2>&1 | sed -e 's/^/  /'
+  else
+    printf "  skip\n"
+  fi
+done
+
+sudo ln -sf $(target_shell /bin/sh.bak) /bin/sh
