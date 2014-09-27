@@ -362,7 +362,7 @@ P [./test/pass:3] test_pass
 
 test_script_e_option_executes_test_in_shell () {
 ./test/examples/fail test_assert_output_fail -e | assert_output "\
-[./test/examples/fail:28] test_assert_output_fail
+[./test/examples/fail:34] test_assert_output_fail
 unequal output:
 1c1
 < hello world
