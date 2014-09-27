@@ -96,20 +96,20 @@ Functions provided by **ts**.
   **ts** ensures teardown runs by setting a trap for EXIT signals during setup
   and the actual test. As a result, EXIT traps in tests can prevent teardown.
 
-* `assert_status EXPECTED ACTUAL`:
+* `assert_status EXPECTED ACTUAL [MESSAGE]`:
 
-  Exit 1 unless the numbers EXPECTED and ACTUAL are the same. This assertion
-  is almost never necessary.
+  Exit 1 unless the numbers EXPECTED and ACTUAL are the same. Use this to make
+  assertions in the middle of a test.
 
 * `assert_output EXPECTED ACTUAL`:
 
-  Exit 1 unless the variables EXPECTED and ACTUAL are the same. Reads from
+  Return 1 unless the variables EXPECTED and ACTUAL are the same. Reads from
   stdin for '-'.  Also reads ACTUAL from stdin if ACTUAL is unspecified.
 
-  Using assert_output in a pipeline is often convenient, but be careful you
-  don't expect a failing assert_output to exit your test case as, in that
-  case, it will only exit the pipeline.  See the EXAMPLES section for more
-  details.
+  Using assert_output in a pipeline is often convenient but remember this
+  assertion only returns, it does not exit. As a result you should either use
+  it as the very last command in a test, or follow it with assert_status in a
+  multipart test.  See the section on my 'tests aren't failing' for more.
 
 **ts** reserves all function names starting with 'ts_' for internal use.
 
@@ -308,49 +308,47 @@ Another way is to pipe into assert_output.
 
 **My tests aren't failing**
 
-**1)** Are you using asserts in a pipeline?
+**1)** Are you using assert_output in a pipeline?
 
-**ts** assert methods exit failure (rather than return) so this will fail.
+**ts** assert methods return failure (rather than exit) so this will pass.
 
-    test_multiple_asserts_failing_as_intended () {
+    test_multiple_asserts_not_failing_as_intended () {
       assert_output "1" "0"
       assert_output "0" "0"
     }
 
-However the assert methods in a pipeline will exit the pipeline instead of the
-test method so this will not fail.
+The reason is that exit within a pipeline has shell-specific behavior. For
+instance if you run this with different values of shell you will get 0 for
+bash and dash, and 1 for zsh and ksh.
 
-    test_this_has_a_bug_and_does_not_fail () {
-      printf "0" | assert_output "1"
-      assert_output "0" "0"
-    }
+    $shell <<DOC
+    yes | exit 1
+    exit 0
+    DOC
+    echo $?
 
-One way around this is to && all the asserts at the end of the test.
+As a result you cannot get consistent behavior if assert_output exits rather
+than returns; in bash/dash a failing assert_output in a pipeline would be
+ignored while in ksh/zsh it would be respected. So what do you do if you want
+multiple assertions?
+
+One way is to && all the asserts at the end of the test.
 
     test_this_fails_as_expected () {
       printf "0" | assert_output "1" &&
       assert_output "0" "0"
     }
 
-Another way is to assert the status of a pipeline (you can use a message to
-track progress).
+Another way is to use assert_status. Unlike assert_output, assert_status exits
+(it does not return). This is ok because there is no good reason to use assert
+status in a pipeline - the intent is to use it as a breakout from a multipart
+test. As a result you can use a message with assert_status to track progress.
 
     test_this_also_fails_as_expected () {
       printf "0" | assert_output "1"
       assert_status "0" $? "checking the pipeline"
       assert_output "0" "0"
     }
-
-Do not rely on `set -e` to make a failing pipeline cause the function to exit
-in failure. In SOME shells and distributions `set -e` will work this way, but
-not all.
-
-    test_this_sometimes_fails_as_expected () {
-      set -e
-      printf "0" | assert_output "1"
-      assert_output "0" "0"
-    }
-
 
 **Teardown isn't running**
 

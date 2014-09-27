@@ -15,7 +15,7 @@ abc
 " "$out"
 }
 
-# FAIL
+# PASS
 #   unequal output:
 #   1c1
 #   < 1
@@ -23,7 +23,7 @@ abc
 #   ---
 #   > 0
 #   \ No newline at end of file
-test_multiple_asserts_failing_as_intended () {
+test_multiple_asserts_not_failing_as_intended () {
   assert_output "1" "0"
   assert_output "0" "0"
 }

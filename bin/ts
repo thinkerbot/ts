@@ -424,7 +424,7 @@ assert_output () {
 
     ${TS_DIFF:-diff} "$ts_test_dir.e.txt" "$ts_test_dir.a.txt"
 
-    exit 1
+    return 1
   fi
 }
 
