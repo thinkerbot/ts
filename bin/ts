@@ -15,12 +15,14 @@ printf "\
 usage: ts [-achmrsv] [-t TS_TMP_DIR] %s
 
   Tests shell scripts.  Options control the output format.  Artifacts are
-  written to the tmp dir and can be removed with the -r flag.  Try using
-  verbose output to debug.
+  written to the tmp dir and can be removed with the -r flag.  To debug
+  a failing test try running it with -e as below, or by using the -v flag
+  to show stderr.
 
     ts test/script*             # run multiple test scripts
     ./test/script               # run a single test script
     ./test/script test_a        # run a single test
+    ./test/script -e test_a     # execute a test as a script
 
   See \`man ts\` for writing test scripts.
 
@@ -28,6 +30,7 @@ options:
 
     -a   show all tests
     -c   color output
+    -e   exec test
     -h   prints this help
     -m   monitor output
     -r   remove tmp dir (rm -r)
@@ -45,12 +48,13 @@ ts_args=""
 while [ $OPTIND -le $# ]
 do
   ts_optcur="$OPTIND"
-  if getopts "acdhmrst:vw" ts_option
+  if getopts "acdehmrst:vw" ts_option
   then
     case "$ts_option" in
       (a) TS_FILTER=false ;;
       (c) TS_COLOR=true ;;
       (d) TS_DEBUG=true; TS_MODE=verbose ;;
+      (e) TS_REPORT=execute ;;
       (h) ts_usage
           exit 0 ;;
       (m) TS_REPORT=monitor ;;
@@ -94,6 +98,11 @@ mkdir -p "$TS_TMP_DIR"
 ts_status_file="$TS_TMP_DIR/status"
 ts_monitor_file="$TS_TMP_DIR/monitor"
 
+if [ execute = "$TS_REPORT" ] && [ ts = "$ts_progname" ]
+then
+  printf -- "error: -e can only be used when executing test scripts directly\n" >&2
+  exit 1
+fi
 ############################################################################
 # private functions
 
@@ -246,6 +255,10 @@ END   { printf("%d pass %d fail %d s\n", npass, nfail, nsec); if(nfail > 0) exit
 
 ts_report () {
   case "$TS_REPORT" in
+    (execute)
+      cat
+      exit $(cat "$ts_status_file")
+      ;;
     (monitor)
       ts_start_time=${SECONDS:-1}
       ts_stream | ts_monitor | ts_filter | ts_format
@@ -305,22 +318,28 @@ ts_run_test_suite () {
     ts_test_dir="$TS_TMP_DIR/$ts_test_case/$ts_test_name"
     printf "[%s] %s\n" "$ts_test_desc" "$ts_test_name"
 
-    # run the test by calling back into the test file
-    # * use stdout for progress, stderr for debug information
-    # * a zero exit status is considered a pass, otherwise fail
-    # * capture as a variable to calculate length
-    # * use a subprocess to prevent leakage (ex set -x)
-    if ts_stdout=$(
-      if [ verbose = "$TS_MODE" ]
-      then (ts_run_test 2>&1)
-      else (ts_run_test 2>/dev/null)
+    if [ execute = "$TS_REPORT" ]
+    then
+      (ts_run_test)
+      printf "%s\n" "$?" > "$ts_status_file"
+    else
+      # run the test by calling back into the test file
+      # * use stdout for progress, stderr for debug information
+      # * a zero exit status is considered a pass, otherwise fail
+      # * capture as a variable to calculate length
+      # * use a subprocess to prevent leakage (ex set -x)
+      if ts_stdout=$(
+        if [ verbose = "$TS_MODE" ]
+        then (ts_run_test 2>&1)
+        else (ts_run_test 2>/dev/null)
+        fi
+        )
+      then ts_status=P
+      else ts_status=F
       fi
-      )
-    then ts_status=P
-    else ts_status=F
-    fi
 
-    printf "%s %d\n%s\n" "$ts_status" "${#ts_stdout}" "$ts_stdout"
+      printf "%s %d\n%s\n" "$ts_status" "${#ts_stdout}" "$ts_stdout"
+    fi
   done | ts_report
 }
 
