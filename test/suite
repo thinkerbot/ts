@@ -692,9 +692,9 @@ assert_example test/readme/example
 test_ts_readme_common_tests () {
 cd test/readme
 ts -s test_grep_abc test_sed_abc | assert_output "\
-P [./test_grep_abc -> common_tests:1] test_it_should_pick_lines_with_abc
+P [./test_grep_abc -> ./common_tests:1] test_it_should_pick_lines_with_abc
 
-P [./test_sed_abc -> common_tests:1] test_it_should_pick_lines_with_abc
+P [./test_sed_abc -> ./common_tests:1] test_it_should_pick_lines_with_abc
 
 "
 }
@@ -710,7 +710,7 @@ assert_example test/readme/troubleshoot_pass
 # test this one literally to ensure the example is 100% correct
 test_ts_readme_usage () {
 ts -s test/readme/usage | assert_output "\
-P [test/readme/usage:11] test_pass
+P [test/readme/usage:12] test_pass
 
 "
 }

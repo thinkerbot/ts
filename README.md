@@ -22,7 +22,8 @@ The `ts` command expects script files that define test cases. Test scripts
 have the following form:
 
     [./example]
-    #!/bin/sh               # pick a shell, any (POSIX) shell
+    #!/bin/sh
+    # pick a shell, any (POSIX) shell
 
     setup () {              # optional setup
       mkdir -p "$ts_test_dir"
@@ -232,13 +233,13 @@ Shared examples:
     [./test_grep_abc]
     #!/bin/sh
     picker="grep abc"
-    . ts . common_tests
+    . ts . ./common_tests
     . ts
 
     [./test_sed_abc]
     #!/bin/sh
     picker="sed -ne /abc/p"
-    . ts . common_tests
+    . ts . ./common_tests
     . ts
 
 Run like:
@@ -324,22 +325,32 @@ test method so this will not fail.
       assert_output "0" "0"
     }
 
-One way around this is to `set -e` in your setup or at the start of the test
-so that any failing command (including a pipeline) will cause the function to
-exit in failure.
+One way around this is to && all the asserts at the end of the test.
 
-    test_this_now_fails_as_expected () {
+    test_this_fails_as_expected () {
+      printf "0" | assert_output "1" &&
+      assert_output "0" "0"
+    }
+
+Another way is to assert the status of a pipeline (you can use a message to
+track progress).
+
+    test_this_also_fails_as_expected () {
+      printf "0" | assert_output "1"
+      assert_status "0" $? "checking the pipeline"
+      assert_output "0" "0"
+    }
+
+Do not rely on `set -e` to make a failing pipeline cause the function to exit
+in failure. In SOME shells and distributions `set -e` will work this way, but
+not all.
+
+    test_this_sometimes_fails_as_expected () {
       set -e
       printf "0" | assert_output "1"
       assert_output "0" "0"
     }
 
-Another way is to && all the asserts at the end of the test.
-
-    test_this_also_fails_as_expected () {
-      printf "0" | assert_output "1" &&
-      assert_output "0" "0"
-    }
 
 **Teardown isn't running**
 
@@ -361,6 +372,11 @@ applies) you must separate options out.
     ./test_script -s -c  # this
     ./test_script -sc    # not this!
 
+Shared examples do not work with DASH - the `. ts . files...` syntax relies on
+the dot operator to set arguments which dot in DASH does not do. There isn't
+actually anything in the POSIX spec that says it should, but it's a break in
+the conventions used by other shells.
+
 ## INSTALLATION
 
 Add `ts` to your PATH (or execute it directly). A nice way of doing so is to
@@ -375,6 +391,11 @@ pull` and should make the manpages available via `man ts`.
 Clone the repo as above.  To run the tests (written in `ts`):
 
     ts test/suite
+
+To run the tests on various distros:
+
+    vagrant up
+    ./test/vm
 
 To generate the manpages:
 

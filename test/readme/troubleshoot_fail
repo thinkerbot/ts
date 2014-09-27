@@ -36,9 +36,8 @@ test_multiple_asserts_failing_as_intended () {
 #   ---
 #   > 0
 #   \ No newline at end of file
-test_this_now_fails_as_expected () {
-  set -e
-  printf "0" | assert_output "1"
+test_this_fails_as_expected () {
+  printf "0" | assert_output "1" &&
   assert_output "0" "0"
 }
 
@@ -50,8 +49,10 @@ test_this_now_fails_as_expected () {
 #   ---
 #   > 0
 #   \ No newline at end of file
+#   expected status 0 but was 1 (checking the pipeline)
 test_this_also_fails_as_expected () {
-  printf "0" | assert_output "1" &&
+  printf "0" | assert_output "1"
+  assert_status "0" $? "checking the pipeline"
   assert_output "0" "0"
 }
 

@@ -1,4 +1,5 @@
-#!/bin/sh               # pick a shell, any (POSIX) shell
+#!/bin/sh
+# pick a shell, any (POSIX) shell
 
 setup () {              # optional setup
   mkdir -p "$ts_test_dir"
