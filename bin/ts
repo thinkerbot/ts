@@ -96,6 +96,11 @@ mkdir -p "$TS_TMP_DIR"
 ts_status_file="$TS_TMP_DIR/status"
 ts_monitor_file="$TS_TMP_DIR/monitor"
 
+if [ execute = "$TS_REPORT" ] && [ ts = "$ts_progname" ]
+then
+  printf -- "error: -e can only be used when executing test scripts directly\n" >&2
+  exit 1
+fi
 ############################################################################
 # private functions
 
