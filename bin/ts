@@ -256,6 +256,7 @@ ts_report () {
   case "$TS_REPORT" in
     (execute)
       cat
+      exit $(cat "$ts_status_file")
       ;;
     (monitor)
       ts_start_time=${SECONDS:-1}
@@ -319,28 +320,28 @@ ts_run_test_suite () {
     if [ execute = "$TS_REPORT" ]
     then
       if [ verbose = "$TS_MODE" ]
-      then ts_run_test
-      else ts_run_test 2>/dev/null
-      fi
-      exit $?
-    fi
-
-    # run the test by calling back into the test file
-    # * use stdout for progress, stderr for debug information
-    # * a zero exit status is considered a pass, otherwise fail
-    # * capture as a variable to calculate length
-    # * use a subprocess to prevent leakage (ex set -x)
-    if ts_stdout=$(
-      if [ verbose = "$TS_MODE" ]
-      then (ts_run_test 2>&1)
+      then (ts_run_test)
       else (ts_run_test 2>/dev/null)
       fi
-      )
-    then ts_status=P
-    else ts_status=F
-    fi
+      printf "%s\n" "$?" > "$ts_status_file"
+    else
+      # run the test by calling back into the test file
+      # * use stdout for progress, stderr for debug information
+      # * a zero exit status is considered a pass, otherwise fail
+      # * capture as a variable to calculate length
+      # * use a subprocess to prevent leakage (ex set -x)
+      if ts_stdout=$(
+        if [ verbose = "$TS_MODE" ]
+        then (ts_run_test 2>&1)
+        else (ts_run_test 2>/dev/null)
+        fi
+        )
+      then ts_status=P
+      else ts_status=F
+      fi
 
-    printf "%s %d\n%s\n" "$ts_status" "${#ts_stdout}" "$ts_stdout"
+      printf "%s %d\n%s\n" "$ts_status" "${#ts_stdout}" "$ts_stdout"
+    fi
   done | ts_report
 }
 
