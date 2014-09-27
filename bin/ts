@@ -12,7 +12,7 @@ then ts_argstr="[TEST_FILES...]"
 else ts_argstr="[TEST_NAMES...]"
 fi
 printf "\
-usage: ts [-achmrsv] [-t TS_TMP_DIR] %s
+usage: ts [-acdehmrsvw] [-t TS_TMP_DIR] %s
 
   Tests shell scripts.  Options control the output format.  Artifacts are
   written to the tmp dir and can be removed with the -r flag.  To debug
@@ -30,6 +30,7 @@ options:
 
     -a   show all tests
     -c   color output
+    -d   debugger output
     -e   exec test
     -h   prints this help
     -m   monitor output
