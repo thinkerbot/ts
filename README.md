@@ -44,11 +44,15 @@ To run, use any of:
     ./example               # run a single test script
     ./example test_a_thing  # run a single test
 
+To debug, try using -e to execute the test function in isolation.
+
+    ./example -e test_a_thing    # a most useful pattern
+
 See the FUNCTIONS, EXAMPLES, and TROUBLESHOOT sections for more details.
 
 ## OPTIONS
 
-These options control how `ts` operates:
+These options control how `ts` operates.
 
 * `-a`:
   Show passing outputs, which are normally filtered.
@@ -58,6 +62,9 @@ These options control how `ts` operates:
 
 * `-d`:
   Debug mode. Turns on xtrace (set -x) for the tests and enables -v.
+
+* `-e`:
+  Exec mode. Runs a test without processing the output and exits.
 
 * `-h`:
   Prints help.

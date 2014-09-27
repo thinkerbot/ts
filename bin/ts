@@ -15,12 +15,14 @@ printf "\
 usage: ts [-achmrsv] [-t TS_TMP_DIR] %s
 
   Tests shell scripts.  Options control the output format.  Artifacts are
-  written to the tmp dir and can be removed with the -r flag.  Try using
-  verbose output to debug.
+  written to the tmp dir and can be removed with the -r flag.  To debug
+  a failing test try running it with -e as below, or by using the -v flag
+  to show stderr.
 
     ts test/script*             # run multiple test scripts
     ./test/script               # run a single test script
     ./test/script test_a        # run a single test
+    ./test/script -e test_a     # execute a test as a script
 
   See \`man ts\` for writing test scripts.
 
