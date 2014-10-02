@@ -1,4 +1,4 @@
-ts(1) -- run ts shell test scripts
+ts(1) -- test script
 =============================================
 
 ## SYNOPSIS
@@ -14,7 +14,7 @@ run individually or in a batch format using `ts` as a command.
 
 **ts** makes a test directory available on a per-test basis so it's easy to
 sandbox tests that write or manipulate files. **ts** tries to use POSIX
-exclusively and so should (hopefully) work on any POSIX-compliant system.
+exclusively and so should (hopefully) with any POSIX-compliant shell.
 
 ## TEST SCRIPTS
 
