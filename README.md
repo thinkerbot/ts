@@ -14,7 +14,7 @@ run individually or in a batch format using `ts` as a command.
 
 **ts** makes a test directory available on a per-test basis so it's easy to
 sandbox tests that write or manipulate files. **ts** tries to use POSIX
-exclusively and so should (hopefully) with any POSIX-compliant shell.
+exclusively and so should (hopefully) work with any POSIX-compliant shell.
 
 ## TEST SCRIPTS
 
@@ -390,6 +390,12 @@ pull` and should make the manpages available via `man ts`.
 
     git clone git://github.com/thinkerbot/ts.git
     export PATH="$PATH:$(pwd)/ts/bin"
+
+If you're using [homebrew](http://brew.sh/) on OSX you can tap
+[goodlittlescript](https://github.com/goodlittlescript/homebrew-gls).
+
+    brew tap goodlittlescript/homebrew-gls
+    brew install ts
 
 ## DEVELOPMENT
 
