@@ -73,7 +73,7 @@ Show passing outputs, which are normally filtered\.
 .
 .TP
 \fB\-c\fR
-Colorize output\. (green/red/yellow \- pass/fail/not\-executable)
+Colorize output\. (green/red/yellow \- pass/fail/skipped)
 .
 .TP
 \fB\-d\fR
@@ -136,6 +136,11 @@ Exit 1 unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin 
 .IP
 Using assert_output in a pipeline is often convenient, but be careful you don\'t expect a failing assert_output to exit your test case as, in that case, it will only exit the pipeline\. See the EXAMPLES section for more details\.
 .
+.TP
+\fBskip REASON
+Skips the given test, printing the given REASON if specified.
+.
+.IP
 .P
 \fBts\fR reserves all function names starting with \'ts_\' for internal use\.
 .
@@ -207,8 +212,8 @@ Passing tests\.
 Failing tests\.
 .
 .TP
-\fBTS_NOEX\fR (yellow)
-Non\-executable test files\.
+\fBTS_SKIP\fR (yellow)
+Skipped tests\.
 .
 .TP
 \fBTS_NORM\fR (normal)

@@ -93,7 +93,7 @@ TS_REMOVE_TMP_DIR=${TS_REMOVE_TMP_DIR:-false}
 TS_PASS="${TS_PASS:-[32m}"
 TS_FAIL="${TS_FAIL:-[1;31m}"
 TS_NORM="${TS_NORM:-[0m}"
-TS_NOEX="${TS_NOEX:-[1;33m}"
+TS_SKIP="${TS_SKIP:-[1;33m}"
 
 mkdir -p "$TS_TMP_DIR"
 ts_status_file="$TS_TMP_DIR/status"
@@ -182,12 +182,12 @@ function format (status, descr, bytes) {
   readbytes(bytes)
   printf("\n")
 }
-BEGIN { npass=nfail=0 }
+BEGIN { npass=nskip=nfail=0 }
 /^\[/ { descr=$0 }
 /^P/  { format("P", descr, $2); fflush(); npass++; }
 /^F/  { format("F", descr, $2); fflush(); nfail++; }
-/^X/  { format("X", descr, $2); fflush(); nfail++; }
-END   { printf("%d %d\n", npass, nfail) >> status_file }
+/^S/  { format("S", descr, $2); fflush(); nskip++; }
+END   { printf("%d %d %d\n", npass, nskip, nfail) >> status_file }
 '
 }
 
@@ -199,7 +199,7 @@ ts_monitor () {
     { print $0 "\n" >> monitor_file };
     /^P/ { print "."; fflush() };
     /^F/ { print "F"; fflush() };
-    /^X/ { print "-"; fflush() };
+    /^S/ { print "-"; fflush() };
   ' >&2
   printf "\n\n" >&2
 
@@ -209,7 +209,7 @@ ts_monitor () {
 # Filters passing tests from the ts stream format.
 ts_filter () {
   if [ true = "$TS_FILTER" ]
-  then awk $ts_awk_opts '/^[FX] /,/^$/ { print $0; fflush(); }'
+  then awk $ts_awk_opts '/^[FS] /,/^$/ { print $0; fflush(); }'
   else cat
   fi
 }
@@ -217,10 +217,11 @@ ts_filter () {
 # Adds color to the ts stream format.
 ts_color () {
   if [ true = "$TS_COLOR" ]
-  then awk $ts_awk_opts -v norm="$TS_NORM" -v pass="$TS_PASS" -v fail="$TS_FAIL" -v noex="" '
+  then awk $ts_awk_opts -v norm="$TS_NORM" -v pass="$TS_PASS" \
+	  -v skip="$TS_SKIP" -v fail="$TS_FAIL" '
     /^P / { sub("P [[]", "[" pass); sub("]", norm "]"); }
     /^F / { sub("F [[]", "[" fail); sub("]", norm "]"); }
-    /^X / { sub("X [[]", "[" noex); sub("]", norm "]"); }
+    /^S / { sub("S [[]", "[" skip); sub("]", norm "]"); }
     { print $0; fflush(); }'
   else cat
   fi
@@ -231,7 +232,7 @@ ts_format () {
   if [ true = "$TS_COLOR" ]
   then ts_color
   else awk $ts_awk_opts '
-    /^[PFX] / { status=$1; sub(". ", ""); }
+    /^[PFS] / { status=$1; sub(". ", ""); }
     /^$/      { print status; }
     { print $0; fflush(); }'
   fi
@@ -240,9 +241,10 @@ ts_format () {
 # Prints the summary for the tests and returns with the correct status.
 ts_print_status () {
   awk -v nsec="$1" '
-BEGIN { npass=nfail=0 }
-      { npass += $1; nfail += $2; }
-END   { printf("%d pass %d fail %d s\n", npass, nfail, nsec); if(nfail > 0) exit 1 }
+BEGIN { npass=nskip=nfail=0 }
+      { npass += $1; nskip+= $2; nfail += $3; }
+	  END { printf("%d pass %d skip %d fail %d s\n",
+	  npass, nskip, nfail, nsec); if(nfail > 0) exit 1 }
 ' < "$ts_status_file"
 
   ts_exitstatus=$?
@@ -317,6 +319,7 @@ ts_run_test_suite () {
   while read ts_test_name ts_test_desc
   do
     ts_test_dir="$TS_TMP_DIR/$ts_test_case/$ts_test_name"
+    mkdir -p "$ts_test_dir"
     printf "[%s] %s\n" "$ts_test_desc" "$ts_test_name"
 
     if [ execute = "$TS_REPORT" ]
@@ -329,12 +332,15 @@ ts_run_test_suite () {
       # * a zero exit status is considered a pass, otherwise fail
       # * capture as a variable to calculate length
       # * use a subprocess to prevent leakage (ex set -x)
-      if ts_stdout=$(
+      ts_stdout=$(
         if [ verbose = "$TS_MODE" ]
         then (ts_run_test 2>&1)
         else (ts_run_test 2>/dev/null)
         fi
-        )
+        ); retcode=$?
+      if [ -e "$ts_test_dir/skipped" -a "$retcode" -eq 0 ]
+      then ts_status=S
+      elif [ "$retcode" -eq 0 -a ! -e "$ts_test_dir/skipped" ]
       then ts_status=P
       else ts_status=F
       fi
@@ -342,6 +348,15 @@ ts_run_test_suite () {
       printf "%s %d\n%s\n" "$ts_status" "${#ts_stdout}" "$ts_stdout"
     fi
   done | ts_report
+}
+
+ts_skip () {
+  mkdir -p "$ts_test_dir"
+  touch "$ts_test_dir/skipped"
+
+  local reason=${1:-}
+  [ -n "$reason" ] && printf "$reason"
+  exit 0
 }
 
 ts_src_test_files () {
@@ -377,11 +392,11 @@ ts_run_test_files () {
         then ./"$ts_test_file" -w
         else "$ts_test_file" -w
         fi
-      else printf "[%s] not executable\nX 0\n\n" "$ts_test_file"
+      else printf "[%s] not executable\nS 0\n\n" "$ts_test_file"
       fi
     elif [ x- = x"$ts_test_file" ]
     then cat
-    else printf "[%s] not a file\nX 0\n\n" "$ts_test_file"
+    else printf "[%s] not a file\nS 0\n\n" "$ts_test_file"
     fi
   done | ts_report
 }

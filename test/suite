@@ -125,16 +125,16 @@ P [test/examples/abc:3] test_a
 
 test_ts_reports_non_executable_files () {
 ts -s test/nox | assert_output "\
-X [test/nox] not executable
+S [test/nox] not executable
 
 "
 }
 
 test_ts_reports_non_files () {
 ts -s test test/miss | assert_output "\
-X [test] not a file
+S [test] not a file
 
-X [test/miss] not a file
+S [test/miss] not a file
 
 "
 }
@@ -206,7 +206,7 @@ F [./test/examples/abc:15] test_c
 
 test_ts_does_not_print_passing_tests_by_default () {
 ts test/examples/abc 2>&1 |
-sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
 ..F
 
@@ -214,13 +214,13 @@ assert_output "\
   c
 F
 
-2 pass 1 fail # s
+2 pass 0 skip 1 fail # s
 "
 }
 
 test_ts_a_option_prints_all_tests () {
 ts -a test/examples/abc 2>&1 |
-sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
 ..F
 
@@ -236,13 +236,13 @@ P
   c
 F
 
-2 pass 1 fail # s
+2 pass 0 skip 1 fail # s
 "
 }
 
 test_script_does_not_print_passing_tests_by_default () {
 ./test/examples/abc 2>&1 |
-sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
 ..F
 
@@ -250,13 +250,13 @@ assert_output "\
   c
 F
 
-2 pass 1 fail # s
+2 pass 0 skip 1 fail # s
 "
 }
 
 test_script_a_option_prints_all_tests () {
 ./test/examples/abc -a 2>&1 |
-sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
 ..F
 
@@ -272,7 +272,7 @@ P
   c
 F
 
-2 pass 1 fail # s
+2 pass 0 skip 1 fail # s
 "
 }
 
@@ -384,7 +384,7 @@ assert_status 8 $?
 
 test_ts_m_option_monitors_output () {
 ts -am test/examples/abc 2>&1 |
-sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
 ..F
 
@@ -400,13 +400,13 @@ P
   c
 F
 
-2 pass 1 fail # s
+2 pass 0 skip 1 fail # s
 "
 }
 
 test_script_m_option_monitors_output () {
 ./test/examples/abc -a -m 2>&1 |
-sed -e "s/[-0-9]\{1,\} s/# s/" |
+sed -e "s/[-0-9]\{1,\} s$/# s/" |
 assert_output "\
 ..F
 
@@ -422,7 +422,7 @@ P
   c
 F
 
-2 pass 1 fail # s
+2 pass 0 skip 1 fail # s
 "
 }
 
