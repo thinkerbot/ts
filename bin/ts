@@ -133,16 +133,6 @@ ts_pattern () {
   fi
 }
 
-ts_include () {
-  ts_prev="${ts_curr:-$0}"
-  ts_curr="$ts_prev:$1"
-  ts_source_files="${ts_source_files:-$0}
-$ts_curr
-"
-  . "$@"
-  ts_curr="$ts_prev"
-}
-
 # Prints all functions in a test file starting with 'test_' or the pattern
 # given by ts_test_pattern.  Recurses into sourced files if TS_TESTS_IN_SOURCE
 # is set to true.
