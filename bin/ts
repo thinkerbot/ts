@@ -7,38 +7,40 @@ ts_release_date="2014-09-26"
 ts_url="http://github.com/thinkerbot/ts"
 
 ts_usage () {
-if [ ts = "$ts_progname" ]
-then ts_argstr="[TEST_FILES...]"
-else ts_argstr="[TEST_NAMES...]"
-fi
-printf "\
+	if [ "$ts_progname" = "ts" ]
+	then
+		ts_argstr="[TEST_FILES...]"
+	else
+		ts_argstr="[TEST_NAMES...]"
+	fi
+	printf "\
 usage: ts [-acdehmrsvw] [-t TS_TMP_DIR] %s
 
-  Tests shell scripts.  Options control the output format.  Artifacts are
-  written to the tmp dir and can be removed with the -r flag.  To debug
-  a failing test try running it with -e as below, or by using the -v flag
-  to show stderr.
+Tests shell scripts.  Options control the output format.  Artifacts are
+written to the tmp dir and can be removed with the -r flag.  To debug
+a failing test try running it with -e as below, or by using the -v flag
+to show stderr.
 
-    ts test/script*             # run multiple test scripts
-    ./test/script               # run a single test script
-    ./test/script test_a        # run a single test
-    ./test/script -e test_a     # execute a test as a script
+ts test/script*             # run multiple test scripts
+./test/script               # run a single test script
+./test/script test_a        # run a single test
+./test/script -e test_a     # execute a test as a script
 
-  See \`man ts\` for writing test scripts.
+See \`man ts\` for writing test scripts.
 
 options:
 
-    -a   show all tests
-    -c   color output
-    -d   debugger output
-    -e   exec test
-    -h   prints this help
-    -m   monitor output
-    -r   remove tmp dir (rm -r)
-    -s   stream output (implies -a)
-    -t   set the tmp dir (default tmp)
-    -v   verbose output (show stderr)
-    -w   raw output
+-a   show all tests
+-c   color output
+-d   debugger output
+-e   exec test
+-h   prints this help
+-m   monitor output
+-r   remove tmp dir (rm -r)
+-s   stream output (implies -a)
+-t   set the tmp dir (default tmp)
+-v   verbose output (show stderr)
+-w   raw output
 
 version: %s - %s
 " "$ts_argstr" "$ts_version" "$ts_url"
@@ -48,35 +50,34 @@ OPTIND=1
 ts_args=""
 while [ $OPTIND -le $# ]
 do
-  ts_optcur="$OPTIND"
-  if getopts "acdehmrst:vw" ts_option
-  then
-    case "$ts_option" in
-      (a) TS_FILTER=false ;;
-      (c) TS_COLOR=true ;;
-      (d) TS_DEBUG=true; TS_MODE=verbose ;;
-      (e) TS_REPORT=execute ;;
-      (h) ts_usage
-          exit 0 ;;
-      (m) TS_REPORT=monitor ;;
-      (r) TS_REMOVE_TMP_DIR=true ;;
-      (s) TS_REPORT=stream; TS_FILTER=false ;;
-      (t) TS_TMP_DIR=$OPTARG ;;
-      (v) TS_MODE=verbose ;;
-      (w) TS_REPORT=raw ;;
-      (*) ts_usage | head -n 1
-          exit 2 ;;
-    esac
-  else
-    if [ $OPTIND -gt $ts_optcur ]
-    then ts_optcur="$#"
-    fi
-    while [ $OPTIND -le $ts_optcur ]
-    do
-      ts_args="$ts_args \"\${$OPTIND}\""
-      OPTIND=$(($OPTIND + 1))
-    done
-  fi
+	ts_optcur="$OPTIND"
+	if getopts "acdehmrst:vw" ts_option
+	then
+		case "$ts_option" in
+		(a) TS_FILTER=false ;;
+		(c) TS_COLOR=true ;;
+		(d) TS_DEBUG=true; TS_MODE=verbose ;;
+		(e) TS_REPORT=execute ;;
+		(h) ts_usage ; exit 0 ;;
+		(m) TS_REPORT=monitor ;;
+		(r) TS_REMOVE_TMP_DIR=true ;;
+		(s) TS_REPORT=stream; TS_FILTER=false ;;
+		(t) TS_TMP_DIR=$OPTARG ;;
+		(v) TS_MODE=verbose ;;
+		(w) TS_REPORT=raw ;;
+		(*) ts_usage | head -n 1 ; exit 2 ;;
+    	esac
+	else
+		if [ $OPTIND -gt $ts_optcur ]
+		then
+			ts_optcur="$#"
+		fi
+		while [ $OPTIND -le $ts_optcur ]
+		do
+			ts_args="$ts_args \"\${$OPTIND}\""
+			OPTIND=$(($OPTIND + 1))
+		done
+	fi
 done
 eval set -- $ts_args
 
@@ -99,10 +100,10 @@ mkdir -p "$TS_TMP_DIR"
 ts_status_file="$TS_TMP_DIR/status"
 ts_monitor_file="$TS_TMP_DIR/monitor"
 
-if [ execute = "$TS_REPORT" ] && [ ts = "$ts_progname" ]
+if [ "$TS_REPORT" = "execute" ] && [ "$ts_progname" = "ts" ]
 then
-  printf -- "error: -e can only be used when executing test scripts directly\n" >&2
-  exit 1
+	printf -- "error: -e can only be used when executing test scripts directly\n" >&2
+	exit 1
 fi
 ############################################################################
 # private functions
@@ -111,9 +112,10 @@ fi
 # unbuffer with an option. Detect when that option must be used here.
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=593504
 ts_guess_awk_opts () {
-  if awk -Winteractive <&- >/dev/null 2>&1
-  then printf -- "%s\n" -Winteractive
-  fi
+	if awk -Winteractive <&- >/dev/null 2>&1
+	then
+		printf -- "%s\n" -Winteractive
+	fi
 }
 export ts_awk_opts="${ts_awk_opts:-$(ts_guess_awk_opts)}"
 
@@ -122,268 +124,291 @@ export ts_awk_opts="${ts_awk_opts:-$(ts_guess_awk_opts)}"
 #   ts_pattern a b c     # => "a|b|c"
 #
 ts_pattern () {
-  if [ 0 -ne $# ]
-  then
-    printf "%s" "$1"
-    shift 1
+	if [ $# -ne 0 ]
+	then
+		printf "%s" "$1"
+		shift 1
 
-    if [ 0 -ne $# ]
-    then printf "|%s" "$@"
-    fi
-  fi
+		if [ $# -ne 0 ]
+		then
+			printf "|%s" "$@"
+		fi
+	fi
 }
 
 ts_include () {
-  ts_prev="${ts_curr:-$0}"
-  ts_curr="$ts_prev:$1"
-  ts_source_files="${ts_source_files:-$0}
-$ts_curr
-"
-  . "$@"
-  ts_curr="$ts_prev"
+	ts_prev="${ts_curr:-$0}"
+	ts_curr="$ts_prev:$1"
+	ts_source_files="${ts_source_files:-$0}
+	$ts_curr
+	"
+	. "$@"
+	ts_curr="$ts_prev"
 }
 
 # Prints all functions in a test file starting with 'test_' or the pattern
 # given by ts_test_pattern.  Recurses into sourced files if TS_TESTS_IN_SOURCE
 # is set to true.
 ts_list () {
-  ts_file="$1"
-  shift 1
+	ts_file="$1"
+	shift 1
 
-  if [ $# -eq 0 ]
-  then
-    grep -onE "^[[:space:]]*(${ts_test_pattern:-test_\w+})[[:space:]]*\(\)" /dev/null "$ts_file" |
-    sed -e 's/^\([^:]*\):\([0-9]\{1,\}\):[[:space:]]*\([^ (]\{1,\}\).*/\3 \1:\2/'
-  else
-    ts_list "$@" | awk -v file="$ts_file" '{ $2=file " -> " $2; print }'
-  fi
+	if [ $# -eq 0 ]
+	then
+		grep -onE \
+			"^[[:space:]]*(${ts_test_pattern:-test_\w+})[[:space:]]*\(\)" \
+			/dev/null "$ts_file" | \
+			sed -e \
+				's/^\([^:]*\):\([0-9]\{1,\}\):[[:space:]]*\([^ (]\{1,\}\).*/\3 \1:\2/'
+	else
+		ts_list "$@" | awk -v file="$ts_file" '{ $2=file " -> " $2; print }'
+	fi
 }
 
 # Converts the ts raw format into the ts stream format.
 ts_stream () {
-  rm "$ts_status_file" 2>/dev/null
-  awk $ts_awk_opts -v status_file="$ts_status_file" '
-function readbytes (bytes) {
-  # ignore current line
-  $0=""
+	rm "$ts_status_file" 2>/dev/null
+	awk $ts_awk_opts -v status_file="$ts_status_file" '
+	function readbytes (bytes) {
+		# ignore current line
+		$0=""
 
-  # read bytes
-  while(getline == 1 && (bytes -= length + 1) > 0) {
-    print "  " $0
-  }
+		# read bytes
+		while(getline == 1 && (bytes -= length + 1) > 0) {
+			print "  " $0
+		}
 
-  if(length > 0) {
-    print "  " substr($0, 1, bytes + length + 1)
-    $0=""
-  }
-}
-function format (status, descr, bytes) {
-  printf("%s %s\n", status, descr)
-  readbytes(bytes)
-  printf("\n")
-}
-BEGIN { npass=nfail=0 }
-/^\[/ { descr=$0 }
-/^P/  { format("P", descr, $2); fflush(); npass++; }
-/^F/  { format("F", descr, $2); fflush(); nfail++; }
-/^X/  { format("X", descr, $2); fflush(); nfail++; }
-END   { printf("%d %d\n", npass, nfail) >> status_file }
-'
+		if(length > 0) {
+			print "  " substr($0, 1, bytes + length + 1)
+			$0=""
+		}
+	}
+	function format (status, descr, bytes) {
+		printf("%s %s\n", status, descr)
+		readbytes(bytes)
+		printf("\n")
+	}
+	BEGIN { npass=nfail=0 }
+	/^\[/ { descr=$0 }
+	/^P/  { format("P", descr, $2); fflush(); npass++; }
+	/^F/  { format("F", descr, $2); fflush(); nfail++; }
+	/^X/  { format("X", descr, $2); fflush(); nfail++; }
+	END   { printf("%d %d\n", npass, nfail) >> status_file }
+	'
 }
 
 # Converts the ts stream format into the monitor format.
 ts_monitor () {
-  rm "$ts_monitor_file" 2> /dev/null
-  awk $ts_awk_opts -v "monitor_file=$ts_monitor_file" '
-    BEGIN { ORS = "" };
-    { print $0 "\n" >> monitor_file };
-    /^P/ { print "."; fflush() };
-    /^F/ { print "F"; fflush() };
-    /^X/ { print "-"; fflush() };
-  ' >&2
-  printf "\n\n" >&2
+	rm "$ts_monitor_file" 2> /dev/null
+	awk $ts_awk_opts -v "monitor_file=$ts_monitor_file" '
+	BEGIN { ORS = "" };
+	{ print $0 "\n" >> monitor_file };
+	/^P/ { print "."; fflush() };
+	/^F/ { print "F"; fflush() };
+	/^X/ { print "-"; fflush() };
+	' >&2
+	printf "\n\n" >&2
 
-  cat "$ts_monitor_file"
+	cat "$ts_monitor_file"
 }
 
 # Filters passing tests from the ts stream format.
 ts_filter () {
-  if [ true = "$TS_FILTER" ]
-  then awk $ts_awk_opts '/^[FX] /,/^$/ { print $0; fflush(); }'
-  else cat
-  fi
+	if [ "$TS_FILTER" = "true" ]
+	then
+		awk $ts_awk_opts '/^[FX] /,/^$/ { print $0; fflush(); }'
+	else
+		cat
+	fi
 }
 
 # Adds color to the ts stream format.
 ts_color () {
-  if [ true = "$TS_COLOR" ]
-  then awk $ts_awk_opts -v norm="$TS_NORM" -v pass="$TS_PASS" -v fail="$TS_FAIL" -v noex="" '
-    /^P / { sub("P [[]", "[" pass); sub("]", norm "]"); }
-    /^F / { sub("F [[]", "[" fail); sub("]", norm "]"); }
-    /^X / { sub("X [[]", "[" noex); sub("]", norm "]"); }
-    { print $0; fflush(); }'
-  else cat
-  fi
+	if [ "$TS_COLOR" = "true" ]
+	then
+		awk $ts_awk_opts -v norm="$TS_NORM" -v pass="$TS_PASS" \
+			-v fail="$TS_FAIL" -v noex="" '
+			/^P / { sub("P [[]", "[" pass); sub("]", norm "]"); }
+			/^F / { sub("F [[]", "[" fail); sub("]", norm "]"); }
+			/^X / { sub("X [[]", "[" noex); sub("]", norm "]"); }
+			{ print $0; fflush(); }'
+	else
+		cat
+	fi
 }
 
 # Converts ts stream to color (if specified) or to the report format.
 ts_format () {
-  if [ true = "$TS_COLOR" ]
-  then ts_color
-  else awk $ts_awk_opts '
-    /^[PFX] / { status=$1; sub(". ", ""); }
-    /^$/      { print status; }
-    { print $0; fflush(); }'
-  fi
+	if [ "$TS_COLOR" = "true" ]
+	then
+		ts_color
+	else
+		awk $ts_awk_opts '
+			/^[PFX] / { status=$1; sub(". ", ""); }
+			/^$/      { print status; }
+			{ print $0; fflush(); }'
+	fi
 }
 
 # Prints the summary for the tests and returns with the correct status.
 ts_print_status () {
-  awk -v nsec="$1" '
-BEGIN { npass=nfail=0 }
-      { npass += $1; nfail += $2; }
-END   { printf("%d pass %d fail %d s\n", npass, nfail, nsec); if(nfail > 0) exit 1 }
-' < "$ts_status_file"
+	awk -v nsec="$1" '
+		BEGIN { npass=nfail=0 }
+		{ npass += $1; nfail += $2; }
+		END { printf("%d pass %d fail %d s\n", npass, nfail, nsec);
+			  if(nfail > 0) exit 1 }
+	' < "$ts_status_file"
 
-  ts_exitstatus=$?
+	ts_exitstatus=$?
 
-  if [ "true" = "$TS_REMOVE_TMP_DIR" ]
-  then rm -r "$TS_TMP_DIR"
-  fi
+	if [ "$TS_REMOVE_TMP_DIR" = "true" ]
+	then
+		rm -r "$TS_TMP_DIR"
+	fi
 
-  return $ts_exitstatus
+	return $ts_exitstatus
 }
 
 ts_report () {
-  case "$TS_REPORT" in
-    (execute)
-      cat
-      exit $(cat "$ts_status_file")
-      ;;
-    (monitor)
-      ts_start_time=${SECONDS:-1}
-      ts_stream | ts_monitor | ts_filter | ts_format
-      ts_end_time=${SECONDS:-0}
-      ts_print_status "$(($ts_end_time - $ts_start_time))" >&2
-      ;;
-    (stream)
-      ts_stream | ts_filter | ts_color
-      ts_print_status > /dev/null
-      ;;
-    (raw)
-      cat
-      ;;
-  esac
+	case "$TS_REPORT" in
+	(execute)
+		cat
+		exit $(cat "$ts_status_file")
+		;;
+	(monitor)
+		ts_start_time=${SECONDS:-1}
+		ts_stream | ts_monitor | ts_filter | ts_format
+		ts_end_time=${SECONDS:-0}
+		ts_print_status "$(($ts_end_time - $ts_start_time))" >&2
+		;;
+	(stream)
+		ts_stream | ts_filter | ts_color
+		ts_print_status > /dev/null
+		;;
+	(raw)
+		cat
+		;;
+	esac
 }
 
 # Runs a specific test.  In that case the test output is not filtered or
 # changed. the exit status is the exit status of the specific test.
 ts_run_test () {
-  if [ -e "$ts_test_dir" ] && ! rm -r "$ts_test_dir"
-  then
-    printf "could not remove existing test dir: %s\n" "$ts_test_dir"
-    exit 1
-  fi
+	if [ -e "$ts_test_dir" ] && ! rm -r "$ts_test_dir"
+	then
+		printf "could not remove existing test dir: %s\n" "$ts_test_dir"
+		exit 1
+	fi
 
-  # input /dev/null so that tests which read from stdin will not hang
-  exec </dev/null
+	# input /dev/null so that tests which read from stdin will not hang
+	exec </dev/null
 
-  if [ true = "$TS_DEBUG" ]
-  then set -ux
-  else set -u
-  fi
+	if [ "$TS_DEBUG" = "true" ]
+	then
+		set -ux
+	else
+		set -u
+	fi
 
-  trap 'teardown' EXIT
-  setup && "$ts_test_name"
-  ts_exitstatus=$?
-  trap - EXIT
-  teardown && return $ts_exitstatus
+	trap 'teardown' EXIT
+	setup && "$ts_test_name"
+	ts_exitstatus=$?
+	trap - EXIT
+	teardown && return $ts_exitstatus
 }
 
 ts_run_test_suite () {
-  ts_test_file="$0"
-  ts_test_case="${ts_test_file##*/}"
-  ts_test_case="${ts_test_case%\.*}"
-  ts_test_pattern="$(ts_pattern "$@")"
-  ts_test_files="${ts_test_files:-$ts_test_file}"
+	ts_test_file="$0"
+	ts_test_case="${ts_test_file##*/}"
+	ts_test_case="${ts_test_case%\.*}"
+	ts_test_pattern="$(ts_pattern "$@")"
+	ts_test_files="${ts_test_files:-$ts_test_file}"
 
-  printf "%s\n" "$ts_test_files" |
-  sed -e '/^[[:space:]]*$/d' |
-  while read ts_test_file
-  do
-    IFS=:
-    ts_list $ts_test_file
-  done |
-  while read ts_test_name ts_test_desc
-  do
-    ts_test_dir="$TS_TMP_DIR/$ts_test_case/$ts_test_name"
-    printf "[%s] %s\n" "$ts_test_desc" "$ts_test_name"
+	printf "%s\n" "$ts_test_files" | sed -e '/^[[:space:]]*$/d' |
+	while read ts_test_file
+	do
+		IFS=:
+		ts_list $ts_test_file
+	done |
+	while read ts_test_name ts_test_desc
+	do
+		ts_test_dir="$TS_TMP_DIR/$ts_test_case/$ts_test_name"
+		printf "[%s] %s\n" "$ts_test_desc" "$ts_test_name"
 
-    if [ execute = "$TS_REPORT" ]
-    then
-      (ts_run_test)
-      printf "%s\n" "$?" > "$ts_status_file"
-    else
-      # run the test by calling back into the test file
-      # * use stdout for progress, stderr for debug information
-      # * a zero exit status is considered a pass, otherwise fail
-      # * capture as a variable to calculate length
-      # * use a subprocess to prevent leakage (ex set -x)
-      if ts_stdout=$(
-        if [ verbose = "$TS_MODE" ]
-        then (ts_run_test 2>&1)
-        else (ts_run_test 2>/dev/null)
-        fi
-        )
-      then ts_status=P
-      else ts_status=F
-      fi
+		if [ "$TS_REPORT" = "execute" ]
+		then
+			(ts_run_test)
+			printf "%s\n" "$?" > "$ts_status_file"
+		else
+			# run the test by calling back into the test file
+			# * use stdout for progress, stderr for debug information
+			# * a zero exit status is considered a pass, otherwise fail
+			# * capture as a variable to calculate length
+			# * use a subprocess to prevent leakage (ex set -x)
+			if ts_stdout=$(
+				if [ verbose = "$TS_MODE" ]
+				then
+					(ts_run_test 2>&1)
+				else
+					(ts_run_test 2>/dev/null)
+				fi)
+			then
+				ts_status=P
+			else
+				ts_status=F
+			fi
 
-      printf "%s %d\n%s\n" "$ts_status" "${#ts_stdout}" "$ts_stdout"
-    fi
-  done | ts_report
+			printf "%s %d\n%s\n" \
+				"$ts_status" "${#ts_stdout}" "$ts_stdout"
+			fi
+	done | ts_report
 }
 
 ts_src_test_files () {
-  shift 1
-  for ts_test_file in "$@"
-  do
-    ts_prev="${ts_curr:-$0}"
-    ts_curr="$ts_prev:$ts_test_file"
-    ts_test_files="${ts_test_files:-$0}
-$ts_curr
-"
-    . "$ts_test_file"
-    ts_curr="$ts_prev"
-  done
+	shift 1
+	for ts_test_file in "$@"
+	do
+		ts_prev="${ts_curr:-$0}"
+		ts_curr="$ts_prev:$ts_test_file"
+		ts_test_files="${ts_test_files:-$0}
+		$ts_curr
+		"
+		. "$ts_test_file"
+		ts_curr="$ts_prev"
+	done
 }
 
 ts_run_test_files () {
-  export TS_USR_DIR
-  export TS_TMP_DIR
+	export TS_USR_DIR
+	export TS_TMP_DIR
 
-  export TS_COLOR
-  export TS_FILTER
-  export TS_MODE
-  export TS_DEBUG
+	export TS_COLOR
+	export TS_FILTER
+	export TS_MODE
+	export TS_DEBUG
 
-  for ts_test_file in "$@"
-  do
-    if [ -f "$ts_test_file" ]
-    then
-      if [ -x "$ts_test_file" ]
-      then
-        if [ x"${ts_test_file}" = x"${ts_test_file#*/}" ]
-        then ./"$ts_test_file" -w
-        else "$ts_test_file" -w
-        fi
-      else printf "[%s] not executable\nX 0\n\n" "$ts_test_file"
-      fi
-    elif [ x- = x"$ts_test_file" ]
-    then cat
-    else printf "[%s] not a file\nX 0\n\n" "$ts_test_file"
-    fi
-  done | ts_report
+	for ts_test_file in "$@"
+	do
+		if [ -f "$ts_test_file" ]
+		then
+			if [ -x "$ts_test_file" ]
+			then
+				if [ x"${ts_test_file}" = x"${ts_test_file#*/}" ]
+				then
+					./"$ts_test_file" -w
+				else
+					"$ts_test_file" -w
+				fi
+			else
+				printf "[%s] not executable\nX 0\n\n" "$ts_test_file"
+			fi
+		elif [ "x-" = x"$ts_test_file" ]
+		then
+			cat
+		else
+			printf "[%s] not a file\nX 0\n\n" "$ts_test_file"
+		fi
+	done | ts_report
 }
 
 ############################################################################
@@ -391,69 +416,73 @@ ts_run_test_files () {
 
 if ! type setup > /dev/null 2>&1
 then
-setup () {
-  true
-}
+	setup () {
+		true
+	}
 fi
 
 if ! type teardown > /dev/null 2>&1
 then
-teardown () {
-  true
-}
+	teardown () {
+		true
+	}
 fi
 
 # Flunks unless the numbers $1 (expected) and $2 (actual) are the same.
 assert_status () {
-  ts_expected=$1; ts_actual=$2
+	ts_expected=$1; ts_actual=$2
 
-  if ! [ $ts_actual -eq $ts_expected ]
-  then
-    shift 2
-    if [ $# -ne 0 ]
-    then ts_msg=" ($*)"
-    fi
-    printf "expected status %s but was %s%s\n" "$ts_expected" "$ts_actual" "${ts_msg:-}"
-    exit 1
-  fi
+	if [ $ts_actual -ne $ts_expected ]
+	then
+		shift 2
+		if [ $# -ne 0 ]
+		then
+			ts_msg=" ($*)"
+		fi
+		printf "expected status %s but was %s%s\n" \
+			"$ts_expected" "$ts_actual" "${ts_msg:-}"
+	exit 1
+	fi
 }
 
 # Flunks unless the variables $1 (expected) and $2 (actual) are the same.
 # Reads from stdin for '-'.  '-' is assumed if $2 is not specified.
 assert_output () {
-  ts_expected="$1"; ts_actual="${2:--}"
+	ts_expected="$1"; ts_actual="${2:--}"
+	if [ x"$ts_expected" = "x-" ]
+	then
+		ts_expected=$(cat; printf x)
+		ts_expected=${ts_expected%x}
+	fi
 
-  if [ x- = x"$ts_expected" ]
-  then
-    ts_expected=$(cat; printf x)
-    ts_expected=${ts_expected%x}
-  fi
+	if [ x"$ts_actual" = "x-" ]
+	then
+		ts_actual=$(cat; printf x)
+		ts_actual=${ts_actual%x}
+	fi
 
-  if [ x- = x"$ts_actual" ]
-  then
-    ts_actual=$(cat; printf x)
-    ts_actual=${ts_actual%x}
-  fi
+	if [ x"$ts_actual" != x"$ts_expected" ]
+	then
+		mkdir -p "$(dirname "$ts_test_dir")"
+		printf "%s" "$ts_expected" > "$ts_test_dir.e.txt"
+		printf "%s" "$ts_actual"   > "$ts_test_dir.a.txt"
+		printf "unequal output:\n"
 
-  if [ x"$ts_actual" != x"$ts_expected" ]
-  then
-    mkdir -p "$(dirname "$ts_test_dir")"
-    printf "%s" "$ts_expected" > "$ts_test_dir.e.txt"
-    printf "%s" "$ts_actual"   > "$ts_test_dir.a.txt"
-    printf "unequal output:\n"
+		${TS_DIFF:-diff} "$ts_test_dir.e.txt" "$ts_test_dir.a.txt"
 
-    ${TS_DIFF:-diff} "$ts_test_dir.e.txt" "$ts_test_dir.a.txt"
-
-    return 1
-  fi
+	return 1
+	fi
 }
 
 ############################################################################
 
 # Run the test files if this script is executed directly.
-if [ ts = "$ts_progname" ]
-then ts_run_test_files "$@"
-elif [ "." = "$1" ]
-then ts_src_test_files "$@"
-else ts_run_test_suite "$@"
+if [ "$ts_progname" = "ts" ]
+then
+	ts_run_test_files "$@"
+elif [ "$1" = "." ]
+then
+	ts_src_test_files "$@"
+else
+	ts_run_test_suite "$@"
 fi
