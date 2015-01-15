@@ -651,20 +651,6 @@ test_ts_options () {
 assert_example test/examples/options
 }
 
-# test this manually to see the nesting
-test_include () {
-ts -s test/examples/include | assert_output "\
-P [test/examples/include:3] test_include
-
-P [test/examples/include -> test/examples/include a:3] test_include_a
-
-P [test/examples/include -> test/examples/include b:3] test_include_b
-
-P [test/examples/include -> test/examples/include b -> test/examples/include_c:3] test_include_c
-
-"
-}
-
 test_ts_pass_examples () {
 assert_example test/examples/pass
 }
