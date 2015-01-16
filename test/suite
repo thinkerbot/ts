@@ -669,6 +669,10 @@ test_ts_pass_examples () {
 assert_example test/examples/pass
 }
 
+test_ts_public_function_conflict () {
+assert_example test/examples/public_function_conflict
+}
+
 test_ts_return_fail_in_setup () {
 assert_example test/examples/return_fail_in_setup
 }

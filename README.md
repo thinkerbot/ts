@@ -118,7 +118,9 @@ Functions provided by **ts**.
   it as the very last command in a test, or follow it with assert_status in a
   multipart test.  See the section on my 'tests aren't failing' for more.
 
-**ts** reserves all function names starting with 'ts_' for internal use.
+**ts** reserves all function names starting with 'ts_' for internal use.  Note
+that `setup` and `teardown` commands on PATH will be ignored because tests
+will shadow them with the corresponding **ts** functions.
 
 ## VARIABLES
 

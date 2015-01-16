@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# PASS
+#   in test
+#
+. test/helper
+
+export PATH="$PWD/test/examples/public_function_conflict.d:$PATH"
+
+test_setup_and_teardown_commands_on_PATH_are_ignored () {
+  printf "in test\n"
+}
+
+. ts

@@ -376,17 +376,21 @@ ts_run_test_files () {
   done | ts_report
 }
 
+ts_function_exists () {
+  [ x"$(command -v "$1" 2>/dev/null)" = x"$1" ]
+}
+
 ############################################################################
 # public functions
 
-if ! type setup > /dev/null 2>&1
+if ! ts_function_exists setup
 then
 setup () {
   true
 }
 fi
 
-if ! type teardown > /dev/null 2>&1
+if ! ts_function_exists teardown
 then
 teardown () {
   true
