@@ -99,10 +99,6 @@ mkdir -p "$TS_TMP_DIR"
 ts_status_file="$TS_TMP_DIR/status"
 ts_monitor_file="$TS_TMP_DIR/monitor"
 ts_skip_file="$TS_TMP_DIR/skips"
-ts_test_name=""
-
-# If there is a leftover skip file, remove that.
-rm "$ts_skip_file" 2>/dev/null
 
 if [ execute = "$TS_REPORT" ] && [ ts = "$ts_progname" ]
 then
@@ -309,11 +305,9 @@ ts_run_test_suite () {
     IFS=:
     ts_list $ts_test_file
   done |
-  while read ts_test ts_test_desc
+  while read ts_test_name ts_test_desc
   do
-    ts_test_name="$ts_test"
     ts_test_dir="$TS_TMP_DIR/$ts_test_case/$ts_test_name"
-    mkdir -p "$ts_test_dir"
     printf "[%s] %s\n" "$ts_test_desc" "$ts_test_name"
 
     if [ execute = "$TS_REPORT" ]
@@ -321,24 +315,23 @@ ts_run_test_suite () {
       (ts_run_test)
       printf "%s\n" "$?" > "$ts_status_file"
     else
+      # If there is a leftover skip file, remove that.
+      rm -f "$ts_skip_file" 2>/dev/null
+
       # run the test by calling back into the test file
       # * use stdout for progress, stderr for debug information
       # * a zero exit status is considered a pass, otherwise fail
       # * capture as a variable to calculate length
       # * use a subprocess to prevent leakage (ex set -x)
-      ts_stdout=$(
+      if ts_stdout=$(
         if [ verbose = "$TS_MODE" ]
         then (ts_run_test 2>&1)
         else (ts_run_test 2>/dev/null)
         fi
-        ); retcode=$?
-      # Check to see if the test we're running has been marked as being
-      # skipped; the test's name appears in the skip file if so.
-      grep -q "$ts_test_name" "$ts_skip_file" 2>/dev/null; is_test_skipped=$?
-      if [ "$is_test_skipped" -eq 0 -a "$retcode" -eq 0 ]
-      then ts_status=S
-      elif [ "$retcode" -eq 0 -a "$is_test_skipped" -ne 0 ]
+        )
       then ts_status=P
+      elif [ -e "$ts_skip_file" ]
+      then ts_status=S
       else ts_status=F
       fi
 
@@ -456,9 +449,9 @@ assert_output () {
 }
 
 skip () {
-  printf "%s\n" "$ts_test_name" >> "$ts_skip_file"
+  touch "$ts_skip_file"
   printf "%s\n" "${1:-"no reason given"}"
-  exit 0
+  exit 1
 }
 
 ############################################################################
