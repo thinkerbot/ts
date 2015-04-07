@@ -350,9 +350,8 @@ ts_run_test_suite () {
 }
 
 skip () {
-  echo "$ts_test_name" >>"$ts_skip_file"
-  local reason=${1:-"no reason given"}
-  printf "$reason"
+  printf "%s\n" "$ts_test_name" >> "$ts_skip_file"
+  printf "%s\n" "${1:-"no reason given"}"
   exit 0
 }
 
