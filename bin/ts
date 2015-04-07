@@ -212,8 +212,7 @@ ts_filter () {
 # Adds color to the ts stream format.
 ts_color () {
   if [ true = "$TS_COLOR" ]
-  then awk $ts_awk_opts -v norm="$TS_NORM" -v pass="$TS_PASS" \
-	  -v skip="$TS_SKIP" -v fail="$TS_FAIL" '
+  then awk $ts_awk_opts -v norm="$TS_NORM" -v pass="$TS_PASS" -v skip="$TS_SKIP" -v fail="$TS_FAIL" '
     /^P / { sub("P [[]", "[" pass); sub("]", norm "]"); }
     /^F / { sub("F [[]", "[" fail); sub("]", norm "]"); }
     /^S / { sub("S [[]", "[" skip); sub("]", norm "]"); }
@@ -238,8 +237,7 @@ ts_print_status () {
   awk -v nsec="$1" '
 BEGIN { npass=nskip=nfail=0 }
       { npass += $1; nfail+= $2; nskip += $3; }
-	  END { printf("%d pass %d fail %d skip %d s\n",
-	  npass, nfail, nskip, nsec); if(nfail > 0) exit 1 }
+END   { printf("%d pass %d fail %d skip %d s\n", npass, nfail, nskip, nsec); if(nfail > 0) exit 1 }
 ' < "$ts_status_file"
 
   ts_exitstatus=$?
@@ -349,12 +347,6 @@ ts_run_test_suite () {
   done | ts_report
 }
 
-skip () {
-  printf "%s\n" "$ts_test_name" >> "$ts_skip_file"
-  printf "%s\n" "${1:-"no reason given"}"
-  exit 0
-}
-
 ts_src_test_files () {
   shift 1
   for ts_test_file in "$@"
@@ -461,6 +453,12 @@ assert_output () {
 
     return 1
   fi
+}
+
+skip () {
+  printf "%s\n" "$ts_test_name" >> "$ts_skip_file"
+  printf "%s\n" "${1:-"no reason given"}"
+  exit 0
 }
 
 ############################################################################
