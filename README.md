@@ -430,6 +430,7 @@ Report bugs here: http://github.com/thinkerbot/ts/issues.
 Thanks for the help!
 
 * Angelo Lakra (github.com/alakra)
+* Thomas Adam (github.com/ThomasAdam)
 
 ## COPYRIGHT
 
