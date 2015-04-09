@@ -154,6 +154,12 @@ Return 1 unless the variables EXPECTED and ACTUAL are the same\. Reads from stdi
 .IP
 Using assert_output in a pipeline is often convenient but remember this assertion only returns, it does not exit\. As a result you should either use it as the very last command in a test, or follow it with assert_status in a multipart test\. See the section on my \'tests aren\'t failing\' for more\.
 .
+.TP
+\fBskip [MESSAGE]\fR:
+.
+.IP
+Skip a test\.
+.
 .P
 \fBts\fR reserves all function names starting with \'ts_\' for internal use\. Note that \fBsetup\fR and \fBteardown\fR commands on PATH will be ignored because tests will shadow them with the corresponding \fBts\fR functions\.
 .
@@ -642,6 +648,9 @@ Thanks for the help!
 .
 .IP "\(bu" 4
 Angelo Lakra (github\.com/alakra)
+.
+.IP "\(bu" 4
+Thomas Adam (github\.com/ThomasAdam)
 .
 .IP "" 0
 .

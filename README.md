@@ -120,7 +120,7 @@ Functions provided by **ts**.
 
 * `skip [MESSAGE]`:
 
-  Skip a test.
+  Skip a test.  Exits 0 but counts as a skip and not a pass.
 
 **ts** reserves all function names starting with 'ts_' for internal use.  Note
 that `setup` and `teardown` commands on PATH will be ignored because tests
