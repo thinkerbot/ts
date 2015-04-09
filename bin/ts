@@ -276,6 +276,12 @@ ts_run_test () {
     exit 1
   fi
 
+  if [ -e "$ts_skip_file" ] && ! rm "$ts_skip_file"
+  then
+    printf "could not remove skip file: %s\n" "$ts_skip_file"
+    exit 1
+  fi
+
   # input /dev/null so that tests which read from stdin will not hang
   exec </dev/null
 
@@ -315,8 +321,6 @@ ts_run_test_suite () {
       (ts_run_test)
       printf "%s\n" "$?" > "$ts_status_file"
     else
-      # If there is a leftover skip file, remove that.
-      rm -f "$ts_skip_file" 2>/dev/null
 
       # run the test by calling back into the test file
       # * use stdout for progress, stderr for debug information
@@ -329,10 +333,13 @@ ts_run_test_suite () {
         else (ts_run_test 2>/dev/null)
         fi
         )
-      then ts_status=P
-      elif [ -e "$ts_skip_file" ]
-      then ts_status=S
-      else ts_status=F
+      then
+        if [ -e "$ts_skip_file" ]
+        then ts_status=S
+        else ts_status=P
+        fi
+      else
+        ts_status=F
       fi
 
       printf "%s %d\n%s\n" "$ts_status" "${#ts_stdout}" "$ts_stdout"
@@ -454,7 +461,7 @@ skip () {
   touch "$ts_skip_file"
   printf "%s\n" "$ts_reason"
 
-  exit 1
+  exit 0
 }
 
 ############################################################################
