@@ -152,6 +152,9 @@ P [./test/examples/abc:9] test_b
 F [./test/examples/abc:15] test_c
   c
 
+S [./test/examples/abc:21] test_s
+  s
+
 "
 }
 
@@ -210,13 +213,17 @@ test_ts_does_not_print_passing_tests_by_default () {
 ts test/examples/abc 2>&1 |
 sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
-..F
+..F-
 
 [test/examples/abc:15] test_c
   c
 F
 
-2 pass 1 fail 0 skip # s
+[test/examples/abc:21] test_s
+  s
+S
+
+2 pass 1 fail 1 skip # s
 "
 }
 
@@ -224,7 +231,7 @@ test_ts_a_option_prints_all_tests () {
 ts -a test/examples/abc 2>&1 |
 sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
-..F
+..F-
 
 [test/examples/abc:3] test_a
   a
@@ -238,7 +245,11 @@ P
   c
 F
 
-2 pass 1 fail 0 skip # s
+[test/examples/abc:21] test_s
+  s
+S
+
+2 pass 1 fail 1 skip # s
 "
 }
 
@@ -246,13 +257,17 @@ test_script_does_not_print_passing_tests_by_default () {
 ./test/examples/abc 2>&1 |
 sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
-..F
+..F-
 
 [./test/examples/abc:15] test_c
   c
 F
 
-2 pass 1 fail 0 skip # s
+[./test/examples/abc:21] test_s
+  s
+S
+
+2 pass 1 fail 1 skip # s
 "
 }
 
@@ -260,7 +275,7 @@ test_script_a_option_prints_all_tests () {
 ./test/examples/abc -a 2>&1 |
 sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
-..F
+..F-
 
 [./test/examples/abc:3] test_a
   a
@@ -274,7 +289,11 @@ P
   c
 F
 
-2 pass 1 fail 0 skip # s
+[./test/examples/abc:21] test_s
+  s
+S
+
+2 pass 1 fail 1 skip # s
 "
 }
 
@@ -293,6 +312,9 @@ ts -sc test/examples/abc | assert_output "\
 [[1;31mtest/examples/abc:15[0m] test_c
   c
 
+[[1;33mtest/examples/abc:21[0m] test_s
+  s
+
 "
 }
 
@@ -306,6 +328,9 @@ test_script_c_option_prints_color_output () {
 
 [[1;31m./test/examples/abc:15[0m] test_c
   c
+
+[[1;33m./test/examples/abc:21[0m] test_s
+  s
 
 "
 }
@@ -388,7 +413,7 @@ test_ts_m_option_monitors_output () {
 ts -am test/examples/abc 2>&1 |
 sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
-..F
+..F-
 
 [test/examples/abc:3] test_a
   a
@@ -402,7 +427,11 @@ P
   c
 F
 
-2 pass 1 fail 0 skip # s
+[test/examples/abc:21] test_s
+  s
+S
+
+2 pass 1 fail 1 skip # s
 "
 }
 
@@ -410,7 +439,7 @@ test_script_m_option_monitors_output () {
 ./test/examples/abc -a -m 2>&1 |
 sed -e "s/[-0-9]\{1,\} s$/# s/" |
 assert_output "\
-..F
+..F-
 
 [./test/examples/abc:3] test_a
   a
@@ -424,7 +453,11 @@ P
   c
 F
 
-2 pass 1 fail 0 skip # s
+[./test/examples/abc:21] test_s
+  s
+S
+
+2 pass 1 fail 1 skip # s
 "
 }
 
@@ -471,6 +504,9 @@ P [test/examples/abc:9] test_b
 F [test/examples/abc:15] test_c
   c
 
+S [test/examples/abc:21] test_s
+  s
+
 "
 }
 
@@ -484,6 +520,9 @@ P [./test/examples/abc:9] test_b
 
 F [./test/examples/abc:15] test_c
   c
+
+S [./test/examples/abc:21] test_s
+  s
 
 "
 }
@@ -503,6 +542,9 @@ P [test/examples/abc:9] test_b
 F [test/examples/abc:15] test_c
   c
 
+S [test/examples/abc:21] test_s
+  s
+
 "
 }
 
@@ -516,6 +558,9 @@ P [test/examples/abc:9] test_b
 
 F [test/examples/abc:15] test_c
   cC
+
+S [test/examples/abc:21] test_s
+  s
 
 "
 }
@@ -531,6 +576,9 @@ P [./test/examples/abc:9] test_b
 F [./test/examples/abc:15] test_c
   c
 
+S [./test/examples/abc:21] test_s
+  s
+
 "
 }
 
@@ -544,6 +592,9 @@ P [./test/examples/abc:9] test_b
 
 F [./test/examples/abc:15] test_c
   cC
+
+S [./test/examples/abc:21] test_s
+  s
 
 "
 }
@@ -563,6 +614,9 @@ b
 [test/examples/abc:15] test_c
 F 1
 c
+[test/examples/abc:21] test_s
+S 1
+s
 "
 }
 
@@ -577,6 +631,9 @@ b
 [./test/examples/abc:15] test_c
 F 1
 c
+[./test/examples/abc:21] test_s
+S 1
+s
 "
 }
 

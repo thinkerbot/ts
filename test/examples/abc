@@ -18,5 +18,10 @@ test_c () {
   false
 }
 
+test_s () {
+  skip "s"
+  false
+}
+
 . test/helper
 . ts
