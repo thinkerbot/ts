@@ -1,10 +1,10 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "TS" "1" "September 2012" "1.0.0-beta" ""
+.TH "TS" "1" "September 2014" "2.0.0-beta" ""
 .
 .SH "NAME"
-\fBts\fR \- run ts shell test scripts
+\fBts\fR \- test script
 .
 .SH "SYNOPSIS"
 \fBts\fR \fIoptions\fR TEST_SCRIPT\.\.\.
@@ -16,7 +16,7 @@
 \fBts\fR provides functions for writing tests in shell\. The test scripts can be run individually or in a batch format using \fBts\fR as a command\.
 .
 .P
-\fBts\fR makes a test directory available on a per\-test basis so it\'s easy to sandbox tests that write or manipulate files\. \fBts\fR tries to use POSIX exclusively and so should (hopefully) work on any POSIX\-compliant system\.
+\fBts\fR makes a test directory available on a per\-test basis so it\'s easy to sandbox tests that write or manipulate files\. \fBts\fR tries to use POSIX exclusively and so should (hopefully) work with any POSIX\-compliant shell\.
 .
 .SH "TEST SCRIPTS"
 The \fBts\fR command expects script files that define test cases\. Test scripts have the following form:
@@ -26,7 +26,8 @@ The \fBts\fR command expects script files that define test cases\. Test scripts 
 .nf
 
 [\./example]
-#!/bin/sh               # pick a shell, any (POSIX) shell
+#!/bin/sh
+# pick a shell, any (POSIX) shell
 
 setup () {              # optional setup
   mkdir \-p "$ts_test_dir"
@@ -62,10 +63,23 @@ ts example              # run multiple test scripts
 .IP "" 0
 .
 .P
+To debug, try using \-e to execute the test function in isolation\.
+.
+.IP "" 4
+.
+.nf
+
+\[char46]/example \-e test_a_thing    # a most useful pattern
+.
+.fi
+.
+.IP "" 0
+.
+.P
 See the FUNCTIONS, EXAMPLES, and TROUBLESHOOT sections for more details\.
 .
 .SH "OPTIONS"
-These options control how \fBts\fR operates:
+These options control how \fBts\fR operates\.
 .
 .TP
 \fB\-a\fR
@@ -73,11 +87,15 @@ Show passing outputs, which are normally filtered\.
 .
 .TP
 \fB\-c\fR
-Colorize output\. (green/red/yellow \- pass/fail/skip)
+Colorize output\. (green/red/yellow \- pass/fail/not\-executable)
 .
 .TP
 \fB\-d\fR
 Debug mode\. Turns on xtrace (set \-x) for the tests and enables \-v\.
+.
+.TP
+\fB\-e\fR
+Exec mode\. Runs a test without processing the output and exits\.
 .
 .TP
 \fB\-h\fR
@@ -122,27 +140,22 @@ A teardown function run after each test\.
 \fBts\fR ensures teardown runs by setting a trap for EXIT signals during setup and the actual test\. As a result, EXIT traps in tests can prevent teardown\.
 .
 .TP
-\fBassert_status EXPECTED ACTUAL\fR:
+\fBassert_status EXPECTED ACTUAL [MESSAGE]\fR:
 .
 .IP
-Exit 1 unless the numbers EXPECTED and ACTUAL are the same\. This assertion is almost never necessary\.
+Exit 1 unless the numbers EXPECTED and ACTUAL are the same\. Use this to make assertions in the middle of a test\.
 .
 .TP
 \fBassert_output EXPECTED ACTUAL\fR:
 .
 .IP
-Exit 1 unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin for \'\-\'\. Also reads ACTUAL from stdin if ACTUAL is unspecified\.
+Return 1 unless the variables EXPECTED and ACTUAL are the same\. Reads from stdin for \'\-\'\. Also reads ACTUAL from stdin if ACTUAL is unspecified\.
 .
 .IP
-Using assert_output in a pipeline is often convenient, but be careful you don\'t expect a failing assert_output to exit your test case as, in that case, it will only exit the pipeline\. See the EXAMPLES section for more details\.
+Using assert_output in a pipeline is often convenient but remember this assertion only returns, it does not exit\. As a result you should either use it as the very last command in a test, or follow it with assert_status in a multipart test\. See the section on my \'tests aren\'t failing\' for more\.
 .
-.TP
-\fBskip REASON
-Skips the given test, printing the given REASON.
-.
-.IP
 .P
-\fBts\fR reserves all function names starting with \'ts_\' for internal use\.
+\fBts\fR reserves all function names starting with \'ts_\' for internal use\. Note that \fBsetup\fR and \fBteardown\fR commands on PATH will be ignored because tests will shadow them with the corresponding \fBts\fR functions\.
 .
 .SH "VARIABLES"
 Variables provided by \fBts\fR at runtime\. Feel free to use any of them but treat them as read\-only\.
@@ -269,6 +282,11 @@ hello world
 "
 }
 
+test_skip_test () {
+skip "skipping this one"
+false
+}
+
 \[char46] ts
 .
 .fi
@@ -308,13 +326,13 @@ ${picker} | assert_output "\e
 [\./test_grep_abc]
 #!/bin/sh
 picker="grep abc"
-\[char46] ts \. common_tests
+\[char46] ts \. \./common_tests
 \[char46] ts
 
 [\./test_sed_abc]
 #!/bin/sh
 picker="sed \-ne /abc/p"
-\[char46] ts \. common_tests
+\[char46] ts \. \./common_tests
 \[char46] ts
 .
 .fi
@@ -438,16 +456,16 @@ abc
 \fBMy tests aren\'t failing\fR
 .
 .P
-\fB1)\fR Are you using asserts in a pipeline?
+\fB1)\fR Are you using assert_output in a pipeline?
 .
 .P
-\fBts\fR assert methods exit failure (rather than return) so this will fail\.
+\fBts\fR assert methods return failure (rather than exit) so this will pass\.
 .
 .IP "" 4
 .
 .nf
 
-test_multiple_asserts_failing_as_intended () {
+test_multiple_asserts_not_failing_as_intended () {
   assert_output "1" "0"
   assert_output "0" "0"
 }
@@ -457,14 +475,34 @@ test_multiple_asserts_failing_as_intended () {
 .IP "" 0
 .
 .P
-However the assert methods in a pipeline will exit the pipeline instead of the test method so this will not fail\.
+The reason is that exit within a pipeline has shell\-specific behavior\. For instance if you run this with different values of shell you will get 0 for bash and dash, and 1 for zsh and ksh\.
 .
 .IP "" 4
 .
 .nf
 
-test_this_has_a_bug_and_does_not_fail () {
-  printf "0" | assert_output "1"
+$shell <<DOC
+yes | exit 1
+exit 0
+DOC
+echo $?
+.
+.fi
+.
+.IP "" 0
+.
+.P
+As a result you cannot get consistent behavior if assert_output exits rather than returns; in bash/dash a failing assert_output in a pipeline would be ignored while in ksh/zsh it would be respected\. So what do you do if you want multiple assertions?
+.
+.P
+One way is to && all the asserts at the end of the test\.
+.
+.IP "" 4
+.
+.nf
+
+test_this_fails_as_expected () {
+  printf "0" | assert_output "1" &&
   assert_output "0" "0"
 }
 .
@@ -473,31 +511,15 @@ test_this_has_a_bug_and_does_not_fail () {
 .IP "" 0
 .
 .P
-One way around this is to \fBset \-e\fR in your setup or at the start of the test so that any failing command (including a pipeline) will cause the function to exit in failure\.
-.
-.IP "" 4
-.
-.nf
-
-test_this_now_fails_as_expected () {
-  set \-e
-  printf "0" | assert_output "1"
-  assert_output "0" "0"
-}
-.
-.fi
-.
-.IP "" 0
-.
-.P
-Another way is to && all the asserts at the end of the test\.
+Another way is to use assert_status\. Unlike assert_output, assert_status exits (it does not return)\. This is ok because there is no good reason to use assert status in a pipeline \- the intent is to use it as a breakout from a multipart test\. As a result you can use a message with assert_status to track progress\.
 .
 .IP "" 4
 .
 .nf
 
 test_this_also_fails_as_expected () {
-  printf "0" | assert_output "1" &&
+  printf "0" | assert_output "1"
+  assert_status "0" $? "checking the pipeline"
   assert_output "0" "0"
 }
 .
@@ -524,6 +546,26 @@ test_teardown_will_not_run () {
 .
 .IP "" 0
 .
+.P
+\fBI\'m using DASH (maybe you\'re on ubuntu)\fR
+.
+.P
+DASH is quirky\. Last I checked you cannot concatenate options like you can in other shells, so when launching scripts individually (the only time this applies) you must separate options out\.
+.
+.IP "" 4
+.
+.nf
+
+\[char46]/test_script \-s \-c  # this
+\[char46]/test_script \-sc    # not this!
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Shared examples do not work with DASH \- the \fB\. ts \. files\.\.\.\fR syntax relies on the dot operator to set arguments which dot in DASH does not do\. There isn\'t actually anything in the POSIX spec that says it should, but it\'s a break in the conventions used by other shells\.
+.
 .SH "INSTALLATION"
 Add \fBts\fR to your PATH (or execute it directly)\. A nice way of doing so is to clone the repo and add the bin dir to PATH\. This allows easy updates via \fBgit pull\fR and should make the manpages available via \fBman ts\fR\.
 .
@@ -538,6 +580,20 @@ export PATH="$PATH:$(pwd)/ts/bin"
 .
 .IP "" 0
 .
+.P
+If you\'re using homebrew \fIhttp://brew\.sh/\fR on OSX you can tap goodlittlescript \fIhttps://github\.com/goodlittlescript/homebrew\-gls\fR\.
+.
+.IP "" 4
+.
+.nf
+
+brew tap goodlittlescript/homebrew\-gls
+brew install ts
+.
+.fi
+.
+.IP "" 0
+.
 .SH "DEVELOPMENT"
 Clone the repo as above\. To run the tests (written in \fBts\fR):
 .
@@ -546,6 +602,20 @@ Clone the repo as above\. To run the tests (written in \fBts\fR):
 .nf
 
 ts test/suite
+.
+.fi
+.
+.IP "" 0
+.
+.P
+To run the tests on various distros:
+.
+.IP "" 4
+.
+.nf
+
+vagrant up
+\[char46]/test/vm
 .
 .fi
 .

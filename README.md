@@ -118,6 +118,10 @@ Functions provided by **ts**.
   it as the very last command in a test, or follow it with assert_status in a
   multipart test.  See the section on my 'tests aren't failing' for more.
 
+* `skip [MESSAGE]`:
+
+  Skip a test.
+
 **ts** reserves all function names starting with 'ts_' for internal use.  Note
 that `setup` and `teardown` commands on PATH will be ignored because tests
 will shadow them with the corresponding **ts** functions.
@@ -178,8 +182,8 @@ In addition these variables adjust the color output.
 * `TS_FAIL` (red):
   Failing tests.
 
-* `TS_NOEX` (yellow):
-  Non-executable test files.
+* `TS_SKIP` (yellow):
+  Skipped tests.
 
 * `TS_NORM` (normal):
   The normal output color.
@@ -219,6 +223,11 @@ Basic usage:
     printf "hello world\n" | assert_output "\
     hello world
     "
+    }
+
+    test_skip_test () {
+    skip "skipping this one"
+    false
     }
 
     . ts
