@@ -449,8 +449,11 @@ assert_output () {
 }
 
 skip () {
+  ts_reason="${1:-no reason given}"
+
   touch "$ts_skip_file"
-  printf "%s\n" "${1:-"no reason given"}"
+  printf "%s\n" "$ts_reason"
+
   exit 1
 }
 
