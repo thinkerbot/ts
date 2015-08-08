@@ -1,0 +1,13 @@
+#!/bin/sh
+
+. test/helper
+
+test_skip_no_reason () {
+  skip
+}
+
+test_skip_with_reason () {
+  skip "Skipping..."
+}
+
+. ts

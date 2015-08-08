@@ -10,12 +10,13 @@ export TS_TMP_DIR="$ts_test_dir"
 assert_example () {
 example_file="$1"
 
-ts -s "$example_file" | 
+ts -s "$example_file" |
 normalize_stream |
 assert_output "$(
 sed -ne '
 /^# PASS/,/^[^#]/s/# //p
 /^# FAIL/,/^[^#]/s/# //p
+/^# SKIP/,/^[^#]/s/# //p
 ' "$example_file" | 
 normalize_stream
 )
@@ -26,6 +27,7 @@ normalize_stream () {
 sed -e '
 /^P/s/.*/PASS/
 /^F/s/.*/FAIL/
+/^S/s/.*/SKIP/
 /^$/d
 ' 
 }
@@ -125,16 +127,16 @@ P [test/examples/abc:3] test_a
 
 test_ts_reports_non_executable_files () {
 ts -s test/nox | assert_output "\
-X [test/nox] not executable
+S [test/nox] not executable
 
 "
 }
 
 test_ts_reports_non_files () {
 ts -s test test/miss | assert_output "\
-X [test] not a file
+S [test] not a file
 
-X [test/miss] not a file
+S [test/miss] not a file
 
 "
 }
@@ -206,7 +208,7 @@ F [./test/examples/abc:15] test_c
 
 test_ts_does_not_print_passing_tests_by_default () {
 ts test/examples/abc 2>&1 |
-sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
 ..F
 
@@ -214,13 +216,13 @@ assert_output "\
   c
 F
 
-2 pass 1 fail # s
+2 pass 1 fail 0 skip # s
 "
 }
 
 test_ts_a_option_prints_all_tests () {
 ts -a test/examples/abc 2>&1 |
-sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
 ..F
 
@@ -236,13 +238,13 @@ P
   c
 F
 
-2 pass 1 fail # s
+2 pass 1 fail 0 skip # s
 "
 }
 
 test_script_does_not_print_passing_tests_by_default () {
 ./test/examples/abc 2>&1 |
-sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
 ..F
 
@@ -250,13 +252,13 @@ assert_output "\
   c
 F
 
-2 pass 1 fail # s
+2 pass 1 fail 0 skip # s
 "
 }
 
 test_script_a_option_prints_all_tests () {
 ./test/examples/abc -a 2>&1 |
-sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
 ..F
 
@@ -272,7 +274,7 @@ P
   c
 F
 
-2 pass 1 fail # s
+2 pass 1 fail 0 skip # s
 "
 }
 
@@ -384,7 +386,7 @@ assert_status 8 $?
 
 test_ts_m_option_monitors_output () {
 ts -am test/examples/abc 2>&1 |
-sed -e '$ s/[-0-9]\{1,\} s/# s/' |
+sed -e '$ s/[-0-9]\{1,\} s$/# s/' |
 assert_output "\
 ..F
 
@@ -400,13 +402,13 @@ P
   c
 F
 
-2 pass 1 fail # s
+2 pass 1 fail 0 skip # s
 "
 }
 
 test_script_m_option_monitors_output () {
 ./test/examples/abc -a -m 2>&1 |
-sed -e "s/[-0-9]\{1,\} s/# s/" |
+sed -e "s/[-0-9]\{1,\} s$/# s/" |
 assert_output "\
 ..F
 
@@ -422,7 +424,7 @@ P
   c
 F
 
-2 pass 1 fail # s
+2 pass 1 fail 0 skip # s
 "
 }
 
@@ -701,6 +703,21 @@ cat | assert_output ""
 test_ts_allows_exit_trap () {
 trap "exit 0" EXIT
 exit 1
+}
+
+#
+# skip test
+#
+
+test_ts_skip () {
+ts -s test/examples/skip | assert_output "\
+S [test/examples/skip:5] test_skip_no_reason
+  no reason given
+
+S [test/examples/skip:9] test_skip_with_reason
+  Skipping...
+
+"
 }
 
 #
