@@ -29,5 +29,12 @@ hello world
 "
 }
 
+# SKIP
+#   skipping this one
+test_skip_test () {
+skip "skipping this one"
+false
+}
+
 . test/helper
 . ts
