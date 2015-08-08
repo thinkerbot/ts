@@ -158,7 +158,7 @@ Using assert_output in a pipeline is often convenient but remember this assertio
 \fBskip [MESSAGE]\fR:
 .
 .IP
-Skip a test\.
+Skip a test\. Exits 0 but counts as a skip and not a pass\.
 .
 .P
 \fBts\fR reserves all function names starting with \'ts_\' for internal use\. Note that \fBsetup\fR and \fBteardown\fR commands on PATH will be ignored because tests will shadow them with the corresponding \fBts\fR functions\.
