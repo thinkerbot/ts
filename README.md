@@ -1,15 +1,15 @@
-ts(1) -- test script
+(1) -- test script
 =============================================
 
 ## SYNOPSIS
 
-`ts` [options] TEST_SCRIPT...
+`` [options] TEST_SCRIPT...
 
 `[./test_script]` [options] TESTS...
 
 ## DESCRIPTION
 
-**ts** provides functions for writing tests in shell. The test scripts can be
+**** provides functions for writing tests in shell. The test scripts can be
 run individually or in a batch format using `ts` as a command.
 
 **ts** makes a test directory available on a per-test basis so it's easy to
@@ -74,6 +74,9 @@ These options control how `ts` operates.
   Monitor output. Provide a ticker indicating the progress of tests and
   print a summary. Monitor is the default.
 
+* `-q`:
+  Quiet output. Shows only stdout, hiding stderr.
+
 * `-r`:
   Remove the tmp dir on complete. Removal is done using `rm -r`.
 
@@ -85,8 +88,8 @@ These options control how `ts` operates.
   be located under this directory.
 
 * `-v`:
-  Verbose output. Enables **ts** to display stderr for the tests (normally
-  only stdout is shown).
+  Verbose output. Display both stdout and stderr for the tests (enabled
+  by default).
 
 ## FUNCTIONS
 

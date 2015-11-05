@@ -1,4 +1,3 @@
-[./background]
 #!/bin/sh
 
 teardown () {

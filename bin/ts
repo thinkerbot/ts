@@ -34,10 +34,11 @@ options:
     -e   exec test
     -h   prints this help
     -m   monitor output
+    -q   quiet output (hide stderr)
     -r   remove tmp dir (rm -r)
     -s   stream output (implies -a)
     -t   set the tmp dir (default tmp)
-    -v   verbose output (show stderr)
+    -v   verbose output (show stderr, default on)
     -w   raw output
 
 version: %s - %s
@@ -49,7 +50,7 @@ ts_args=""
 while [ $OPTIND -le $# ]
 do
   ts_optcur="$OPTIND"
-  if getopts "acdehmrst:vw" ts_option
+  if getopts "acdehmqrst:vw" ts_option
   then
     case "$ts_option" in
       (a) TS_FILTER=false ;;
@@ -59,6 +60,7 @@ do
       (h) ts_usage
           exit 0 ;;
       (m) TS_REPORT=monitor ;;
+      (q) TS_MODE=quiet ;;
       (r) TS_REMOVE_TMP_DIR=true ;;
       (s) TS_REPORT=stream; TS_FILTER=false ;;
       (t) TS_TMP_DIR=$OPTARG ;;
@@ -87,7 +89,7 @@ TS_COLOR=${TS_COLOR:-false}
 TS_DEBUG=${TS_DEBUG:-false}
 TS_FILTER=${TS_FILTER:-true}
 TS_REPORT=${TS_REPORT:-monitor}
-TS_MODE=${TS_MODE:-normal}
+TS_MODE=${TS_MODE:-verbose}
 TS_REMOVE_TMP_DIR=${TS_REMOVE_TMP_DIR:-false}
 
 TS_PASS="${TS_PASS:-[32m}"

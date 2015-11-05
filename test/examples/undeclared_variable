@@ -2,6 +2,7 @@
 . test/helper
 
 # FAIL
+#   test/examples/undeclared_variable: line 8: var: unbound variable
 test_ts_fails_for_use_of_undeclared_variable () {
 unset var
 assert_output "" "$var"

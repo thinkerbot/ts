@@ -9,8 +9,9 @@ export TS_TMP_DIR="$ts_test_dir"
 
 assert_example () {
 example_file="$1"
+options="${2:-}"
 
-ts -s "$example_file" |
+ts -s $options "$example_file" |
 normalize_stream |
 assert_output "$(
 sed -ne '
@@ -144,13 +145,13 @@ S [test/miss] not a file
 test_script_runs_tests () {
 ./test/examples/abc -s | assert_output "\
 P [./test/examples/abc:3] test_a
-  a
+  aA
 
 P [./test/examples/abc:9] test_b
-  b
+  bB
 
 F [./test/examples/abc:15] test_c
-  c
+  cC
 
 S [./test/examples/abc:21] test_s
   s
@@ -161,10 +162,10 @@ S [./test/examples/abc:21] test_s
 test_script_runs_named_tests () {
 ./test/examples/abc -s test_a test_c | assert_output "\
 P [./test/examples/abc:3] test_a
-  a
+  aA
 
 F [./test/examples/abc:15] test_c
-  c
+  cC
 
 "
 }
@@ -172,10 +173,10 @@ F [./test/examples/abc:15] test_c
 test_script_runs_tests_matching_patterns () {
 ./test/examples/abc -s 'test_[ac]' | assert_output "\
 P [./test/examples/abc:3] test_a
-  a
+  aA
 
 F [./test/examples/abc:15] test_c
-  c
+  cC
 
 "
 }
@@ -197,10 +198,10 @@ F [test/fail:3] test_fail
 test_script_accepts_options_anywhere () {
 ./test/examples/abc test_a -a test_c -s | assert_output "\
 P [./test/examples/abc:3] test_a
-  a
+  aA
 
 F [./test/examples/abc:15] test_c
-  c
+  cC
 
 "
 }
@@ -216,7 +217,7 @@ assert_output "\
 ..F-
 
 [test/examples/abc:15] test_c
-  c
+  cC
 F
 
 [test/examples/abc:21] test_s
@@ -234,15 +235,15 @@ assert_output "\
 ..F-
 
 [test/examples/abc:3] test_a
-  a
+  aA
 P
 
 [test/examples/abc:9] test_b
-  b
+  bB
 P
 
 [test/examples/abc:15] test_c
-  c
+  cC
 F
 
 [test/examples/abc:21] test_s
@@ -260,7 +261,7 @@ assert_output "\
 ..F-
 
 [./test/examples/abc:15] test_c
-  c
+  cC
 F
 
 [./test/examples/abc:21] test_s
@@ -278,15 +279,15 @@ assert_output "\
 ..F-
 
 [./test/examples/abc:3] test_a
-  a
+  aA
 P
 
 [./test/examples/abc:9] test_b
-  b
+  bB
 P
 
 [./test/examples/abc:15] test_c
-  c
+  cC
 F
 
 [./test/examples/abc:21] test_s
@@ -304,13 +305,13 @@ S
 test_ts_c_option_prints_green_red_color_output () {
 ts -sc test/examples/abc | assert_output "\
 [[32mtest/examples/abc:3[0m] test_a
-  a
+  aA
 
 [[32mtest/examples/abc:9[0m] test_b
-  b
+  bB
 
 [[1;31mtest/examples/abc:15[0m] test_c
-  c
+  cC
 
 [[1;33mtest/examples/abc:21[0m] test_s
   s
@@ -321,13 +322,13 @@ ts -sc test/examples/abc | assert_output "\
 test_script_c_option_prints_color_output () {
 ./test/examples/abc -s -c | assert_output "\
 [[32m./test/examples/abc:3[0m] test_a
-  a
+  aA
 
 [[32m./test/examples/abc:9[0m] test_b
-  b
+  bB
 
 [[1;31m./test/examples/abc:15[0m] test_c
-  c
+  cC
 
 [[1;33m./test/examples/abc:21[0m] test_s
   s
@@ -416,15 +417,15 @@ assert_output "\
 ..F-
 
 [test/examples/abc:3] test_a
-  a
+  aA
 P
 
 [test/examples/abc:9] test_b
-  b
+  bB
 P
 
 [test/examples/abc:15] test_c
-  c
+  cC
 F
 
 [test/examples/abc:21] test_s
@@ -442,15 +443,15 @@ assert_output "\
 ..F-
 
 [./test/examples/abc:3] test_a
-  a
+  aA
 P
 
 [./test/examples/abc:9] test_b
-  b
+  bB
 P
 
 [./test/examples/abc:15] test_c
-  c
+  cC
 F
 
 [./test/examples/abc:21] test_s
@@ -471,6 +472,78 @@ ts -h | grep -q "usage:"
 
 test_script_h_prints_help () {
 ./test/pass -h | grep -q "usage:"
+}
+
+#
+# -q option
+#
+
+test_ts_displays_stdout_and_stderr () {
+ts -s test/examples/abc | assert_output "\
+P [test/examples/abc:3] test_a
+  aA
+
+P [test/examples/abc:9] test_b
+  bB
+
+F [test/examples/abc:15] test_c
+  cC
+
+S [test/examples/abc:21] test_s
+  s
+
+"
+}
+
+test_ts_q_option_hide_stderr () {
+ts -s -q test/examples/abc | assert_output "\
+P [test/examples/abc:3] test_a
+  a
+
+P [test/examples/abc:9] test_b
+  b
+
+F [test/examples/abc:15] test_c
+  c
+
+S [test/examples/abc:21] test_s
+  s
+
+"
+}
+
+test_script_displays_stdout_and_stderr () {
+./test/examples/abc -s | assert_output "\
+P [./test/examples/abc:3] test_a
+  aA
+
+P [./test/examples/abc:9] test_b
+  bB
+
+F [./test/examples/abc:15] test_c
+  cC
+
+S [./test/examples/abc:21] test_s
+  s
+
+"
+}
+
+test_script_q_hides_stderr () {
+./test/examples/abc -s -q | assert_output "\
+P [./test/examples/abc:3] test_a
+  a
+
+P [./test/examples/abc:9] test_b
+  b
+
+F [./test/examples/abc:15] test_c
+  c
+
+S [./test/examples/abc:21] test_s
+  s
+
+"
 }
 
 #
@@ -496,61 +569,6 @@ tmpdir="$ts_test_dir/tmp"
 test_ts_s_option_prints_structured_output () {
 ts -s test/examples/abc | assert_output "\
 P [test/examples/abc:3] test_a
-  a
-
-P [test/examples/abc:9] test_b
-  b
-
-F [test/examples/abc:15] test_c
-  c
-
-S [test/examples/abc:21] test_s
-  s
-
-"
-}
-
-test_script_s_option_prints_structured_output () {
-./test/examples/abc -s | assert_output "\
-P [./test/examples/abc:3] test_a
-  a
-
-P [./test/examples/abc:9] test_b
-  b
-
-F [./test/examples/abc:15] test_c
-  c
-
-S [./test/examples/abc:21] test_s
-  s
-
-"
-}
-
-#
-# -v option
-#
-
-test_ts_displays_stdout () {
-ts -s test/examples/abc | assert_output "\
-P [test/examples/abc:3] test_a
-  a
-
-P [test/examples/abc:9] test_b
-  b
-
-F [test/examples/abc:15] test_c
-  c
-
-S [test/examples/abc:21] test_s
-  s
-
-"
-}
-
-test_ts_v_option_displays_stderr () {
-ts -sv test/examples/abc | assert_output "\
-P [test/examples/abc:3] test_a
   aA
 
 P [test/examples/abc:9] test_b
@@ -565,18 +583,39 @@ S [test/examples/abc:21] test_s
 "
 }
 
-test_script_displays_stdout () {
+test_script_s_option_prints_structured_output () {
 ./test/examples/abc -s | assert_output "\
 P [./test/examples/abc:3] test_a
-  a
+  aA
 
 P [./test/examples/abc:9] test_b
-  b
+  bB
 
 F [./test/examples/abc:15] test_c
-  c
+  cC
 
 S [./test/examples/abc:21] test_s
+  s
+
+"
+}
+
+#
+# -v option
+#
+
+test_ts_v_option_displays_stderr () {
+ts -sv test/examples/abc | assert_output "\
+P [test/examples/abc:3] test_a
+  aA
+
+P [test/examples/abc:9] test_b
+  bB
+
+F [test/examples/abc:15] test_c
+  cC
+
+S [test/examples/abc:21] test_s
   s
 
 "
@@ -606,14 +645,14 @@ S [./test/examples/abc:21] test_s
 test_ts_w_option_prints_raw_output () {
 ts -w test/examples/abc | assert_output "\
 [test/examples/abc:3] test_a
-P 1
-a
+P 2
+aA
 [test/examples/abc:9] test_b
-P 1
-b
+P 2
+bB
 [test/examples/abc:15] test_c
-F 1
-c
+F 2
+cC
 [test/examples/abc:21] test_s
 S 1
 s
@@ -623,14 +662,14 @@ s
 test_script_w_option_prints_raw_output () {
 ./test/examples/abc -w | assert_output "\
 [./test/examples/abc:3] test_a
-P 1
-a
+P 2
+aA
 [./test/examples/abc:9] test_b
-P 1
-b
+P 2
+bB
 [./test/examples/abc:15] test_c
-F 1
-c
+F 2
+cC
 [./test/examples/abc:21] test_s
 S 1
 s
@@ -649,6 +688,9 @@ export TS_DIFF="diff -e"
   1c
   hell0 world
   .
+  diff: $ts_test_dir/fail/test_assert_output_fail.e.txt: No newline at end of file
+  
+  diff: $ts_test_dir/fail/test_assert_output_fail.a.txt: No newline at end of file
 F
 
 "
@@ -782,7 +824,8 @@ S [test/examples/skip:9] test_skip_with_reason
 #
 
 test_ts_background_job_example () {
-assert_example test/readme/background
+# stderr message couldn't be generalized so use -q
+assert_example test/readme/background -q
 }
 
 test_ts_readme_example () {
