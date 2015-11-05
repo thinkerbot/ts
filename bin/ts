@@ -16,8 +16,9 @@ usage: ts [-acdehmrsvw] [-t TS_TMP_DIR] %s
 
   Tests shell scripts.  Options control the output format.  Artifacts are
   written to the tmp dir and can be removed with the -r flag.  To debug
-  a failing test try running it with -e as below, or by using the -v flag
-  to show stderr.
+  a failing test try running it with -e to see how it would look if you
+  executed the script in a shell manually (after which you can check exit
+  status as normal), or by using the -d flag to trace execution.
 
     ts test/script*             # run multiple test scripts
     ./test/script               # run a single test script
