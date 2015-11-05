@@ -1,15 +1,15 @@
-(1) -- test script
+ts(1) -- test script
 =============================================
 
 ## SYNOPSIS
 
-`` [options] TEST_SCRIPT...
+`ts` [options] TEST_SCRIPT...
 
 `[./test_script]` [options] TESTS...
 
 ## DESCRIPTION
 
-**** provides functions for writing tests in shell. The test scripts can be
+**ts** provides functions for writing tests in shell. The test scripts can be
 run individually or in a batch format using `ts` as a command.
 
 **ts** makes a test directory available on a per-test basis so it's easy to
