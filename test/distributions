@@ -24,6 +24,7 @@ do
     tail -n 1 "$outfile"
   done
 done <<DOC
+alpine /bin/bash /bin/zsh
 centos /bin/bash /bin/zsh /bin/ksh
 debian /bin/bash /bin/zsh /bin/ksh
 fedora /bin/bash /bin/zsh /bin/ksh
