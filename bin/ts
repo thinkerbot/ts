@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 ############################################################################
 ts_progname="${0##*/}"
 ts_author="Simon Chiang"
@@ -162,12 +162,12 @@ function readbytes (bytes) {
   $0=""
 
   # read bytes
-  while(getline == 1 && (bytes -= length + 1) > 0) {
+  while(getline == 1 && (bytes -= length($0) + 1) > 0) {
     print "  " $0
   }
 
-  if(length > 0) {
-    print "  " substr($0, 1, bytes + length + 1)
+  if(length($0) > 0) {
+    print "  " substr($0, 1, bytes + length($0) + 1)
     $0=""
   }
 }
