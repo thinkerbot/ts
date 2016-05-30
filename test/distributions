@@ -1,0 +1,29 @@
+#!/bin/bash
+
+mkdir -p tmp/distributions
+while read image shells
+do
+  for shell in $shells
+  do
+    outfile=tmp/distributions/"$(tr ':' '_' <<<"$image")"_"$(basename "$shell")"
+
+    printf "%s %s ... " "$image" "$shell"
+    ./test/distribution "$image" "$shell" >"$outfile" 2>&1
+    tail -n 1 "$outfile"
+  done
+done <<DOC
+centos:5 /bin/sh /bin/bash
+centos:6 /bin/sh /bin/bash
+centos:7 /bin/sh /bin/bash
+debian:7.10 /bin/sh /bin/bash
+debian:8.4 /bin/sh /bin/bash
+fedora:21 /bin/sh /bin/bash
+fedora:22 /bin/sh /bin/bash
+fedora:23 /bin/sh /bin/bash
+opensuse:13.2 /bin/sh /bin/bash
+opensuse:42.1 /bin/sh /bin/bash
+ubuntu:12.04 /bin/sh /bin/bash /bin/dash
+ubuntu:14.04 /bin/sh /bin/bash /bin/dash
+ubuntu:15.10 /bin/sh /bin/bash /bin/dash
+ubuntu:16.04 /bin/sh /bin/bash /bin/dash
+DOC

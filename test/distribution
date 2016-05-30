@@ -1,0 +1,5 @@
+#!/bin/bash
+
+image="$1"
+shell="${2:-/bin/sh}"
+docker run --rm -v $PWD:/tmp/ts -w /tmp/ts --entrypoint "$shell" "$image" ./test/suite

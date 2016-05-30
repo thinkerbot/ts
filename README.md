@@ -415,12 +415,11 @@ If you're using [homebrew](http://brew.sh/) on OSX you can tap
 
 Clone the repo as above.  To run the tests (written in `ts`):
 
-    ts test/suite
+    ./test/suite
 
-To run the tests on various distros:
+To run the tests on an image/shell combination (requires [docker](https://www.docker.com/)):
 
-    vagrant up
-    ./test/vm
+    ./test/distribution ubuntu:16.04 /bin/bash
 
 To generate the manpages:
 
