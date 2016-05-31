@@ -858,4 +858,32 @@ P [test/readme/usage:12] test_pass
 "
 }
 
+#
+# special case adjustments
+#
+
+# BusyBox diff only outputs unified diffs so these tests cannot pass.
+# * https://busybox.net/downloads/BusyBox.html
+if ! (diff test/pass test/fail 2>&1 | grep -q '^---$')
+then
+
+skip_due_to_non_compliant_diff () {
+  skip "diff does not conform to POSIX definition"
+}
+
+assert_example () {
+  skip_due_to_non_compliant_diff
+}
+
+test_ts_uses_TS_DIFF_to_diff_outputs () {
+  skip_due_to_non_compliant_diff
+}
+
+test_script_e_option_executes_test_in_shell () {
+  skip_due_to_non_compliant_diff
+}
+
+fi
+
+
 . ts
