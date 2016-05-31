@@ -3,8 +3,8 @@
 mkdir -p tmp/distributions
 while read os shells
 do
-  outfile=tmp/distributions/"$image".buildlog
   image="ts_$os"
+  outfile=tmp/distributions/"$image".buildlog
 
   printf "make %s ... " "$image"
   if docker build -t "$image" dockerfiles/"$os" >"$outfile" 2>&1
