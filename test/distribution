@@ -6,4 +6,12 @@ shift 1
 shell="${1:-/bin/sh}"
 shift 1
 
-docker run --rm -v $PWD:/tmp/ts -w /tmp/ts --entrypoint "$shell" "$image" ./test/suite "$@"
+# Switch /bin/sh so that all scripts will pick up the target shell as a part
+# of shebang usage.  Assumes root user.  This is obviously a bad thing to do
+# generally, but probably is ok since these containers immediately go away.
+docker run --rm -v $PWD:/tmp/ts -w /tmp/ts -i "$image" /bin/sh <<DOC
+if [ "$shell" != /bin/sh ]
+then ln -sf "$shell" /bin/sh
+fi
+./test/suite "$@"
+DOC

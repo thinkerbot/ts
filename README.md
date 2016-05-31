@@ -417,8 +417,12 @@ Clone the repo as above.  To run the tests (written in `ts`):
 
     ./test/suite
 
-To run the tests on an image/shell combination (requires [docker](https://www.docker.com/)):
+To run the tests on latest image/shell combinations, or a specific image/shell combination (requires [docker](https://www.docker.com/)):
 
+    # latest for several major distros
+    ./test/distributions
+
+    # pick a image/shell you specifically care about
     ./test/distribution ubuntu:16.04 /bin/bash
 
 To generate the manpages:
