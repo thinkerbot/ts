@@ -396,6 +396,14 @@ the dot operator to set arguments which dot in DASH does not do. There isn't
 actually anything in the POSIX spec that says it should, but it's a break in
 the conventions used by other shells.
 
+**I'm using BusyBox (maybe you're on alpine)**
+
+The `diff` in BusyBox only outputs unified format, which isn't what the POSIX
+spec asks for.  That means parts of the `ts` test suite written to expect the
+default POSIX output cannot pass.  These tests are skipped.  This quirk of
+BusyBox should not affect your tests, but note the output of your tests may
+change a little when run vs BusyBox.
+
 ## INSTALLATION
 
 Add `ts` to your PATH (or execute it directly). A nice way of doing so is to
