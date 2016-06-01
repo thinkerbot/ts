@@ -433,6 +433,9 @@ To run the tests on latest image/shell combinations, or a specific image/shell c
     # pick a image/shell you specifically care about
     ./test/distribution ubuntu:16.04 /bin/bash
 
+    # add -d to get a shell to debug failures
+    ./test/distribution -d ubuntu:16.04 /bin/bash
+
 To generate the manpages:
 
     make manpages
