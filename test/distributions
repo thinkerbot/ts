@@ -1,0 +1,32 @@
+#!/bin/bash
+
+mkdir -p tmp/distributions
+while read os shells
+do
+  image="ts_$os"
+  outfile=tmp/distributions/"$image".buildlog
+
+  printf "make %s ... " "$image"
+  if docker build -t "$image" dockerfiles/"$os" >"$outfile" 2>&1
+  then
+    printf "success\n"
+  else
+    printf "fail\n"
+    exit 1
+  fi
+
+  for shell in $shells
+  do
+    outfile=tmp/distributions/"$image"_"$(basename "$shell")"
+
+    printf "test %s %s ... " "$image" "$shell"
+    ./test/distribution "$image" "$shell" >"$outfile" 2>&1
+    tail -n 1 "$outfile"
+  done
+done <<DOC
+centos /bin/bash /bin/zsh /bin/ksh
+debian /bin/bash /bin/zsh /bin/ksh
+fedora /bin/bash /bin/zsh /bin/ksh
+opensuse /bin/bash /bin/zsh /bin/ksh
+ubuntu /bin/dash /bin/bash /bin/zsh /bin/ksh
+DOC
