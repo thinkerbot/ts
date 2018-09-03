@@ -161,6 +161,10 @@ function readbytes (bytes) {
   # ignore current line
   $0=""
 
+  # play a trick so bytes does not reset the var upon
+  # getline (issue with alpine + gawk)
+  bytes=bytes
+
   # read bytes
   while(getline == 1 && (bytes -= length($0) + 1) > 0) {
     print "  " $0
