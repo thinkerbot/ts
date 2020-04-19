@@ -192,6 +192,8 @@ END   { printf("%d %d %d\n", npass, nfail, nskip) >> status_file }
 # Converts the ts stream format into the monitor format.
 ts_monitor () {
   rm "$ts_monitor_file" 2> /dev/null
+  touch "$ts_monitor_file"
+
   awk $ts_awk_opts -v "monitor_file=$ts_monitor_file" '
     BEGIN { ORS = "" };
     { print $0 "\n" >> monitor_file };

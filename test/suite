@@ -198,6 +198,14 @@ F [./test/examples/abc:15] test_c
 "
 }
 
+test_ts_runs_cleanly_with_no_tests () {
+./test/examples/no_tests 2>&1 | assert_output "\
+
+
+0 pass 0 fail 0 skip 0 s
+"
+}
+
 #
 # options test
 #
