@@ -1,2 +1,4 @@
 FROM opensuse:latest
-RUN ["zypper", "install", "-y", "bash", "zsh", "ksh"]
+RUN zypper install -y bash zsh ksh
+WORKDIR /app
+COPY . /app

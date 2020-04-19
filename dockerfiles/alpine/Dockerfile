@@ -5,3 +5,6 @@ RUN apk add --no-cache diffutils gawk
 
 # add more shells for development/testing
 RUN apk add --no-cache bash zsh
+
+WORKDIR /app
+COPY . /app

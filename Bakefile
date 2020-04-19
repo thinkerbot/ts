@@ -1,0 +1,98 @@
+#!/bin/bash
+# usage: ./Bakefile [command]
+#############################################################################
+
+images () {
+  for os in $(ls dockerfiles/)
+  do image "$os"
+  done
+}
+
+image () {
+  os="${1:-shell}"
+  docker build -f dockerfiles/"$os"/Dockerfile -t "ts:$os" . >&2
+  printf "%s\n" "ts:$os"
+}
+
+shell () {
+  os="${1:-shell}"
+  docker run -it --rm -v "$PWD:/app" "ts:$os" /bin/bash
+}
+
+test () {
+image="${1:-ts:shell}"
+shell="${2:-/bin/sh}"
+
+# Switch /bin/sh so that all scripts will pick up the target shell as a part
+# of shebang usage.  Assumes image runs as root user.
+docker run --rm -i "$image" /bin/sh <<DOC
+  if [ "$shell" != /bin/sh ]
+  then ln -sf "$shell" /bin/sh
+  fi
+  ./test/suite
+DOC
+}
+
+test-os () {
+os="$1"
+shift 1
+
+if [ "$#" -eq 0 ]
+then set /bin/sh
+fi
+
+os_dir="tmp/artifacts/$os"
+mkdir -p "$os_dir"
+
+buildlog="$os_dir/buildlog"
+image="$(image "$os" 2>"$buildlog")"
+
+for shell in "$@"
+do
+  printf "# %s %s\t" "$os" "$shell"
+  outfile="$os_dir/$(basename "$shell")"
+  test "$image" "$shell" >"$outfile" 2>&1
+  tail -n 1 "$outfile"
+  awk -v os="$os" -v shell="$shell" '
+    /^\[/ { summary=$0 };
+    /^[A-Z]/ { print $1 " " os " " shell "\t" summary }
+  ' "$outfile"
+done
+}
+
+test-all () {
+test-os alpine /bin/bash /bin/zsh
+test-os centos /bin/bash /bin/zsh /bin/ksh
+test-os debian /bin/bash /bin/zsh /bin/ksh
+test-os fedora /bin/bash /bin/zsh /bin/ksh
+test-os opensuse /bin/bash /bin/zsh /bin/ksh
+test-os ubuntu /bin/dash /bin/bash /bin/zsh /bin/ksh
+}
+
+#
+# Shell functions
+#
+
+build-manpages () {
+  source ./bin/ts # actually runs ts and prints output but no biggie
+  mkdir -p man/man1
+  ronn -r --pipe --organization="$ts_version" --date="$ts_release_date" README.md > man/man1/ts.1
+}
+
+#
+# Utility
+#
+
+list () {
+  compgen -A function 2>/dev/null
+}
+
+if list | grep -qFx "$1"
+then "$@"
+else
+  if [ -z "$1" ]
+  then printf "no command specified (try 'list')\n" >&2
+  else printf "unknown command: %s\n" "$1" >&2
+  fi
+  exit 1
+fi
