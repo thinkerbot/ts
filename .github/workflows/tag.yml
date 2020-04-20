@@ -1,8 +1,11 @@
-name: Check Compatibility
-on: [tag]
+name: Release
+on:
+  push:
+    tags:
+    - v*
 jobs:
   test:
-    name: Test All
+    name: Test All 
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -13,3 +16,19 @@ jobs:
       with:
         name: results
         path: tmp/artifacts
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create Release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            TODO - replace with changes
+          draft: true

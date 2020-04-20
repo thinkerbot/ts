@@ -433,9 +433,9 @@ To run the tests on latest image/shell combinations, or a specific image/shell c
     # pick a image/shell you specifically care about
     ./Bakefile test-os ubuntu:16.04 /bin/bash
 
-To generate the manpages:
+To make a release:
 
-    ./Bakefile build-manpages
+    ./Bakefile prepare-release <version>
 
 Report bugs here: http://github.com/thinkerbot/ts/issues.
 

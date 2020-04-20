@@ -19,14 +19,6 @@ os="${1:-shell}"
 docker run -it --rm -v "$PWD:/app" "ts:$os" /bin/bash
 }
 
-build-manpages () {
-docker run --rm -i -v "$PWD:/app" "$(image shell)" /bin/bash <<"DOC"
-source ./bin/ts # actually runs ts and prints output but no biggie
-mkdir -p man/man1
-ronn -r --pipe --organization="$ts_version" --date="$ts_release_date" README.md > man/man1/ts.1
-DOC
-}
-
 test () {
 image="${1:-ts:shell}"
 shell="${2:-/bin/sh}"
@@ -75,6 +67,51 @@ test-os debian /bin/bash /bin/zsh /bin/ksh
 test-os fedora /bin/bash /bin/zsh /bin/ksh
 test-os opensuse /bin/bash /bin/zsh /bin/ksh
 test-os ubuntu /bin/dash /bin/bash /bin/zsh /bin/ksh
+}
+
+#
+# Release
+#
+
+prepare-release () {
+ts_version="$1"
+ts_release_date="$(date +"%Y-%m-%d")"
+
+if [ -z "$ts_version" ]
+then
+  printf "no version specified\nusage: ./Bakefile prepare-release <version>\n" >&2
+  exit 1
+fi
+
+if ! ./test/suite
+then
+  printf "cannot release (failing tests)\n" >&2
+  exit 1
+fi
+
+# set new version
+sed -i "" \
+  -e "s/ts_version=.*/ts_version=\"$ts_version\"/" \
+  -e "s/ts_release_date=.*/ts_release_date=\"$ts_release_date\"/" \
+  ./bin/ts
+
+# update the manpages
+docker run --rm -i -v "$PWD:/app" "$(image shell)" /bin/bash <<DOC
+mkdir -p man/man1
+ronn -r --pipe --organization="$ts_version" --date="$ts_release_date" README.md > man/man1/ts.1
+DOC
+
+cat >&2 <<DOC
+
+Next steps:
+
+  git commit -a -m "Release $ts_version"
+  git push origin master
+
+  git tag "v$ts_version"  
+  git push origin --tags
+
+DOC
 }
 
 #
