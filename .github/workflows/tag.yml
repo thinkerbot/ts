@@ -1,0 +1,15 @@
+name: Check Compatibility
+on: [tag]
+jobs:
+  test:
+    name: Test All
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run
+      run: ./Bakefile test-all
+    - uses: actions/upload-artifact@v1
+      with:
+        name: results
+        path: tmp/artifacts
