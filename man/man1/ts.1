@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "TS" "1" "November 2015" "2.0.0" ""
+.TH "TS" "1" "November 2015" "2.0.1" ""
 .
 .SH "NAME"
 \fBts\fR \- test script
@@ -576,6 +576,12 @@ DASH is quirky\. Last I checked you cannot concatenate options like you can in o
 .P
 Shared examples do not work with DASH \- the \fB\. ts \. files\.\.\.\fR syntax relies on the dot operator to set arguments which dot in DASH does not do\. There isn\'t actually anything in the POSIX spec that says it should, but it\'s a break in the conventions used by other shells\.
 .
+.P
+\fBI\'m using BusyBox (maybe you\'re on alpine)\fR
+.
+.P
+The \fBdiff\fR in BusyBox only outputs unified format, which isn\'t what the POSIX spec asks for\. That means parts of the \fBts\fR test suite written to expect the default POSIX output cannot pass\. These tests are skipped\. This quirk of BusyBox should not affect your tests, but note the output of your tests may change a little when run vs BusyBox\.
+.
 .SH "INSTALLATION"
 Add \fBts\fR to your PATH (or execute it directly)\. A nice way of doing so is to clone the repo and add the bin dir to PATH\. This allows easy updates via \fBgit pull\fR and should make the manpages available via \fBman ts\fR\.
 .
@@ -611,21 +617,24 @@ Clone the repo as above\. To run the tests (written in \fBts\fR):
 .
 .nf
 
-ts test/suite
+\[char46]/test/suite
 .
 .fi
 .
 .IP "" 0
 .
 .P
-To run the tests on various distros:
+To run the tests on latest image/shell combinations, or a specific image/shell combination (requires docker \fIhttps://www\.docker\.com/\fR):
 .
 .IP "" 4
 .
 .nf
 
-vagrant up
-\[char46]/test/vm
+# latest for several major distros
+\[char46]/Bakefile test\-all
+
+# pick a image/shell you specifically care about
+\[char46]/Bakefile test\-os ubuntu:16\.04 /bin/bash
 .
 .fi
 .
@@ -638,7 +647,7 @@ To generate the manpages:
 .
 .nf
 
-make manpages
+\[char46]/Bakefile build\-manpages
 .
 .fi
 .

@@ -428,17 +428,14 @@ Clone the repo as above.  To run the tests (written in `ts`):
 To run the tests on latest image/shell combinations, or a specific image/shell combination (requires [docker](https://www.docker.com/)):
 
     # latest for several major distros
-    ./test/distributions
+    ./Bakefile test-all
 
     # pick a image/shell you specifically care about
-    ./test/distribution ubuntu:16.04 /bin/bash
-
-    # add -d to get a shell to debug failures
-    ./test/distribution -d ubuntu:16.04 /bin/bash
+    ./Bakefile test-os ubuntu:16.04 /bin/bash
 
 To generate the manpages:
 
-    make manpages
+    ./Bakefile build-manpages
 
 Report bugs here: http://github.com/thinkerbot/ts/issues.
 

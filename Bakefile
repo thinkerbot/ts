@@ -3,20 +3,28 @@
 #############################################################################
 
 images () {
-  for os in $(ls dockerfiles/)
-  do image "$os"
-  done
+for os in $(ls dockerfiles/)
+do image "$os"
+done
 }
 
 image () {
-  os="${1:-shell}"
-  docker build -f dockerfiles/"$os"/Dockerfile -t "ts:$os" . >&2
-  printf "%s\n" "ts:$os"
+os="${1:-shell}"
+docker build -f dockerfiles/"$os"/Dockerfile -t "ts:$os" . >&2
+printf "%s\n" "ts:$os"
 }
 
 shell () {
-  os="${1:-shell}"
-  docker run -it --rm -v "$PWD:/app" "ts:$os" /bin/bash
+os="${1:-shell}"
+docker run -it --rm -v "$PWD:/app" "ts:$os" /bin/bash
+}
+
+build-manpages () {
+docker run --rm -i -v "$PWD:/app" "$(image shell)" /bin/bash <<"DOC"
+source ./bin/ts # actually runs ts and prints output but no biggie
+mkdir -p man/man1
+ronn -r --pipe --organization="$ts_version" --date="$ts_release_date" README.md > man/man1/ts.1
+DOC
 }
 
 test () {
@@ -70,21 +78,11 @@ test-os ubuntu /bin/dash /bin/bash /bin/zsh /bin/ksh
 }
 
 #
-# Shell functions
-#
-
-build-manpages () {
-  source ./bin/ts # actually runs ts and prints output but no biggie
-  mkdir -p man/man1
-  ronn -r --pipe --organization="$ts_version" --date="$ts_release_date" README.md > man/man1/ts.1
-}
-
-#
 # Utility
 #
 
 list () {
-  compgen -A function 2>/dev/null
+compgen -A function 2>/dev/null
 }
 
 if list | grep -qFx "$1"
