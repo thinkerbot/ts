@@ -478,7 +478,7 @@ skip () {
 # Run the test files if this script is executed directly.
 if [ ts = "$ts_progname" ]
 then ts_run_test_files "$@"
-elif [ "." = "$1" ]
+elif [ "." = "${1:-}" ]
 then ts_src_test_files "$@"
 else ts_run_test_suite "$@"
 fi

@@ -831,6 +831,10 @@ trap "exit 0" EXIT
 exit 1
 }
 
+test_ts_allows_set_u_in_tests() {
+	assert_example test/examples/set_u
+}
+
 #
 # skip test
 #
