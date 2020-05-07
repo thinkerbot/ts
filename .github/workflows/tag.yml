@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Run
-      run: ./Bakefile test-all
+      run: ./Projectfile test-all
     - uses: actions/upload-artifact@v1
       with:
         name: results

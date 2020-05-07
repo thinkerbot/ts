@@ -1,5 +1,5 @@
 #!/bin/bash
-# usage: ./Bakefile [command]
+# usage: ./Projectfile [command]
 #############################################################################
 
 images () {
@@ -122,7 +122,7 @@ list () {
 compgen -A function 2>/dev/null
 }
 
-if list | grep -qFx "$1"
+if list | grep -qFx -- "${1:-}"
 then "$@"
 else
   if [ -z "$1" ]
