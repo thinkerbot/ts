@@ -7,22 +7,6 @@ unset $(set | grep '^TS_' | sed -e 's/=.*//' | tr "\n" " ")
 export TS_TMP_DIR="$ts_test_dir"
 }
 
-# special case adjustments
-###########################################################################
-# BusyBox diff only outputs unified diffs so these tests cannot pass.
-# * https://busybox.net/downloads/BusyBox.html
-if ! (diff test/pass test/fail 2>&1 | grep -q '^---$')
-then
-skip_if_non_compliant_diff () {
-  skip "diff does not conform to POSIX definition"
-}
-else
-skip_if_non_compliant_diff () {
-  : # noop
-}
-fi
-###########################################################################
-
 assert_example () {
 skip_if_non_compliant_diff
 example_file="$1"

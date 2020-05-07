@@ -8,6 +8,20 @@ else
   exit 1
 fi
 
+# special case adjustments
+#############################################################################
+# BusyBox diff only outputs unified diffs so these tests cannot pass.
+# * https://busybox.net/downloads/BusyBox.html
+if ! (diff test/pass test/fail 2>&1 | grep -q '^---$')
+then
+skip_if_non_compliant_diff () {
+  skip "diff does not conform to POSIX definition"
+}
+else
+skip_if_non_compliant_diff () {
+  : # noop
+}
+fi
 #############################################################################
 # `.` doesn't set args in all shells (ex DASH) and as a result tests using
 # imports cannot pass.  As needed source this file with a "check_imports"
