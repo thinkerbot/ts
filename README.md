@@ -390,8 +390,8 @@ the timing shows up as -1 s.
 
 The `date` command is specified by POSIX and could be a replacement for SECONDS,
 but the verb `%s` (seconds since epoch) is not a part of the spec.  Doing the
-math on the POSIX verbs could work, but that solution has not been
-implemented yet.
+math on the POSIX verbs could work, but that solution has not been implemented
+yet.
 
 **I'm using DASH (maybe you're on ubuntu)**
 
@@ -439,14 +439,14 @@ Clone the repo as above.  To run the tests (written in `ts`):
 To run the tests on latest image/shell combinations, or a specific image/shell combination (requires [docker](https://www.docker.com/)):
 
     # latest for several major distros
-    ./Project test-all
+    ./Projectfile test-all
 
     # pick a image/shell you specifically care about
-    ./Project test-os ubuntu:16.04 /bin/bash
+    ./Projectfile test-os ubuntu:16.04 /bin/bash
 
 To make a release:
 
-    ./Project prepare-release <version>
+    ./Projectfile prepare-release <version>
 
 Report bugs here: http://github.com/thinkerbot/ts/issues.
 
