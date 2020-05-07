@@ -199,7 +199,9 @@ F [./test/examples/abc:15] test_c
 }
 
 test_ts_runs_cleanly_with_no_tests () {
-./test/examples/no_tests 2>&1 | assert_output "\
+# some shell (ex dash) don't support $SECONDS and so the timing shows
+# up as '-1 s' -- normalize this away as it doesn't change the test
+./test/examples/no_tests 2>&1 | sed -e 's/-1/0/' | assert_output "\
 
 
 0 pass 0 fail 0 skip 0 s

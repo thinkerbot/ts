@@ -382,6 +382,17 @@ teardown from running.
       exit 1
     }
 
+**Run times are showing up as -1**
+
+Timing is driven by the SECONDS environment variable, which is not a part of the
+POSIX spec, and is not provided by all shells (ex DASH).  When it is not present
+the timing shows up as -1 s.
+
+The `date` command is specified by POSIX and could be a replacement for SECONDS,
+but the verb `%s` (seconds since epoch) is not a part of the spec.  Doing the
+math on the POSIX verbs could work, but that solution has not been
+implemented yet.
+
 **I'm using DASH (maybe you're on ubuntu)**
 
 DASH is quirky. Last I checked you cannot concatenate options like you can in
@@ -428,14 +439,14 @@ Clone the repo as above.  To run the tests (written in `ts`):
 To run the tests on latest image/shell combinations, or a specific image/shell combination (requires [docker](https://www.docker.com/)):
 
     # latest for several major distros
-    ./Projectfile test-all
+    ./Project test-all
 
     # pick a image/shell you specifically care about
-    ./Projectfile test-os ubuntu:16.04 /bin/bash
+    ./Project test-os ubuntu:16.04 /bin/bash
 
 To make a release:
 
-    ./Projectfile prepare-release <version>
+    ./Project prepare-release <version>
 
 Report bugs here: http://github.com/thinkerbot/ts/issues.
 
