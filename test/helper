@@ -7,3 +7,20 @@ else
   printf "Tests must be run from ts project root\n"
   exit 1
 fi
+
+#############################################################################
+# `.` doesn't set args in all shells (ex DASH) and as a result tests using
+# imports cannot pass.  As needed source this file with a "check_imports"
+# arg; if it does not show up as $1 then imports do not work and should be
+# skipped.
+if [ "$1" != "check_imports" ]
+then
+skip_if_imports_do_not_work () {
+  skip "imports do not work in this shell"
+}
+else
+skip_if_imports_do_not_work () {
+  : # noop
+}
+fi
+#############################################################################

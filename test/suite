@@ -1,6 +1,6 @@
 #!/bin/sh
 ############################################################################
-. test/helper
+. test/helper check_imports
 
 setup () {
 unset $(set | grep '^TS_' | sed -e 's/=.*//' | tr "\n" " ")
@@ -783,6 +783,7 @@ assert_example test/examples/options
 
 # test this manually to see the nesting
 test_include () {
+skip_if_imports_do_not_work
 ts -s test/examples/include | assert_output "\
 P [test/examples/include:3] test_include
 
@@ -862,6 +863,7 @@ assert_example test/readme/example
 }
 
 test_ts_readme_common_tests () {
+skip_if_imports_do_not_work
 cd test/readme
 ts -s test_grep_abc test_sed_abc | assert_output "\
 P [./test_grep_abc -> ./common_tests:1] test_it_should_pick_lines_with_abc
