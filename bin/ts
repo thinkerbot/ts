@@ -66,7 +66,7 @@ do
       (q) TS_MODE=quiet ;;
       (r) TS_REMOVE_TMP_DIR=true ;;
       (s) TS_REPORT=stream; TS_FILTER=false ;;
-      (t) TS_TMP_DIR=$OPTARG ;;
+      (t) TS_TMP_DIR="$OPTARG" ;;
       (v) TS_MODE=verbose ;;
       (w) TS_REPORT=raw ;;
       (*) ts_usage | head -n 1
