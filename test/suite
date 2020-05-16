@@ -808,6 +808,7 @@ test_undeclared_variable () {
 ts -s test/examples/undeclared_variable |
 sed -e '/^  /s|test/examples/undeclared_variable:.*10:.*var:.*|...|' | # bash/dash
 sed -e '/^  /s|test_ts_fails_for_use_of_undeclared_variable:2: var: parameter not set|...|' | # zsh
+sed -e '/^  /s|test/examples/undeclared_variable.*line 10: var: parameter not set|...|' | # ksh
 assert_output "\
 F [test/examples/undeclared_variable:8] test_ts_fails_for_use_of_undeclared_variable
   ...
