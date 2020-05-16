@@ -3,9 +3,10 @@
 set -u
 
 . test/helper
+
 # PASS
 test_set_u() {
-	true
+  true
 }
 
 . ts
