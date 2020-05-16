@@ -456,6 +456,7 @@ Thanks for the help!
 
 * Angelo Lakra (github.com/alakra)
 * Thomas Adam (github.com/ThomasAdam)
+* David Alfonso (https://github.com/davidag)
 
 ## COPYRIGHT
 
