@@ -51,7 +51,9 @@ ts_args=""
 while [ $OPTIND -le $# ]
 do
   ts_optcur="$OPTIND"
-  if getopts "acdehmqrst:vw" ts_option
+  ts_option="-"
+  getopts "acdehmqrst:vw" ts_option
+  if [ "$ts_option" != "-" ] && [ "$ts_option" != "?" ]
   then
     case "$ts_option" in
       (a) TS_FILTER=false ;;
@@ -71,7 +73,7 @@ do
           exit 2 ;;
     esac
   else
-    if [ $OPTIND -gt $ts_optcur ]
+    if [ "$(eval printf "%s" "\${$ts_optcur}")" = "--" ]
     then ts_optcur="$#"
     fi
     while [ $OPTIND -le $ts_optcur ]

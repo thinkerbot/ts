@@ -7,7 +7,9 @@ args=""
 while [ $OPTIND -le $# ]
 do
   OPTCUR="$OPTIND"
-  if getopts "xy:" OPTNAME
+  OPTNAME="-"
+  getopts "xy:" OPTNAME
+  if [ "$OPTNAME" != "-" ] && [ "$OPTNAME" != "?" ]
   then
     case "$OPTNAME" in
       (x) printf "x." ;;
@@ -15,7 +17,7 @@ do
       (*) exit 1
     esac
   else
-    if [ $OPTIND -gt $OPTCUR ]
+    if [ "$(eval printf "%s" "\${$OPTCUR}")" = "--" ]
     then OPTCUR="$#"
     fi
     while [ $OPTIND -le $OPTCUR ]
