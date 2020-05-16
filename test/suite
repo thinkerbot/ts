@@ -801,7 +801,19 @@ assert_example test/examples/test_detection
 }
 
 test_undeclared_variable () {
-assert_example test/examples/undeclared_variable
+# The output message for an undeclared variable is shell-dependent.  Because
+# assert_example expects fixed output we manually check this example in a
+# shell-independent way.
+
+ts -s test/examples/undeclared_variable | sed -e '
+  /^  /s/undeclared_variable:.*10:.*var:.*/undeclared_variable: ... 10: ... var: .../
+' | assert_output "\
+F [test/examples/undeclared_variable:8] test_ts_fails_for_use_of_undeclared_variable
+  test/examples/undeclared_variable: ... 10: ... var: ...
+
+P [test/examples/undeclared_variable:14] test_ts_can_use_undeclared_variables_with_set_u
+
+"
 }
 
 #
