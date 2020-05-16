@@ -55,7 +55,7 @@ do
   tail -n 1 "$outfile"
   awk -v os="$os" -v shell="$shell" '
     /^\[/ { summary=$0 };
-    /^[A-Z]/ { print $1 " " os " " shell "\t" summary }
+    /^F/ { print $1 " " os " " shell "\t" summary }
   ' "$outfile"
 done
 }
