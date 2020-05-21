@@ -2,8 +2,8 @@
 ############################################################################
 ts_progname="${0##*/}"
 ts_author="Simon Chiang"
-ts_version="2.0.3"
-ts_release_date="2020-04-19"
+ts_version="2.0.4"
+ts_release_date="2020-05-21"
 ts_url="http://github.com/thinkerbot/ts"
 
 ts_usage () {

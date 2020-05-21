@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "TS" "1" "April 2020" "2.0.3" ""
+.TH "TS" "1" "May 2020" "2.0.4" ""
 .
 .SH "NAME"
 \fBts\fR \- test script
@@ -557,6 +557,15 @@ test_teardown_will_not_run () {
 .IP "" 0
 .
 .P
+\fBRun times are showing up as \-1\fR
+.
+.P
+Timing is driven by the SECONDS environment variable, which is not a part of the POSIX spec, and is not provided by all shells (ex DASH)\. When it is not present the timing shows up as \-1 s\.
+.
+.P
+The \fBdate\fR command is specified by POSIX and could be a replacement for SECONDS, but the verb \fB%s\fR (seconds since epoch) is not a part of the spec\. Doing the math on the POSIX verbs could work, but that solution has not been implemented yet\.
+.
+.P
 \fBI\'m using DASH (maybe you\'re on ubuntu)\fR
 .
 .P
@@ -664,6 +673,9 @@ Angelo Lakra (github\.com/alakra)
 .
 .IP "\(bu" 4
 Thomas Adam (github\.com/ThomasAdam)
+.
+.IP "\(bu" 4
+David Alfonso (https://github\.com/davidag)
 .
 .IP "" 0
 .
