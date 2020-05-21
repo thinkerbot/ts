@@ -105,12 +105,16 @@ cat >&2 <<DOC
 
 Next steps:
 
+  git status # double check your changes
+
   git commit -a -m "Release $ts_version"
   git push origin master
 
   git tag "v$ts_version"  
   git push origin --tags
 
+A draft release will be created by GitHub Actions.  Take a look, write release
+notes, and publish if desired.
 DOC
 }
 
