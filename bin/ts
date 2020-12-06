@@ -7,10 +7,11 @@ ts_release_date="2020-05-21"
 ts_url="http://github.com/thinkerbot/ts"
 
 ts_usage () {
-if [ ts = "$ts_progname" ]
-then ts_argstr="[TEST_FILES...]"
-else ts_argstr="[TEST_NAMES...]"
-fi
+case ts in ("$ts_progname")
+  ts_argstr="[TEST_FILES...]"
+;;(*)
+  ts_argstr="[TEST_NAMES...]"
+esac
 printf "\
 usage: ts [-acdehmrsvw] [-t TS_TMP_DIR] %s
 
@@ -53,35 +54,32 @@ do
   ts_optcur="$OPTIND"
   ts_option="-"
   getopts "acdehmqrst:vw" ts_option
-  if [ "$ts_option" != "-" ] && [ "$ts_option" != "?" ]
-  then
-    case "$ts_option" in
-      (a) TS_FILTER=false ;;
-      (c) TS_COLOR=true ;;
-      (d) TS_DEBUG=true; TS_MODE=verbose ;;
-      (e) TS_REPORT=execute ;;
-      (h) ts_usage
-          exit 0 ;;
-      (m) TS_REPORT=monitor ;;
-      (q) TS_MODE=quiet ;;
-      (r) TS_REMOVE_TMP_DIR=true ;;
-      (s) TS_REPORT=stream; TS_FILTER=false ;;
-      (t) TS_TMP_DIR="$OPTARG" ;;
-      (v) TS_MODE=verbose ;;
-      (w) TS_REPORT=raw ;;
-      (*) ts_usage | head -n 1
-          exit 2 ;;
-    esac
-  else
-    if [ "$(eval printf "%s" "\${$ts_optcur}")" = "--" ]
-    then ts_optcur="$#"
-    fi
-    while [ $OPTIND -le $ts_optcur ]
-    do
-      ts_args="$ts_args \"\${$OPTIND}\""
-      OPTIND=$(($OPTIND + 1))
-    done
-  fi
+  case "$ts_option" in
+    (a) TS_FILTER=false ;;
+    (c) TS_COLOR=true ;;
+    (d) TS_DEBUG=true; TS_MODE=verbose ;;
+    (e) TS_REPORT=execute ;;
+    (h) ts_usage
+        exit 0 ;;
+    (m) TS_REPORT=monitor ;;
+    (q) TS_MODE=quiet ;;
+    (r) TS_REMOVE_TMP_DIR=true ;;
+    (s) TS_REPORT=stream; TS_FILTER=false ;;
+    (t) TS_TMP_DIR="$OPTARG" ;;
+    (v) TS_MODE=verbose ;;
+    (w) TS_REPORT=raw ;;
+    (*) ts_usage | head -n 1
+        exit 2 ;;
+    ('-'|'?')
+      if [ "$(eval printf "%s" "\${$ts_optcur}")" = "--" ]
+        then ts_optcur="$#"
+      fi
+      while [ $OPTIND -le $ts_optcur ]
+      do
+        ts_args="$ts_args \"\${$OPTIND}\""
+        OPTIND=$(($OPTIND + 1))
+      done
+  esac
 done
 eval set -- $ts_args
 
@@ -128,15 +126,16 @@ export ts_awk_opts="${ts_awk_opts:-$(ts_guess_awk_opts)}"
 #   ts_pattern a b c     # => "a|b|c"
 #
 ts_pattern () {
-  if [ 0 -ne $# ]
-  then
+  case 0 in ($#)
+    :
+  ;;(*)
     printf "%s" "$1"
     shift 1
 
     if [ 0 -ne $# ]
     then printf "|%s" "$@"
     fi
-  fi
+  esac
 }
 
 # Prints all functions in a test file starting with 'test_' or the pattern
